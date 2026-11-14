@@ -1,13 +1,13 @@
 "use client";
 import { Pencil, Quote } from "lucide-react";
 import { useState } from "react";
-import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
+import { FIELD_LABELS } from "@/lib/fields";
 import { assessPriority, URGENCY_LABEL } from "@/lib/priority";
 import { act } from "@/lib/store";
 import type { FieldKey, Incident, Priority } from "@/lib/types";
-import { Button, FieldStatusBadge, PanelHeader, PriorityChip, cx, fmtTime } from "../ui";
+import { Button, FieldStatusBadge, PriorityChip, cx, fmtTime } from "../ui";
 
-function FieldRow({ incident, k }: { incident: Incident; k: FieldKey }) {
+export function FieldRow({ incident, k }: { incident: Incident; k: FieldKey }) {
   const f = incident.fields[k];
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -83,7 +83,7 @@ function FieldRow({ incident, k }: { incident: Incident; k: FieldKey }) {
   );
 }
 
-function PriorityBlock({ incident }: { incident: Incident }) {
+export function PriorityBlock({ incident }: { incident: Incident }) {
   const a = assessPriority(incident.category, incident.fields);
   const d = incident.priorityDecision;
   const [overriding, setOverriding] = useState(false);
@@ -153,41 +153,11 @@ function PriorityBlock({ incident }: { incident: Incident }) {
   );
 }
 
-export function IncidentSheet({ incident }: { incident: Incident | null }) {
-  const counts = incident
-    ? Object.values(incident.fields).reduce((acc, f) => ({ ...acc, [f.status]: (acc[f.status] ?? 0) + 1 }), {} as Record<string, number>)
-    : {};
-  return (
-    <section aria-label="Critical incident information" className="flex min-h-0 flex-col border-r border-line bg-panel">
-      <PanelHeader
-        title="Critical incident information"
-        right={incident && (
-          <span className="font-mono text-[11px] text-faint">
-            {counts.confirmed ?? 0} confirmed · {counts.unverified ?? 0} unverified · {counts.unknown ?? 0} unknown
-          </span>
-        )}
-      />
-      {!incident ? (
-        <p className="p-6 text-center text-sm text-faint">Fields fill in automatically as the call is transcribed.</p>
-      ) : (
-        <>
-          <PriorityBlock incident={incident} />
-          <div className="panel-scroll min-h-0 flex-1 overflow-y-auto px-3 pb-4">
-            <div className="grid grid-cols-1 gap-x-6 2xl:grid-cols-2">
-              {SECTIONS.map((sec) => (
-                <div key={sec.title} className="pt-3">
-                  <h3 className="mb-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8fb6f5]">{sec.title}</h3>
-                  {sec.keys.map((k) => <FieldRow key={k} incident={incident} k={k} />)}
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-faint">
-              Unverified values were heard on the call but not confirmed with the caller. Click a value to see the transcript line behind it.
-              Values you edit or confirm are locked and never overwritten by later AI suggestions.
-            </p>
-          </div>
-        </>
-      )}
-    </section>
-  );
-}
+/** Field groups shown in the permanent incident panel, in the order a dispatcher scans them. */
+export const PANEL_SECTIONS: { title: string; keys: FieldKey[] }[] = [
+  { title: "Caller", keys: ["caller_name", "callback", "caller_location", "caller_safe"] },
+  { title: "Patient / victim", keys: ["people_count", "condition", "conscious", "breathing"] },
+  { title: "Scene", keys: ["hazards", "weapons", "suspect", "access", "notes"] },
+  { title: "Location detail", keys: ["building", "address", "floor", "room", "location_details"] },
+  { title: "Incident", keys: ["category", "description"] },
+];

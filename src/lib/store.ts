@@ -8,8 +8,9 @@ import { buildingById, SEED_OFFICERS } from "./campus";
 import { emptyFields, initialQuestions } from "./fields";
 import { scenarioById } from "./scenarios";
 import type {
-  AppState, EventActor, FieldKey, FieldStatus, FieldUpdate, Incident, IncidentEvent, OfficerStatus, Priority,
+  AppState, EventActor, FieldKey, FieldStatus, FieldUpdate, Incident, IncidentEvent, OfficerStatus, Priority, UpdateChange,
 } from "./types";
+import { officerSnapshot } from "./officerComms";
 
 const STORAGE_KEY = "edc:state:v1";
 const CHANNEL = "edc:actions";
@@ -26,6 +27,8 @@ export type Action =
   | { type: "DECLINE_UNIT"; at: number; incidentId: string; officerId: string }
   | { type: "RESET_DECLINES"; at: number; incidentId: string }
   | { type: "ACK_ASSIGNMENT"; at: number; assignmentId: string }
+  | { type: "SEND_OFFICER_UPDATE"; at: number; assignmentId: string; updateId: string; changes: UpdateChange[]; snapshot: Record<string, string | null> }
+  | { type: "ACK_OFFICER_UPDATE"; at: number; updateId: string }
   | { type: "OFFICER_STATUS"; at: number; officerId: string; status: OfficerStatus }
   | { type: "OFFICER_LOCATION"; at: number; officerId: string; location: [number, number]; label: string }
   | { type: "CLOSE_INCIDENT"; at: number; incidentId: string }
@@ -71,6 +74,7 @@ export function seedState(): AppState {
     assignments: [],
     events: [],
     activeIncidentId: null,
+    officerUpdates: [],
   };
 }
 
@@ -174,10 +178,16 @@ function reduceInner(s: AppState, a: Action): AppState {
       if (!off || off.status !== "available" || off.currentIncidentId) {
         return { ...s, events: [...s.events, evt(a.incidentId, a.at, "system", "assignment_rejected", `Assignment of ${off?.callsign ?? a.officerId} rejected: unit is no longer available.`)] };
       }
+      const incForSnap = s.incidents.find((i) => i.id === a.incidentId);
       return {
         ...mapIncident(s, a.incidentId, (i) => ({ ...i, status: "dispatched" })),
         officers: s.officers.map((o) => (o.id === a.officerId ? { ...o, status: "responding", currentIncidentId: a.incidentId, busyWith: null } : o)),
-        assignments: [...s.assignments, { id: a.assignmentId, incidentId: a.incidentId, officerId: a.officerId, status: "active", etaSeconds: a.etaSeconds, approvedAt: a.at, acknowledgedAt: null, clearedAt: null }],
+        assignments: [...s.assignments, {
+          id: a.assignmentId, incidentId: a.incidentId, officerId: a.officerId, status: "active", etaSeconds: a.etaSeconds,
+          approvedAt: a.at, acknowledgedAt: null, clearedAt: null,
+          // Record exactly what the officer received at dispatch, so later changes can be reviewed before sending.
+          sentSnapshot: incForSnap ? officerSnapshot(incForSnap) : {},
+        }],
         events: [...s.events, evt(a.incidentId, a.at, "dispatcher", "dispatch_approved", `Dispatcher approved ${off.callsign} (${off.name}). Simulated ETA ${Math.round(a.etaSeconds / 60)} min. Details sent to officer page.`)],
       };
     }
@@ -204,6 +214,33 @@ function reduceInner(s: AppState, a: Action): AppState {
         ...s,
         assignments: s.assignments.map((x) => (x.id === asg.id ? { ...x, acknowledgedAt: a.at } : x)),
         events: [...s.events, evt(asg.incidentId, a.at, "officer", "officer_ack", `${off?.callsign ?? asg.officerId} acknowledged the assignment.`)],
+      };
+    }
+
+    case "SEND_OFFICER_UPDATE": {
+      const asg = s.assignments.find((x) => x.id === a.assignmentId);
+      if (!asg || asg.status !== "active" || a.changes.length === 0) return s;
+      const off = s.officers.find((o) => o.id === asg.officerId);
+      const summary = a.changes.map((c) => `${c.label}: ${c.to}`).join("; ");
+      return {
+        ...s,
+        assignments: s.assignments.map((x) => (x.id === asg.id ? { ...x, sentSnapshot: a.snapshot } : x)),
+        officerUpdates: [
+          ...(s.officerUpdates ?? []),
+          { id: a.updateId, incidentId: asg.incidentId, assignmentId: asg.id, officerId: asg.officerId, changes: a.changes, status: "sent", sentAt: a.at, acknowledgedAt: null },
+        ],
+        events: [...s.events, evt(asg.incidentId, a.at, "dispatcher", "officer_update_sent", `Dispatcher sent update to ${off?.callsign ?? asg.officerId}: ${summary}.`)],
+      };
+    }
+
+    case "ACK_OFFICER_UPDATE": {
+      const upd = (s.officerUpdates ?? []).find((u) => u.id === a.updateId);
+      if (!upd || upd.status === "acknowledged") return s;
+      const off = s.officers.find((o) => o.id === upd.officerId);
+      return {
+        ...s,
+        officerUpdates: (s.officerUpdates ?? []).map((u) => (u.id === upd.id ? { ...u, status: "acknowledged", acknowledgedAt: a.at } : u)),
+        events: [...s.events, evt(upd.incidentId, a.at, "officer", "officer_update_ack", `${off?.callsign ?? upd.officerId} acknowledged the update (${upd.changes.map((c) => c.label).join(", ")}).`)],
       };
     }
 

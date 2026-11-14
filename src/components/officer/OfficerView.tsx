@@ -42,6 +42,8 @@ export function OfficerView() {
   const incident = officer.currentIncidentId ? state.incidents.find((i) => i.id === officer.currentIncidentId) ?? null : null;
   const assignment = incident ? state.assignments.find((a) => a.incidentId === incident.id && a.officerId === officer.id && a.status === "active") : null;
   const building = incident ? buildingById(incident.buildingId) : null;
+  const myUpdates = assignment ? (state.officerUpdates ?? []).filter((u) => u.assignmentId === assignment.id) : [];
+  const unread = myUpdates.filter((u) => u.status === "sent");
 
   function setStatus(status: OfficerStatus) {
     act({ type: "OFFICER_STATUS", at: stamp(), officerId: officer!.id, status });
@@ -87,7 +89,7 @@ export function OfficerView() {
               {incident.priorityDecision && <PriorityChip p={incident.priorityDecision.priority} />}
             </div>
             <p className="mt-1 text-lg font-semibold leading-snug">{incident.title}</p>
-            <p className="mt-1 flex items-start gap-1.5 text-sm"><MapPin size={16} className="mt-0.5 shrink-0" /> {building?.name}{incident.fields.floor.value ? `, floor ${incident.fields.floor.value}` : ""}{incident.fields.room.value ? `, ${incident.fields.room.value}` : ""}</p>
+            <p className="mt-1 flex items-start gap-1.5 text-sm"><MapPin size={16} className="mt-0.5 shrink-0" /> {building?.name}{incident.fields.floor.value ? `, ${/floor/i.test(incident.fields.floor.value) ? "" : "floor "}${incident.fields.floor.value}` : ""}{incident.fields.room.value ? `, ${incident.fields.room.value}` : ""}</p>
             {assignment && <p className="mt-1 text-xs text-sub">Assigned {fmtTime(assignment.approvedAt)} · simulated ETA {Math.round(assignment.etaSeconds / 60)} min</p>}
             {assignment && !assignment.acknowledgedAt && (
               <button
@@ -97,6 +99,29 @@ export function OfficerView() {
               >
                 Acknowledge assignment
               </button>
+            )}
+            {unread.map((u) => (
+              <div key={u.id} role="alert" className="mt-3 border-2 border-warn bg-warn/10 p-3">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#f2b67a]">Update from dispatch · {fmtTime(u.sentAt)}</p>
+                <ul className="mt-1 flex flex-col gap-1">
+                  {u.changes.map((c) => (
+                    <li key={c.key} className="text-[15px] leading-snug">
+                      <span className="font-semibold">{c.label}:</span> {c.to}
+                      {c.from && <span className="ml-1 text-xs text-faint line-through">{c.from}</span>}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={() => act({ type: "ACK_OFFICER_UPDATE", at: stamp(), updateId: u.id })}
+                  className="mt-2 h-12 w-full rounded-[3px] border-2 border-warn bg-warn text-base font-semibold text-bg"
+                >
+                  Acknowledge update
+                </button>
+              </div>
+            ))}
+            {myUpdates.length > unread.length && (
+              <p className="mt-2 text-xs text-sub">{myUpdates.length - unread.length} earlier update{myUpdates.length - unread.length > 1 ? "s" : ""} acknowledged.</p>
             )}
             <a
               className="mt-2 inline-flex h-10 items-center gap-1.5 rounded-[3px] border border-line2 bg-panel2 px-3 text-sm"

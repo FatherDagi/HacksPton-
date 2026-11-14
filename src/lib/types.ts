@@ -156,6 +156,30 @@ export interface DispatchAssignment {
   approvedAt: number;
   acknowledgedAt: number | null;
   clearedAt: number | null;
+  /** What the officer has been sent so far (field key / "priority" -> value). Optional for older saved state. */
+  sentSnapshot?: Record<string, string | null>;
+}
+
+/** One change between what the officer was last sent and the current incident record. */
+export interface UpdateChange {
+  key: string;
+  label: string;
+  from: string | null;
+  to: string | null;
+}
+
+export type OfficerUpdateStatus = "sent" | "acknowledged";
+
+/** A dispatcher-approved update pushed to an assigned officer. */
+export interface OfficerUpdate {
+  id: string;
+  incidentId: string;
+  assignmentId: string;
+  officerId: string;
+  changes: UpdateChange[];
+  status: OfficerUpdateStatus;
+  sentAt: number;
+  acknowledgedAt: number | null;
 }
 
 export type EventActor = "system" | "demo" | "ai" | "dispatcher" | "officer";
@@ -201,4 +225,6 @@ export interface AppState {
   assignments: DispatchAssignment[];
   events: IncidentEvent[];
   activeIncidentId: string | null;
+  /** Optional so state saved before this feature still loads. */
+  officerUpdates?: OfficerUpdate[];
 }

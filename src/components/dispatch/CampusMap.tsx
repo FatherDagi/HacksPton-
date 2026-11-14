@@ -2,7 +2,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useMemo } from "react";
-import { CircleMarker, MapContainer, Marker, Polyline, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Polyline, Popup, Rectangle, TileLayer, Tooltip, useMap, ZoomControl } from "react-leaflet";
 import { BUILDINGS, CAMPUS_CENTER, CLOSURES } from "@/lib/campus";
 import type { Incident, LatLng, Officer } from "@/lib/types";
 import { OFFICER_STATUS_COLOR, OFFICER_STATUS_LABEL } from "../ui";
@@ -65,7 +65,9 @@ export default function CampusMap({
   const target = incident ? incident.location : null;
 
   return (
-    <MapContainer center={CAMPUS_CENTER} zoom={16} minZoom={15} maxZoom={19} className="dark-tiles h-full w-full" maxBounds={[[40.3375, -74.6700], [40.3555, -74.6400]]}>
+    <MapContainer center={CAMPUS_CENTER} zoom={16} minZoom={15} maxZoom={19} zoomControl={false} className="dark-tiles h-full w-full" maxBounds={[[40.3375, -74.6700], [40.3555, -74.6400]]}>
+      {/* Top-right so the left drawer never covers it */}
+      <ZoomControl position="topright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"

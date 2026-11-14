@@ -9,10 +9,10 @@ import { scenarioById, SCENARIOS } from "@/lib/scenarios";
 import { act, newId, useAppState } from "@/lib/store";
 import type { Incident } from "@/lib/types";
 import { Button, SimBanner, cx, fmtClock } from "../ui";
-import { CallPanel } from "./CallPanel";
-import { IncidentSheet } from "./IncidentSheet";
-import { UnitsPanel } from "./UnitsPanel";
 import type { MapRoute } from "./CampusMap";
+import { ActivityDrawer, QuestionsDrawer, TranscriptDrawer } from "./Drawers";
+import { IncidentPanel } from "./IncidentPanel";
+import { MapDrawer, MapRail, type DrawerTab } from "./MapRail";
 
 const CampusMap = dynamic(() => import("./CampusMap"), {
   ssr: false,
@@ -43,6 +43,27 @@ export function Workstation() {
   const [now, setNow] = useState<number | null>(null);
   const seqRef = useRef(0);
   const appliedSeqRef = useRef(0);
+
+  // Left rail drawers: all closed by default. Counts seen when a drawer was last open drive the "new" badges.
+  const [drawer, setDrawer] = useState<DrawerTab | null>(null);
+  const [seen, setSeen] = useState({ transcript: 0, activity: 0 });
+  const transcriptCount = incident?.transcript.length ?? 0;
+  const incidentEvents = useMemo(
+    () => (incident ? state.events.filter((e) => e.incidentId === incident.id).sort((a, b) => a.at - b.at) : []),
+    [incident, state.events],
+  );
+  const markSeen = useCallback(() => setSeen({ transcript: transcriptCount, activity: incidentEvents.length }), [transcriptCount, incidentEvents.length]);
+  const toggleDrawer = useCallback(
+    (t: DrawerTab) => {
+      markSeen();
+      setDrawer((cur) => (cur === t ? null : t));
+    },
+    [markSeen],
+  );
+  const closeDrawer = useCallback(() => {
+    markSeen();
+    setDrawer(null);
+  }, [markSeen]);
 
   // Is Gemini configured on the server?
   useEffect(() => {
@@ -145,21 +166,26 @@ export function Workstation() {
   const extractionLabel =
     mode === "gemini" ? (aiBusy ? "Gemini extracting…" : "Gemini · AI-generated") : "Prerecorded demo extraction (not AI)";
 
+  const clock = !incident
+    ? "--:--"
+    : live && now
+      ? fmtClock(now - incident.callStartedAt!)
+      : incident.callEndedAt && incident.callStartedAt
+        ? fmtClock(incident.callEndedAt - incident.callStartedAt)
+        : "--:--";
+  const assignedOfficer = assignment ? state.officers.find((o) => o.id === assignment.officerId) ?? null : null;
+  const officerUpdates = assignment ? (state.officerUpdates ?? []).filter((u) => u.assignmentId === assignment.id) : [];
+  const openQuestions = incident
+    ? incident.questions.filter((q) => q.state === "open" && incident.fields[q.fieldKey].status === "unknown").length
+    : 0;
+  const activeIncident = incident && incident.status !== "closed" ? incident : null;
+
   return (
     <div className="flex h-screen min-h-[640px] flex-col">
       {/* Top bar */}
       <header className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel px-4 py-2">
         <span className="text-[15px] font-bold tracking-tight">Dispatch Copilot</span>
         <SimBanner />
-        {incident && (
-          <span className="flex items-center gap-2 text-[13px]">
-            <span className="font-mono text-sub">{incident.number}</span>
-            <span className={cx("font-mono font-semibold", live ? "text-[#ffb3ad]" : "text-sub")}>
-              {live && now ? fmtClock(now - incident.callStartedAt!) : incident.callEndedAt && incident.callStartedAt ? fmtClock(incident.callEndedAt - incident.callStartedAt) : "--:--"}
-            </span>
-            <span className="rounded-[2px] border border-line2 px-1.5 text-[11px] uppercase tracking-wide text-sub">{incident.status.replace("_", " ")}</span>
-          </span>
-        )}
         <span className={cx("rounded-[2px] border px-1.5 py-0.5 text-[11px]", mode === "gemini" ? "border-accent/50 text-[#8fb6f5]" : "border-line2 text-faint")}>
           {geminiReady === null ? "Checking AI…" : mode === "gemini" ? "AI: Gemini connected" : geminiReady ? "AI: fallback (prerecorded)" : "AI: not configured (prerecorded)"}
         </span>
@@ -195,16 +221,45 @@ export function Workstation() {
         </div>
       </header>
 
-      {/* Three columns: call 25% | incident info 42% | map + units 33% */}
-      <main className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[25fr_42fr_33fr]">
-        <CallPanel incident={incident} live={live} extractionLabel={extractionLabel} geminiQuestions={mode === "gemini" ? geminiQuestions : []} />
-        <IncidentSheet incident={incident} />
-        <section aria-label="Map and units" className="flex min-h-0 flex-col bg-panel">
-          <div className="relative h-[42%] min-h-[240px] shrink-0 border-b border-line">
-            <CampusMap officers={state.officers} incident={incident && incident.status !== "closed" ? incident : null} routes={routes} highlightOfficerId={highlightId} />
+      {/* Map-first: rail + map (~67%) | permanent incident panel (~33%) */}
+      <main className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,33%)]">
+        <div className="flex min-h-[420px] min-w-0 flex-1 lg:min-h-0">
+          <MapRail
+            active={drawer}
+            onToggle={toggleDrawer}
+            badges={{
+              transcript: drawer === "transcript" ? 0 : Math.max(0, transcriptCount - seen.transcript),
+              questions: openQuestions,
+              activity: drawer === "activity" ? 0 : Math.max(0, incidentEvents.length - seen.activity),
+            }}
+          />
+          {/* The drawer overlays the map; the map never resizes or remounts. */}
+          <div className="relative min-w-0 flex-1">
+            <CampusMap officers={state.officers} incident={activeIncident} routes={routes} highlightOfficerId={highlightId} />
+            <MapDrawer tab={drawer} onClose={closeDrawer}>
+              {{
+                transcript: <TranscriptDrawer incident={incident} live={live} />,
+                questions: <QuestionsDrawer incident={activeIncident} sourceLabel={extractionLabel} geminiQuestions={mode === "gemini" ? geminiQuestions : []} />,
+                activity: <ActivityDrawer events={incidentEvents} />,
+              }}
+            </MapDrawer>
           </div>
-          <UnitsPanel incident={incident && incident.status !== "closed" ? incident : null} officers={state.officers} recs={recs} assignment={assignment} />
-        </section>
+        </div>
+        <IncidentPanel
+          incident={incident}
+          live={live}
+          clock={clock}
+          recs={recs}
+          assignment={assignment}
+          assignedOfficer={assignedOfficer}
+          officers={state.officers}
+          officerUpdates={officerUpdates}
+          highlightId={highlightId}
+          onOpenQuestions={() => {
+            markSeen();
+            setDrawer("questions");
+          }}
+        />
       </main>
     </div>
   );

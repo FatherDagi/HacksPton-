@@ -19,7 +19,7 @@ Open http://localhost:3000/dispatch, pick a scenario, and press **Run demo scena
 | Route | What it is |
 | --- | --- |
 | `/console` | **Combined console** (same store and Gemini extraction): real campus map (light/dark streets, 2025 satellite, 2020 NJ leaf-off, 3D), real road/footpath routes, team recommendation (e.g. 2 officers + EMS for a weapon), live re-grade P2→P1 mid-call, officers travel their routes, AI and dispatcher log, light/dark mode, keyboard shortcuts (Y send · N swap · E next line · C confirm · 1–4 override · T theme), phone layout |
-| `/dispatch` | Dispatcher workstation: live transcript + "Ask next" · critical incident information · map + units |
+| `/dispatch` | Map-first CAD workstation: campus map with a left rail (Transcript · AI Questions · Activity Log drawers that slide over the map) and a permanent incident panel (priority, missing info, recommended unit with approval, officer communication with dispatcher-approved updates and officer acknowledgment) |
 | `/officer` | Mobile responder page: assignment, Acknowledge, Available / Busy / Responding / On scene |
 | `/incidents` | Incident history |
 | `/incidents/[id]` | Incident record, transcript and full audit timeline, Google Sheets export |

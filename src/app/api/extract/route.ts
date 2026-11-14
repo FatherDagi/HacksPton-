@@ -4,6 +4,11 @@ import { FIELD_LABELS } from "@/lib/fields";
 import { ExtractRequest, GeminiExtraction, GEMINI_RESPONSE_SCHEMA, type ExtractError, type ExtractResponse } from "@/lib/extraction";
 
 const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Tried in order when the preferred model is overloaded or unavailable.
+// Lite models are much less congested during busy periods and fast enough for extraction.
+const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"];
+const PRIMARY_TIMEOUT_MS = 8_000;
+const FALLBACK_TIMEOUT_MS = 12_000;
 
 const SYSTEM = `You help a campus emergency dispatcher by extracting facts from a SIMULATED emergency call transcript.
 Rules:
@@ -43,20 +48,32 @@ Transcript so far:
 ${transcriptText}`;
 
   let raw: string | undefined;
-  try {
-    const ai = new GoogleGenAI({ apiKey });
-    const interaction = await ai.interactions.create({
-      model: MODEL,
-      system_instruction: SYSTEM,
-      input,
-      response_format: { type: "text", mime_type: "application/json", schema: GEMINI_RESPONSE_SCHEMA },
-      store: false,
-    });
-    raw = (interaction as { output_text?: string }).output_text;
-  } catch (err) {
-    // Log without echoing secrets.
-    console.error("[extract] Gemini request failed:", err instanceof Error ? err.message.slice(0, 300) : "unknown error");
-    return json({ ok: false, error: "upstream_error", message: "Gemini request failed." }, 502);
+  let usedModel = MODEL;
+  const ai = new GoogleGenAI({ apiKey });
+  const models = [MODEL, ...FALLBACK_MODELS.filter((m) => m !== MODEL)];
+  for (const model of models) {
+    try {
+      const interaction = await ai.interactions.create(
+        {
+          model,
+          system_instruction: SYSTEM,
+          input,
+          response_format: { type: "text", mime_type: "application/json", schema: GEMINI_RESPONSE_SCHEMA },
+          store: false,
+        },
+        // Fail fast instead of the SDK's long default retry loop; we fall back to the next model.
+        { timeout: model === MODEL ? PRIMARY_TIMEOUT_MS : FALLBACK_TIMEOUT_MS, maxRetries: 0 },
+      );
+      raw = (interaction as { output_text?: string }).output_text;
+      usedModel = model;
+      break;
+    } catch (err) {
+      // Log without echoing secrets.
+      console.error(`[extract] ${model} failed:`, err instanceof Error ? err.message.replace(/AQ\.[\w-]+|AIza[\w-]+/g, "[key]").slice(0, 200) : "unknown error");
+    }
+  }
+  if (raw === undefined) {
+    return json({ ok: false, error: "upstream_error", message: "Gemini is unavailable right now." }, 502);
   }
 
   let parsed: GeminiExtraction;
@@ -79,7 +96,7 @@ ${transcriptText}`;
 
   return json({
     ok: true,
-    model: MODEL,
+    model: usedModel,
     updates,
     missingFields: parsed.missingFields,
     suggestedQuestions: parsed.suggestedQuestions,

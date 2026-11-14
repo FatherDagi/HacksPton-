@@ -238,12 +238,20 @@ function reduceInner(s: AppState, a: Action): AppState {
     case "OFFICER_LOCATION":
       return { ...s, officers: s.officers.map((o) => (o.id === a.officerId ? { ...o, location: a.location, locationLabel: a.label, lastLocationAt: a.at } : o)) };
 
-    case "CLOSE_INCIDENT":
+    case "CLOSE_INCIDENT": {
+      // Closing an incident clears its assignments and frees the units.
+      const freed = s.officers.filter((o) => o.currentIncidentId === a.incidentId);
       return {
         ...mapIncident(s, a.incidentId, (i) => ({ ...i, status: "closed", closedAt: a.at, callEndedAt: i.callEndedAt ?? a.at })),
+        officers: s.officers.map((o) => (o.currentIncidentId === a.incidentId ? { ...o, status: "available", currentIncidentId: null, busyWith: null } : o)),
+        assignments: s.assignments.map((x) => (x.incidentId === a.incidentId && x.status === "active" ? { ...x, status: "cleared", clearedAt: a.at } : x)),
         activeIncidentId: s.activeIncidentId === a.incidentId ? null : s.activeIncidentId,
-        events: [...s.events, evt(a.incidentId, a.at, "dispatcher", "incident_closed", "Incident closed.")],
+        events: [
+          ...s.events,
+          evt(a.incidentId, a.at, "dispatcher", "incident_closed", `Incident closed.${freed.length ? ` Released ${freed.map((o) => o.callsign).join(", ")}.` : ""}`),
+        ],
       };
+    }
 
     case "LOG":
       return { ...s, events: [...s.events, evt(a.incidentId, a.at, a.actor, a.eventType, a.message)] };

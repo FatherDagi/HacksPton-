@@ -1,24 +1,16 @@
 "use client";
-// Officer communication for the combined console: what each sent unit knows, what changed since,
-// and dispatcher-approved updates. Nothing is sent automatically.
-import { useState } from "react";
-import { officerSnapshot, pendingChanges, SAFETY_KEYS } from "@/lib/officerComms";
-import { act, newId, stamp } from "@/lib/store";
-import type { DispatchAssignment, Incident, Officer, OfficerUpdate } from "@/lib/types";
+// Officer communication for the combined console: what each sent unit has been told.
+// New critical details are pushed to the unit's patrol terminal automatically (see autoSendUpdates
+// in the reducer); the officer acknowledges each update.
+import { SAFETY_KEYS } from "@/lib/officerComms";
+import type { DispatchAssignment, Officer, OfficerUpdate } from "@/lib/types";
 import { fmtTime } from "../ui";
 
 const STATUS: Record<Officer["status"], string> = { available: "Available", busy: "Busy", responding: "Responding", on_scene: "On scene" };
 
-function UnitComms({ incident, assignment, officer, updates }: { incident: Incident; assignment: DispatchAssignment; officer: Officer; updates: OfficerUpdate[] }) {
-  const [confirming, setConfirming] = useState(false);
-  const changes = pendingChanges(incident, assignment.sentSnapshot);
-  const safety = changes.some((c) => SAFETY_KEYS.has(c.key));
-  const last = updates.at(-1) ?? null;
-
-  const send = () => {
-    act({ type: "SEND_OFFICER_UPDATE", at: stamp(), assignmentId: assignment.id, updateId: newId("upd"), changes, snapshot: officerSnapshot(incident) });
-    setConfirming(false);
-  };
+function UnitComms({ assignment, officer, updates }: { assignment: DispatchAssignment; officer: Officer; updates: OfficerUpdate[] }) {
+  const unread = updates.filter((u) => u.status === "sent").length;
+  const recent = [...updates].reverse().slice(0, 4);
 
   return (
     <div className="dc-comms" aria-label={`Communication with ${officer.callsign}`}>
@@ -29,51 +21,44 @@ function UnitComms({ incident, assignment, officer, updates }: { incident: Incid
         <dt>Dispatched</dt><dd>{fmtTime(assignment.approvedAt)}</dd>
         <dt>Acknowledged</dt>
         <dd>{assignment.acknowledgedAt ? <span className="ok">Yes, {fmtTime(assignment.acknowledgedAt)}</span> : <span className="wait">Awaiting officer</span>}</dd>
-        <dt>Last update sent</dt>
+        <dt>Updates sent</dt>
         <dd>
-          {last ? (
-            <>{fmtTime(last.sentAt)} {last.status === "acknowledged" ? <span className="ok">· acknowledged</span> : <span className="wait">· not yet acknowledged</span>}</>
-          ) : (
-            <span style={{ color: "var(--faint)" }}>None since dispatch</span>
-          )}
+          {updates.length === 0 ? <span style={{ color: "var(--faint)" }}>None since dispatch</span>
+            : unread ? <span className="wait">{updates.length} sent · {unread} not yet acknowledged</span>
+            : <span className="ok">{updates.length} sent · all acknowledged</span>}
         </dd>
       </dl>
 
-      <div className={`dc-pending${changes.length ? (safety ? " has safety" : " has") : ""}`}>
-        <div className="dc-pending-head">
-          <span>Pending updates{changes.length ? ` (${changes.length})` : ""}</span>
-          {changes.length > 0 && !confirming && (
-            <button type="button" className="dc-btn sm primary" onClick={() => setConfirming(true)}>Review &amp; send</button>
-          )}
-        </div>
-        {changes.length === 0 ? (
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--faint)" }}>The officer has the latest details.</p>
+      <div className={`dc-pending${unread ? " has" : ""}`}>
+        <div className="dc-pending-head"><span>Live updates to terminal</span><span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>sent automatically</span></div>
+        {recent.length === 0 ? (
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--faint)" }}>New critical details are sent to {officer.callsign} as soon as they come in.</p>
         ) : (
           <ul>
-            {changes.map((c) => (
-              <li key={c.key}>
-                <span className={`k${SAFETY_KEYS.has(c.key) ? " safe" : ""}`}>{c.label}:</span> {c.from && <s>{c.from}</s>}{c.to}
+            {recent.map((u) => (
+              <li key={u.id}>
+                <span style={{ color: "var(--faint)" }}>{fmtTime(u.sentAt)}</span>{" "}
+                {u.changes.map((c, i) => (
+                  <span key={c.key}>
+                    {i > 0 && "; "}
+                    <span className={`k${SAFETY_KEYS.has(c.key) ? " safe" : ""}`}>{c.label}:</span> {c.to}
+                  </span>
+                ))}{" "}
+                <span className={u.status === "acknowledged" ? "ok" : "wait"}>· {u.status === "acknowledged" ? "acknowledged" : "unread"}</span>
               </li>
             ))}
           </ul>
-        )}
-        {confirming && (
-          <div className="dc-confirm">
-            <span>Send {changes.length} change{changes.length > 1 ? "s" : ""} to {officer.callsign}&apos;s terminal?</span>
-            <button type="button" className="dc-btn sm primary" onClick={send}>Yes, send</button>
-            <button type="button" className="dc-btn sm ghost" onClick={() => setConfirming(false)}>Cancel</button>
-          </div>
         )}
       </div>
     </div>
   );
 }
 
-export function OfficerUpdates({ incident, assigned, updates }: { incident: Incident; assigned: { a: DispatchAssignment; o: Officer }[]; updates: OfficerUpdate[] }) {
+export function OfficerUpdates({ assigned, updates }: { assigned: { a: DispatchAssignment; o: Officer }[]; updates: OfficerUpdate[] }) {
   return (
     <>
       {assigned.map(({ a, o }) => (
-        <UnitComms key={a.id} incident={incident} assignment={a} officer={o} updates={updates.filter((u) => u.assignmentId === a.id)} />
+        <UnitComms key={a.id} assignment={a} officer={o} updates={updates.filter((u) => u.assignmentId === a.id)} />
       ))}
     </>
   );

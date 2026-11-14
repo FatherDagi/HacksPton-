@@ -38,6 +38,32 @@ export function officerSnapshot(incident: Incident): Record<string, string | nul
   return snap;
 }
 
+const NUMBER_WORDS: Record<string, string> = {
+  one: "1", first: "1", two: "2", second: "2", three: "3", third: "3", four: "4", fourth: "4", five: "5", fifth: "5",
+  six: "6", sixth: "6", seven: "7", seventh: "7", eight: "8", eighth: "8", nine: "9", ninth: "9", ten: "10", tenth: "10",
+};
+const FILLER = new Set(["the", "a", "an", "of", "in", "at", "on", "is", "and", "floor", "room", "right", "just"]);
+
+/** Meaningful words of a value: lower-case, numbers normalized ("third", "3rd" -> "3"), filler dropped. */
+function tokens(v: string | null): Set<string> {
+  const out = new Set<string>();
+  for (const raw of (v ?? "").toLowerCase().split(/[^a-z0-9]+/)) {
+    if (!raw) continue;
+    const w = NUMBER_WORDS[raw] ?? raw.replace(/^(\d+)(st|nd|rd|th)$/, "$1");
+    if (!FILLER.has(w)) out.add(w);
+  }
+  return out;
+}
+
+/** True when the new value says nothing the officer hasn't been told (AI re-wording the same fact). */
+function addsNothing(from: string | null, to: string | null): boolean {
+  if (!from) return false;
+  const was = tokens(from);
+  const now = tokens(to);
+  for (const w of now) if (!was.has(w)) return false;
+  return true;
+}
+
 /** Differences between the last snapshot sent to the officer and the incident now. */
 export function pendingChanges(incident: Incident, sent: Record<string, string | null> | undefined): UpdateChange[] {
   if (!sent) return [];
@@ -48,7 +74,7 @@ export function pendingChanges(incident: Incident, sent: Record<string, string |
     const to = now[key] ?? null;
     const norm = (v: string | null) => (v ?? "").trim().replace(/\s+/g, " ").toLowerCase();
     // Ignore case/spacing-only rewrites (common when the AI re-extracts the same fact).
-    if (norm(from) !== norm(to) && to !== null) {
+    if (norm(from) !== norm(to) && to !== null && !addsNothing(from, to)) {
       changes.push({ key, label: key === "priority" ? "Priority" : FIELD_LABELS[key as FieldKey], from, to });
     }
   }

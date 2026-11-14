@@ -560,7 +560,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
             <>
               <PriorityBlock incident={open} proposed={assessment.proposed} urgency={URGENCY_LABEL[assessment.urgency]} reasons={assessment.reasons}
                 override={override} setOverride={setOverride} />
-              {dispatched && <OfficerUpdates incident={open} assigned={assigned} updates={state.officerUpdates ?? []} />}
+              {dispatched && <OfficerUpdates assigned={assigned} updates={state.officerUpdates ?? []} />}
               <Fields incident={open} />
             </>
           ) : (

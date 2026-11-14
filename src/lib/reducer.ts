@@ -7,7 +7,7 @@ import type {
   AppState, EventActor, FieldKey, FieldStatus, FieldUpdate, Incident, IncidentCategory, IncidentEvent, OfficerStatus, Priority,
   TranscriptSegment, UpdateChange,
 } from "./types";
-import { officerSnapshot } from "./officerComms";
+import { officerSnapshot, pendingChanges } from "./officerComms";
 
 export type Action =
   | { type: "START_CALL"; at: number; incidentId: string; number: string; scenarioId: string }
@@ -81,8 +81,40 @@ function mapIncident(s: AppState, id: string, fn: (i: Incident) => Incident): Ap
 }
 
 export function reduce(s: AppState, a: Action): AppState {
-  const next = reduceInner(s, a);
+  let next = reduceInner(s, a);
+  if (next !== s && "incidentId" in a && INCIDENT_DETAIL_ACTIONS.has(a.type)) next = autoSendUpdates(next, a.incidentId, a.at);
   return next === s ? s : { ...next, rev: s.rev + 1 };
+}
+
+/** Actions that can change what a responding officer needs to know. */
+const INCIDENT_DETAIL_ACTIONS = new Set<Action["type"]>(["APPLY_AI_UPDATES", "EDIT_FIELD", "DECIDE_PRIORITY", "SET_CATEGORY", "SET_LOCATION"]);
+
+/**
+ * Push new critical details to every unit already sent to this incident, straight to its patrol
+ * terminal. Deterministic (ids come from the action time), so every laptop computes the same result.
+ * The officer still acknowledges each update.
+ */
+function autoSendUpdates(s: AppState, incidentId: string, at: number): AppState {
+  const inc = s.incidents.find((i) => i.id === incidentId);
+  if (!inc || inc.status === "closed") return s;
+  let out = s;
+  for (const asg of s.assignments) {
+    if (asg.incidentId !== incidentId || asg.status !== "active") continue;
+    const changes = pendingChanges(inc, asg.sentSnapshot);
+    if (!changes.length) continue;
+    const off = out.officers.find((o) => o.id === asg.officerId);
+    out = {
+      ...out,
+      assignments: out.assignments.map((x) => (x.id === asg.id ? { ...x, sentSnapshot: officerSnapshot(inc) } : x)),
+      officerUpdates: [
+        ...(out.officerUpdates ?? []),
+        { id: `upd-${at}-${asg.id}`, incidentId, assignmentId: asg.id, officerId: asg.officerId, changes, status: "sent", sentAt: at, acknowledgedAt: null },
+      ],
+      events: [...out.events, evt(incidentId, at, "system", "officer_update_sent",
+        `Sent to ${off?.callsign ?? asg.officerId} automatically: ${changes.map((c) => `${c.label}: ${c.to}`).join("; ")}.`)],
+    };
+  }
+  return out;
 }
 
 function reduceInner(s: AppState, a: Action): AppState {

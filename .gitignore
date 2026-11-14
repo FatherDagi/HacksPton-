@@ -32,3 +32,6 @@ yarn-error.log*
 .DS_Store
 .vscode/
 .idea/
+
+# Local tool settings
+.claude/

@@ -140,6 +140,119 @@ export const SCENARIOS: Scenario[] = [
       },
     ],
   },
+  // Added for the /console page: one call per danger level, including one that escalates mid-call.
+  {
+    id: "traffic-washington",
+    title: "Traffic: cyclist hit on Washington Rd (escalates)",
+    category: "police",
+    buildingId: "lewis",
+    segments: [
+      { id: "t1", t: 0, speaker: "dispatcher", text: "Public Safety, where is your emergency?" },
+      {
+        id: "t2", t: 3, speaker: "caller", text: "A car just hit a guy on a bike on Washington Road, right by Lewis Library.",
+        highlight: "A car just hit a guy on a bike",
+        updates: [
+          { key: "category", value: "Police (traffic)", status: "unverified" },
+          { key: "description", value: "Car vs. bicycle collision", status: "unverified" },
+          { key: "building", value: "Lewis Library", status: "unverified" },
+          { key: "address", value: "Washington Rd", status: "unverified" },
+        ],
+      },
+      { id: "t3", t: 9, speaker: "dispatcher", text: "Is he awake? Is he breathing?" },
+      {
+        id: "t4", t: 12, speaker: "caller", text: "He's talking, but he says his leg hurts and he can't stand up.",
+        highlight: "he can't stand up",
+        updates: [
+          { key: "conscious", value: "Yes, talking", status: "unverified" },
+          { key: "breathing", value: "Yes", status: "unverified" },
+          { key: "condition", value: "Leg injury, can't stand", status: "unverified" },
+          { key: "people_count", value: "1 injured cyclist", status: "unverified" },
+        ],
+      },
+      { id: "t5", t: 19, speaker: "dispatcher", text: "Is he still in the road?" },
+      {
+        id: "t6", t: 22, speaker: "caller", text: "Half on the road. Cars are going around him. The driver stopped.",
+        highlight: "Cars are going around him",
+        updates: [
+          { key: "hazards", value: "Live traffic around patient", status: "unverified" },
+          { key: "caller_safe", value: "Yes, on the sidewalk", status: "unverified" },
+        ],
+      },
+      { id: "t7", t: 29, speaker: "dispatcher", text: "Stay on the sidewalk. Help is coming." },
+      {
+        id: "t8", t: 33, speaker: "caller", text: "Wait, the driver is out of his car, he's yelling at the guy and he grabbed a tire iron.",
+        highlight: "he grabbed a tire iron",
+        updates: [
+          { key: "weapons", value: "Tire iron (driver)", status: "unverified" },
+          { key: "suspect", value: "Driver, out of car, yelling", status: "unverified" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "theft-firestone",
+    title: "Theft: bike being stolen at Firestone",
+    category: "police",
+    buildingId: "firestone",
+    segments: [
+      { id: "b1", t: 0, speaker: "dispatcher", text: "Public Safety, how can I help?" },
+      {
+        id: "b2", t: 3, speaker: "caller", text: "Someone's stealing a bike outside Firestone. He's cutting the lock right now.",
+        highlight: "cutting the lock right now",
+        updates: [
+          { key: "category", value: "Police (theft)", status: "unverified" },
+          { key: "description", value: "Bike theft in progress", status: "unverified" },
+          { key: "building", value: "Firestone Library", status: "unverified" },
+          { key: "location_details", value: "Bike racks outside", status: "unverified" },
+        ],
+      },
+      { id: "b3", t: 9, speaker: "dispatcher", text: "Do you see a weapon?" },
+      {
+        id: "b4", t: 12, speaker: "caller", text: "No weapon, just bolt cutters. Gray hoodie, backpack.",
+        highlight: "No weapon, just bolt cutters",
+        updates: [
+          { key: "weapons", value: "None (bolt cutters only)", status: "unverified" },
+          { key: "suspect", value: "Gray hoodie, backpack, bolt cutters", status: "unverified" },
+        ],
+      },
+      { id: "b5", t: 19, speaker: "dispatcher", text: "Please don't approach him. Which way would he leave?" },
+      {
+        id: "b6", t: 23, speaker: "caller", text: "Probably toward Nassau Street. I'm inside the library, I'm fine.",
+        highlight: "toward Nassau Street",
+        updates: [
+          { key: "notes", value: "Likely leaving toward Nassau St", status: "unverified" },
+          { key: "caller_safe", value: "Yes, inside the library", status: "unverified" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "lockout-whitman",
+    title: "Service: student locked out at Whitman",
+    category: "other",
+    buildingId: "whitman",
+    segments: [
+      { id: "l1", t: 0, speaker: "dispatcher", text: "Public Safety, how can I help?" },
+      {
+        id: "l2", t: 3, speaker: "caller", text: "Hi, I locked myself out of my room in Whitman and my ID is inside.",
+        highlight: "locked myself out",
+        updates: [
+          { key: "category", value: "Service request", status: "unverified" },
+          { key: "description", value: "Student locked out of room", status: "unverified" },
+          { key: "building", value: "Whitman College", status: "unverified" },
+        ],
+      },
+      { id: "l3", t: 9, speaker: "dispatcher", text: "Are you safe? Are you inside the building?" },
+      {
+        id: "l4", t: 12, speaker: "caller", text: "Yeah, I'm in the hallway on the second floor, I'm fine.",
+        highlight: "I'm fine",
+        updates: [
+          { key: "caller_safe", value: "Yes, indoors", status: "unverified" },
+          { key: "floor", value: "2", status: "unverified" },
+        ],
+      },
+    ],
+  },
 ];
 
 export const scenarioById = (id: string | null) => SCENARIOS.find((s) => s.id === id) ?? null;

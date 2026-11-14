@@ -1,0 +1,400 @@
+Admission, Clio Hall, G3
+Alumni Association, Maclean
+House, F2
+Art Museum G4
+Arthur Lewis, Robertson Hall, I4
+Betts, Architecture School, H3
+Helm, 50 McCosh Hall, H3
+Richardson, Alexander Hall, F3
+Taplin, Fine Hall second floor, I6
+Wood, 10 McCosh Hall, H3
+Berlind Theatre E6
+Broadcast Studio, Lewis
+Library, I6
+Cannon Green G3
+Career Services, 36 University
+Place, E3
+Chapel H3
+Communications, 22 Chambers
+Street, E1
+Community and Regional Affairs,
+4 Mercer Street, E2
+Dean of the College, Morrison
+Hall, F3
+Dean of the Faculty, Nassau
+Hall, G3
+Dean of the Graduate School,
+Clio Hall, G3
+Dean of Undergraduate
+Students, Morrison Hall, F3
+Dean for Research, 91 Prospect
+Avenue, L4
+Development, Helm
+Building, F12
+Employment, Human Resources,
+New South Building, F6
+Entrepreneurial Hub,
+34 Chambers Street, E1
+Fields Center, 58 Prospect
+Avenue, J4
+Financial Aid (Undergraduate),
+Morrison Hall, F3
+Firestone Library H2
+Frist Campus Center H5
+Garden Theatre H2
+Health Services, McCosh Health
+Center, H5
+Housing Office, New South
+Building, F6
+Information, Frist Campus
+Center, H5
+Labyrinth Books, 122 Nassau
+Street, G2
+Lewis Center for the Arts, 185
+Nassau Street, I2
+Lewis Library I6
+Lost and Found, 200 Elm
+Drive, F7
+McCarter Theatre E5
+Nassau Hall G3
+Princeton University Store,
+114 Nassau Street, G2;
+36 University Place, E3
+Prospect House H4
+Public Safety, 200 Elm Drive, F7
+Registrar, Morrison Hall, F3
+Restrooms, Frist Campus Center,
+H5; Chancellor Green, G2
+Theatre Intime, Murray
+Theater, G3
+Woodrow Wilson School,
+Robertson Hall, I4
+BUTLER COLLEGE
+1915 Hall G6
+1967 Hall G7
+1976 Hall G6
+Bloomberg Hall G7
+Bogle Hall G6
+Wilf Hall H7
+Wu Hall G6
+Yoseloff Hall G6
+FORBES COLLEGE
+MATHEY COLLEGE
+Blair Hall E3
+Edwards Hall F4
+Hamilton Hall E2
+Joline Hall E3
+Little Hall F4
+ROCKEFELLER COLLEGE
+Buyers Hall F3
+Campbell Hall F3
+Holder Hall E2
+Madison Hall E2
+Witherspoon Hall F3
+WHITMAN COLLEGE
+1981 Hall F7
+Baker Hall F6
+Community Hall F6
+Fisher Hall F6
+Hargadon Hall F6
+Lauritzen Hall F6
+Murley-Pivirotto Family
+Tower F6
+Wendell Hall F6
+WILSON COLLEGE
+1927-Clapp Hall H6
+1937 Hall H5
+1938 Hall H6
+1939 Hall G5
+Dodge-Osborn Hall H5
+Feinberg Hall G5
+Gauss Hall G6
+Walker Hall G5
+Wilcox Hall G6
+UPPERCLASS HOUSING
+1901 Hall F4
+1903 Hall G5
+Brown Hall G4
+Cuyler Hall G5
+Dod Hall G4
+Foulke Hall E4
+Henry Hall E4
+Laughlin Hall F4
+Lockhart Hall E3
+Patton Hall G5
+Pyne Hall F5
+Scully Hall H7
+Spelman Halls F6
+Wright Hall G5
+GRADUATE COLLEGE
+GRADUATE HOUSING
+Lakeside Graduate Housing G12
+Lawrence Apartments, South of
+golf course (not shown)
+Wyman House A7
+228 Alexander Street E10
+262 Alexander Street E10
+272 Alexander Street E11
+294 Alexander Street
+(ROTC) E12
+306 Alexander Street E12
+171 Broadmead M6
+185 Broadmead M7
+701 Carnegie Center, North of
+Route 1 (not shown)
+22 Chambers Street E1
+34 Chambers Street E1
+26 College Road West C6
+2 Dickinson Street E4
+11 Dickinson Street E4
+15 Dickinson Street E4
+16 Dickinson Street E4
+24 Dickinson Street E4
+27 Edwards Place D3
+29 Edwards Place D3
+31 Edwards Place D3
+200 Elm Drive F7
+5 Ivy Lane I5
+4 Mercer Street E2
+114 Nassau Street G2
+169 Nassau Street I2
+179 Nassau Street I2
+185 Nassau Street I2
+194 Nassau Street I2
+199 Nassau Street J2
+201 Nassau Street J2
+221 Nassau Street J2
+26 Prospect Avenue,
+(former) Bendheim Center
+for Finance, I4
+58 Prospect Avenue J4
+87 Prospect Avenue L4
+91 Prospect Avenue L4
+115 Prospect Avenue L4
+120 Prospect Avenue L4
+11 University Place E2
+23 University Place E3
+35 University Place E3
+36 University Place E3
+41 University Place E4
+45 University Place E4
+48 University Place E4
+71 University Place E5
+1895 Field G8
+1879 Hall H4
+1901 Hall F4
+1903 Hall G5
+1912 Pavilion H8
+1915 Hall G6
+1927-Clapp Hall H6
+1937 Hall H5
+1938 Hall H6
+1939 Hall G5
+1952 Stadium I9
+1967 Hall H6
+1976 Hall G6
+1981 Hall F7
+Alexander Hall F3
+Andlinger Center for Energy
+and the Environment K4
+Architecture Laboratory J8
+Architecture School H3
+Art Museum G4
+Baker Hall F6
+Baker Rink F7
+Bedford Field H10
+Bendheim Hall I4
+Berlind Theatre E6
+Blair Hall E3
+Bloomberg Hall G7
+Bobst Hall L4
+Bowen Hall K4
+Brown Hall G4
+Burr Hall H2
+Buyers Hall F3
+Caldwell Field House K8
+Campbell Field L8
+Campbell Hall F3
+Campus Club I4
+Cannon Green G3
+Cap & Gown Club K4
+Cargot Brasserie E7
+CDE (Cannon Dial Elm Club) I4
+Center for Jewish Life I5
+Chancellor Green G2
+Chapel H3
+Charter Club K4
+Chilled Water Plant F8
+Clarke Field K6
+Class of 1887 Boathouse H11
+Cleveland Tower B7
+Clio Hall G3
+Cloister Inn K4
+Cogeneration Plant F8
+College Road Apartments E5
+Colonial Club J4
+Community Hall F6
+Computer Science Building K3
+Cooling Towers F8
+Cordish Family Pavilion G9
+Corwin Hall I3
+Cottage Club J4
+Cuyler Hall G5
+DeNunzio Pool K8
+Dickinson Hall H3
+Dillon Court East F5
+Dillon Court West F5
+Dillon Gymnasium F5
+Dinky Bar and Kitchen E6
+Dod Hall G4
+Dodge Hall G3
+Dodge-Osborn Hall H5
+East Pyne Hall G3
+Edwards Hall F4
+Elementary Particles Labs East
+and West L9
+Engineering Quadrangle K3
+Eno Hall H6
+Feinberg Hall G5
+Ferris Thompson Apartments L5
+Fields Center J4
+Fine Hall I6
+Finney Field K7
+Firestone Library H2
+Fisher Hall I4
+Fisher Hall (Whitman) F6
+FitzRandolph Observatory L8
+Forbes College D7
+Foulke Hall E4
+Frelinghuysen Field K8
+Frick Chemistry Laboratory J8
+Friend Center J3
+Frist Campus Center H5
+Garden Theatre H1
+Gauss Hall G6
+Graduate College A7
+Green Hall H3
+Guyot Hall H5
+Hamilton Hall E2
+Hargadon Hall F6
+Helm Building F12
+Henry Hall E4
+Henry House G2
+Holder Hall E2
+Hoyt Laboratory I3
+Icahn Laboratory H7
+Ivy Club J4
+Jadwin Gymnasium K9
+Jadwin Hall I7
+Joline Hall E3
+Jones Hall H5
+Julis Romo Rabinowitz
+Building H3
+Labyrinth Books G2
+Lakeside Garage F11
+Lakeside Graduate Housing G12
+Laughlin Hall F4
+Lauritzen Hall F6
+Lenz Tennis Center G9
+Lewis Library I6
+Little Hall F4
+Lockhart Hall E3
+Lourie-Love Pavilion H7
+Lowrie House A2
+Maclean House F2
+MacMillan Building F8
+Madison Hall E2
+Maeder Hall K4
+Marx Hall H4
+McCarter Theatre E5
+McCormick Hall G4
+McCosh Hall H3
+McCosh Health Center H5
+McDonnell Hall I6
+Moffett Laboratory H6
+Morrison Hall F3
+Mudd Library J3
+Murley-Pivirotto Family
+Tower F6
+Murray Theater G3
+Nassau Hall G3
+New South Building F6
+Olden House J3
+Palmer House D2
+Patton Hall G5
+Peretsman Scully Hall I8
+Peyton Hall J6
+Poe Field H7
+Princeton Neuroscience Institute
+I8
+Princeton Stadium K6
+Princeton Station (Dinky) E8
+Princeton University Press J3
+Princeton University Store,
+114 Nassau Street, G1
+Procter Hall B7
+Prospect House H4
+Pyne Hall F5
+Quadrangle Club J4
+Roberts Stadium H8
+Robertson Hall I4
+Scully Hall H7
+Sherrerd Hall J3
+Simpson Building I3
+Spelman Halls F6
+Stanhope Hall F2
+Stephens Fitness Center F5
+Streicker Bridge I7
+Terrace Club I4
+Thomas Laboratory H6
+Tiger Inn J4
+Tower Club I4
+U-Store, 36 University Place E3
+Walker Hall G5
+Wallace Hall J3
+Weaver Track and Field
+Stadium K8
+Wendell Hall F6
+Whig Hall G3
+Wilcox Hall G6
+Wilf Hall H7
+Witherspoon Hall F3
+Woolworth Center for
+Musical Studies H4
+Wright Hall G5
+Wu Hall G6
+Wyman House A7
+Yoseloff Hall G6
+Arts & Transit Project (under
+construction) E7
+Grounds Storage Buildings G10
+Gulick Pavilion H9
+Myslik Field H8
+North Garage L4
+Pardee Field H7
+Plummer Field H8
+Prospect Apartments L4
+Prospect Gardens H4
+Rock Magnetism Laboratory H6
+Scheide Caldwell House G2
+Schultz Laboratory H6
+Shea Rowing Center H11
+Sexton Field L7
+Springdale Golf Course C9
+Strubing Field L7
+Thermal Energy Storage Tank F8
+Upper Strubing Field L6
+West Garage F8
+West Lodge A7
+Wyman Cottage A7
+Athletic Ticket Office, Jadwin
+Gymnasium, K9
+Shuttle Bus to Newark
+Airport, Nassau Inn
+(Palmer Square), F1
+Visitor Parking, Lot 23, F9;
+Lot 21, L9
+Taxi, Nassau Street, F2
+Train, Princeton Station
+(Dinky), E8
+1952 Stadium I9

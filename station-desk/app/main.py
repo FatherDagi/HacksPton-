@@ -10,6 +10,9 @@ import base64
 import json
 import logging
 import os
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -20,8 +23,11 @@ from pydantic import BaseModel
 
 load_dotenv()
 
+from app.audio_util import FRAME, mulaw_to_pcm16, pcm16_to_mulaw, resample_pcm16
 from app.gemini_client import GeminiClient, redact
+from app.languages import language_name
 from app.transcripts import transcript_filename
+from app.twiml import CALLER_INTRO, DESK_INTRO, bridge_twiml
 from app.pipeline import Pipeline
 from app.store import DeskError, DeskStore
 from app.twiml import public_voice_url, valid_twilio_request, voice_twiml
@@ -82,11 +88,94 @@ class Hub(object):
 hub = Hub()
 
 
+phone_legs = {}
+rooms = {}
+
+
+def annotated_snapshot():
+    snap = store.snapshot()
+    for call in snap["calls"]:
+        code = pipeline.caller_language.get(call["id"])
+        if code:
+            call["caller_language"] = language_name(code)
+    return snap
+
+
 async def publish():
-    await hub.broadcast({"type": "snapshot", **store.snapshot()})
+    await hub.broadcast({"type": "snapshot", **annotated_snapshot()})
 
 
-pipeline = Pipeline(store, GeminiClient(), publish)
+def _b64_pcm(pcm):
+    return base64.b64encode(pcm).decode("ascii")
+
+
+async def _send_leg(call_id, role, pcm, rate):
+    sender = phone_legs.get((call_id, role))
+    if not sender or not pcm:
+        return
+    try:
+        await sender(pcm, rate)
+    except Exception:
+        log.exception("could not play translation on the %s leg", role)
+        phone_legs.pop((call_id, role), None)
+
+
+async def play_for_desk(call_id, pcm, rate):
+    await hub.broadcast({
+        "type": "play",
+        "call_id": call_id,
+        "rate": rate,
+        "pcm": _b64_pcm(pcm),
+    })
+    await _send_leg(call_id, "desk", pcm, rate)
+
+
+async def play_for_caller(call_id, pcm, rate):
+    await _send_leg(call_id, "caller", pcm, rate)
+
+
+async def _twilio_media(websocket, stream_sid, pcm, rate):
+    audio = pcm16_to_mulaw(resample_pcm16(pcm, rate or 24000, 8000))
+    for index in range(0, len(audio), FRAME):
+        piece = audio[index : index + FRAME]
+        if len(piece) < FRAME:
+            piece = piece + (b"\xff" * (FRAME - len(piece)))
+        await websocket.send_text(json.dumps({
+            "event": "media",
+            "streamSid": stream_sid,
+            "media": {"payload": base64.b64encode(piece).decode("ascii")},
+        }))
+
+
+def register_leg(call_id, role, websocket, stream_sid):
+    async def send(pcm, rate, websocket=websocket, stream_sid=stream_sid):
+        await _twilio_media(websocket, stream_sid, pcm, rate)
+
+    phone_legs[(call_id, role)] = send
+
+
+async def dial_desk(account_sid, token, from_number, desk_number, twiml):
+    url = "https://api.twilio.com/2010-04-01/Accounts/{}/Calls.json".format(account_sid)
+    body = urllib.parse.urlencode({
+        "To": desk_number,
+        "From": from_number,
+        "Twiml": twiml,
+    }).encode("utf-8")
+    request = urllib.request.Request(url, data=body, method="POST")
+    auth = base64.b64encode("{}:{}".format(account_sid, token).encode("utf-8")).decode("ascii")
+    request.add_header("Authorization", "Basic " + auth)
+    def _post():
+        with urllib.request.urlopen(request, timeout=8) as response:
+            response.read()
+
+    try:
+        await asyncio.to_thread(_post)
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:240]
+        raise RuntimeError(redact("Twilio could not ring the station: {}".format(detail)))
+
+
+pipeline = Pipeline(store, GeminiClient(), publish, play_for_desk, play_for_caller)
 
 
 class OfficerIn(BaseModel):
@@ -236,11 +325,27 @@ async def twilio_voice(request: Request):
     signature = request.headers.get("X-Twilio-Signature", "")
     if token and not valid_twilio_request(signed_url, params, signature, token):
         raise HTTPException(403, "Twilio signature did not match.")
-    xml = voice_twiml(
-        params.get("From", "unknown"),
-        os.environ.get("PUBLIC_BASE_URL", ""),
-        os.environ.get("STATION_DESK_NUMBER", ""),
-    )
+    base = os.environ.get("PUBLIC_BASE_URL", "")
+    desk = os.environ.get("STATION_DESK_NUMBER", "").strip()
+    account = params.get("AccountSid", "").strip()
+    twilio_to = params.get("To", "").strip()
+    room = params.get("CallSid") or "room"
+    caller = params.get("From", "unknown")
+    if desk and token and account and twilio_to and base:
+        try:
+            await dial_desk(
+                account,
+                token,
+                twilio_to,
+                desk,
+                bridge_twiml(base, room, "desk", caller, DESK_INTRO),
+            )
+        except Exception as exc:
+            log.warning("station phone was not dialed: %s", redact(exc))
+        else:
+            xml = bridge_twiml(base, room, "caller", caller, CALLER_INTRO)
+            return Response(content=xml, media_type="application/xml")
+    xml = voice_twiml(caller, base, desk)
     return Response(content=xml, media_type="application/xml")
 
 
@@ -249,7 +354,7 @@ async def console_socket(websocket: WebSocket):
     await websocket.accept()
     await hub.add(websocket)
     try:
-        await websocket.send_text(json.dumps({"type": "snapshot", **store.snapshot()}))
+        await websocket.send_text(json.dumps({"type": "snapshot", **annotated_snapshot()}))
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
@@ -285,10 +390,30 @@ async def audio_socket(websocket: WebSocket, call_id: str):
         await publish()
 
 
+@app.websocket("/ws/reply/{call_id}")
+async def reply_socket(websocket: WebSocket, call_id: str):
+    """The desk microphone. Closing it does not hang up the phone call."""
+    await websocket.accept()
+    if store.get_call(call_id) is None:
+        await websocket.close(code=4404)
+        return
+    try:
+        while True:
+            message = await websocket.receive()
+            if message.get("type") == "websocket.disconnect":
+                break
+            data = message.get("bytes")
+            if data:
+                await pipeline.feed_pcm(call_id, "Call-taker", data)
+    except WebSocketDisconnect:
+        pass
+
+
 @app.websocket("/twilio/media")
 async def twilio_media(websocket: WebSocket):
     await websocket.accept()
     call_id = None
+    role = "caller"
     try:
         while True:
             raw = await websocket.receive_text()
@@ -297,26 +422,47 @@ async def twilio_media(websocket: WebSocket):
             if event == "start":
                 start = message.get("start") or {}
                 params = start.get("customParameters") or {}
-                call = store.open_call("phone", params.get("from") or "unknown", start.get("callSid"))
-                call_id = call["id"]
-                log.info("phone call %s opened", call_id)
+                role = params.get("role") or "caller"
+                room = params.get("room") or start.get("callSid") or ""
+                if room and room in rooms:
+                    call_id = rooms[room]
+                else:
+                    who = params.get("from") or ("Station" if role == "desk" else "unknown")
+                    call = store.open_call("phone", who, start.get("callSid"))
+                    call_id = call["id"]
+                    if room:
+                        rooms[room] = call_id
+                register_leg(call_id, "desk" if role == "desk" else "caller", websocket, start.get("streamSid") or "")
+                log.info("phone call %s %s leg opened", call_id, role)
                 await publish()
             elif event == "media" and call_id:
                 media = message.get("media") or {}
                 payload = base64.b64decode(media.get("payload") or "")
                 track = media.get("track") or "inbound"
-                await pipeline.add_phone_audio(call_id, track, payload)
+                if role == "desk":
+                    speaker = "Call-taker"
+                elif track == "outbound":
+                    speaker = "Call-taker"
+                else:
+                    speaker = "Caller"
+                pcm = resample_pcm16(mulaw_to_pcm16(payload), 8000, 16000)
+                await pipeline.feed_pcm(call_id, speaker, pcm)
             elif event == "stop":
                 break
     except WebSocketDisconnect:
         pass
     finally:
         if call_id:
-            await pipeline.close_audio(call_id)
-            try:
-                store.end_call(call_id)
-            except DeskError:
-                pass
+            phone_legs.pop((call_id, "desk" if role == "desk" else "caller"), None)
+            if role != "desk" or (call_id, "caller") not in phone_legs:
+                await pipeline.close_audio(call_id)
+                try:
+                    store.end_call(call_id)
+                except DeskError:
+                    pass
+                rooms_to_drop = [room for room, owned in rooms.items() if owned == call_id]
+                for room in rooms_to_drop:
+                    rooms.pop(room, None)
             await publish()
 
 

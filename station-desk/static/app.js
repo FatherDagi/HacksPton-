@@ -68,6 +68,7 @@ function connect() {
   const socket = new WebSocket(protocol + "://" + location.host + "/ws/console");
   socket.onmessage = function (event) {
     const message = JSON.parse(event.data);
+    if (message.type === "play") playTranslation(message);
     if (message.type === "snapshot") onSnapshot(message);
   };
   socket.onclose = function () {
@@ -95,6 +96,7 @@ function render() {
   renderCalls();
   renderDetail();
   updatePracticeButton();
+  updateTalkButton();
 }
 
 function renderChips() {
@@ -117,6 +119,9 @@ function renderChips() {
   if (!config.gemini_configured) {
     banner.hidden = false;
     banner.textContent = "Add your Gemini API key as GEMINI_API_KEY in the .env file, then restart the desk.";
+  } else if (config.desk_number && !config.twilio_checks_signature) {
+    banner.hidden = false;
+    banner.textContent = "Caller speech is translated into English on this screen and in the transcript. Add TWILIO_AUTH_TOKEN to .env and restart so the caller hears the reply in their own language.";
   } else {
     banner.hidden = true;
   }
@@ -187,11 +192,17 @@ function keywordBar(call) {
   });
   const save = el("button", { type: "button" }, ["Save text file"]);
   save.addEventListener("click", function () { saveTranscript(call.id); });
+  const language = call.caller_language && call.caller_language !== "English"
+    ? el("p", { class: "muted" }, [
+      "Caller is speaking " + call.caller_language + ". You hear English. The caller hears " + call.caller_language + ".",
+    ])
+    : null;
   return el("div", { class: "keyword-bar" }, [
     el("div", { class: "top" }, [
       el("h3", {}, ["Keywords"]),
       save,
     ]),
+    language,
     chips.length
       ? el("div", { class: "suggest" }, chips)
       : el("p", { class: "muted" }, ["Keywords show up here as they are spoken."]),
@@ -252,6 +263,87 @@ async function saveTranscript(callId) {
   link.click();
   link.remove();
   URL.revokeObjectURL(link.href);
+}
+
+let playCtx = null;
+let playAt = 0;
+let talking = false;
+let replyWs = null;
+
+function playTranslation(message) {
+  if (!message || !message.pcm) return;
+  if (!playCtx) playCtx = new AudioContext();
+  if (playCtx.state === "suspended") playCtx.resume();
+  const binary = atob(message.pcm);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const view = new DataView(bytes.buffer);
+  const samples = Math.floor(bytes.length / 2);
+  if (!samples) return;
+  const audio = playCtx.createBuffer(1, samples, message.rate || 24000);
+  const channel = audio.getChannelData(0);
+  for (let i = 0; i < samples; i++) channel[i] = view.getInt16(i * 2, true) / 32768;
+  const source = playCtx.createBufferSource();
+  source.buffer = audio;
+  source.connect(playCtx.destination);
+  const now = playCtx.currentTime;
+  if (!playAt || playAt < now) playAt = now + 0.08;
+  source.start(playAt);
+  playAt += audio.duration;
+}
+
+function updateTalkButton() {
+  const button = document.getElementById("talk");
+  const call = callById(selectedId);
+  const phone = call && call.source === "phone" && call.status === "live" && !practiceId && state.config.twilio_checks_signature;
+  button.hidden = !phone;
+  button.textContent = talking ? "Stop talking" : "Talk to caller";
+  button.setAttribute("aria-pressed", talking ? "true" : "false");
+}
+
+document.getElementById("talk").addEventListener("click", function () {
+  if (talking) stopReply();
+  else startReply();
+});
+
+async function startReply() {
+  const call = callById(selectedId);
+  if (!call || call.source !== "phone" || practiceId) return;
+  const protocol = location.protocol === "https:" ? "wss" : "ws";
+  replyWs = new WebSocket(protocol + "://" + location.host + "/ws/reply/" + call.id);
+  replyWs.binaryType = "arraybuffer";
+  try {
+    await new Promise(function (resolve, reject) {
+      replyWs.onopen = resolve;
+      replyWs.onerror = function () { reject(new Error("The reply microphone could not connect.")); };
+    });
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true },
+    });
+    audioContext = new AudioContext();
+    if (audioContext.state === "suspended") await audioContext.resume();
+    const source = audioContext.createMediaStreamSource(micStream);
+    audioWs = replyWs;
+    captureNode = await createCapture(audioContext, source);
+    talking = true;
+    updateTalkButton();
+  } catch (error) {
+    stopReply();
+    toast(error.message || "Microphone permission is required to talk to the caller.");
+  }
+}
+
+function stopReply() {
+  talking = false;
+  if (replyWs) {
+    const socket = replyWs;
+    replyWs = null;
+    if (audioWs === socket) audioWs = null;
+    socket.onclose = null;
+    socket.close();
+  }
+  if (!practiceId) stopMic();
+  updateTalkButton();
 }
 
 function updatePracticeButton() {

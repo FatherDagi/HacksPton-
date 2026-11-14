@@ -8,6 +8,7 @@ import base64
 import json
 import logging
 import os
+import re
 
 from app.gemini_client import GeminiError, GeminiNotConfigured, redact
 
@@ -22,13 +23,15 @@ WS_URL = (
 )
 
 
-def live_setups():
+def translation_setups(target_language):
+    """Prefer live translation into the requested language, then plain transcription."""
     chosen = os.environ.get("GEMINI_LIVE_MODEL", "").strip()
+    target = target_language or "en"
     if chosen:
-        if "translate" in chosen:
-            return [translate_setup(chosen)]
-        return [transcribe_setup(chosen)]
-    return [transcribe_setup(LIVE_MODEL), translate_setup(TRANSLATE_MODEL)]
+        if "transcribe" in chosen and "translate" not in chosen:
+            return [transcribe_setup(chosen)]
+        return [translate_setup(chosen, target)]
+    return [translate_setup(TRANSLATE_MODEL, target), transcribe_setup(LIVE_MODEL)]
 
 
 def transcribe_setup(model):
@@ -52,15 +55,16 @@ def transcribe_setup(model):
     }
 
 
-def translate_setup(model):
-    # English target. The sample that targets Polish rewrites the call into another language.
+def translate_setup(model, target_language="en"):
+    # Echo when the speaker is already using the target language, so an English
+    # caller still produces English audio and an English transcript.
     return {
         "setup": {
             "model": "models/" + model,
             "generationConfig": {
                 "responseModalities": ["AUDIO"],
                 "translationConfig": {
-                    "targetLanguageCode": "en",
+                    "targetLanguageCode": target_language or "en",
                     "echoTargetLanguage": True,
                 },
             },
@@ -87,6 +91,7 @@ def parse_live_message(raw):
     interim = _text(content, "interimInputTranscription", "interim_input_transcription")
     final = _text(content, "inputTranscription", "input_transcription")
     english = _text(content, "outputTranscription", "output_transcription")
+    interim_english = _text(content, "interimOutputTranscription", "interim_output_transcription")
     parsed = {}
     if interim:
         parsed["interim"] = interim
@@ -94,6 +99,11 @@ def parse_live_message(raw):
         parsed["final"] = final
     if english:
         parsed["english"] = english
+    if interim_english:
+        parsed["interim_english"] = interim_english
+    audio = _audio_parts(content)
+    if audio:
+        parsed["audio"] = audio
     return parsed
 
 
@@ -112,6 +122,30 @@ def stream_end_message():
     return json.dumps({"realtimeInput": {"audioStreamEnd": True}})
 
 
+def _audio_parts(content):
+    turn = content.get("modelTurn") or content.get("model_turn") or {}
+    parts = turn.get("parts") or []
+    chunks = []
+    for part in parts:
+        inline = part.get("inlineData") or part.get("inline_data") or {}
+        data = inline.get("data")
+        if not data:
+            continue
+        try:
+            pcm = base64.b64decode(data)
+        except Exception:
+            continue
+        if not pcm:
+            continue
+        rate = 24000
+        mime = str(inline.get("mimeType") or inline.get("mime_type") or "")
+        found = re.search(r"rate=(\d+)", mime)
+        if found:
+            rate = int(found.group(1))
+        chunks.append({"pcm": pcm, "rate": rate})
+    return chunks
+
+
 def _text(content, *names):
     for name in names:
         block = content.get(name) or {}
@@ -125,13 +159,17 @@ def _text(content, *names):
 class LiveSession(object):
     """One open Gemini Live socket. Created on a running event loop."""
 
-    def __init__(self, on_interim, on_final, on_error):
+    def __init__(self, on_interim, on_final, on_error, on_audio=None, on_source=None, target_language="en", text_from="english"):
         import asyncio
 
         self._asyncio = asyncio
         self.on_interim = on_interim
         self.on_final = on_final
         self.on_error = on_error
+        self.on_audio = on_audio
+        self.on_source = on_source
+        self.text_from = text_from or "english"
+        self._setups = translation_setups(target_language)
         self._queue = asyncio.Queue()
         self._task = asyncio.create_task(self._run())
         self._last_interim = ""
@@ -159,7 +197,7 @@ class LiveSession(object):
 
     async def _run(self):
         last_error = None
-        for setup in live_setups():
+        for setup in self._setups:
             try:
                 await self._speak(setup)
                 return
@@ -254,8 +292,18 @@ class LiveSession(object):
         if parsed.get("error"):
             await self.on_error(redact(parsed["error"]))
             return
-        final = parsed.get("english") or parsed.get("final")
-        interim = parsed.get("interim")
+        for chunk in parsed.get("audio") or []:
+            if self.on_audio:
+                await self.on_audio(chunk.get("pcm") or b"", chunk.get("rate") or 24000)
+        source = parsed.get("final") or parsed.get("interim")
+        if source and self.on_source:
+            await self.on_source(source)
+        if self.text_from == "source":
+            final = parsed.get("final")
+            interim = parsed.get("interim")
+        else:
+            final = parsed.get("english") or _english_source(parsed.get("final"))
+            interim = parsed.get("interim_english") or _english_source(parsed.get("interim"))
         if final:
             self._last_interim = ""
             await self.on_final(final)
@@ -271,6 +319,17 @@ class LiveSession(object):
             await self.on_error(message)
         except Exception:
             log.exception("could not record the live transcription error")
+
+
+def _english_source(text):
+    """Use the original words only when they are already English."""
+    from app.languages import detect_language
+
+    if not text:
+        return ""
+    if detect_language(text) == "en":
+        return text
+    return ""
 
 
 class _TryNext(GeminiError):

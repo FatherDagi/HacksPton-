@@ -7,6 +7,7 @@ import os
 from app.audio_util import RATE, mulaw_to_pcm16, resample_pcm16, wav_to_pcm16
 from app.gemini_client import redact
 from app.live import LiveSession
+from app.languages import detect_language, gemini_language
 from app.transcripts import find_keywords, keep_spoken, stitch_text, strip_overlap
 
 log = logging.getLogger("desk.pipeline")
@@ -15,14 +16,18 @@ LIVE_RATE = 16000
 
 
 class Pipeline(object):
-    def __init__(self, store, gemini, publish):
+    def __init__(self, store, gemini, publish, play_for_desk=None, play_for_caller=None):
         self.store = store
         self.gemini = gemini
         self.publish = publish
+        self.play_for_desk = play_for_desk
+        self.play_for_caller = play_for_caller
         self.sessions = {}
         self.failed = set()
         self.queues = {}
         self.workers = {}
+        self.caller_language = {}
+        self.reply_buffer = {}
 
     async def add_phone_audio(self, call_id, track, payload):
         speaker = "Call-taker" if track == "outbound" else "Caller"
@@ -35,20 +40,16 @@ class Pipeline(object):
         if not os.environ.get("GEMINI_API_KEY", "").strip():
             self._missing_key(call_id)
             return
-        key = (call_id, speaker)
-        if key in self.failed:
+        if speaker != "Caller" and call_id not in self.caller_language:
+            buf = self.reply_buffer.setdefault(call_id, bytearray())
+            if len(buf) < 16000 * 2 * 12:
+                buf.extend(pcm)
             return
-        session = self.sessions.get(key)
-        if session is None:
-            session = self._open(call_id, speaker)
-        elif not session.running():
-            self.failed.add(key)
-            self.store.set_error(call_id, "Live transcription stopped. End the call and start another.")
-            return
-        accepted = await session.send(pcm)
-        if not accepted:
-            self.failed.add(key)
-            self.store.set_error(call_id, "Live transcription stopped. End the call and start another.")
+        if speaker != "Caller":
+            await self._flush_reply(call_id)
+        target = "en" if speaker == "Caller" else gemini_language(self.caller_language.get(call_id) or "en")
+        text_from = "english" if speaker == "Caller" else "source"
+        await self._send_session(call_id, speaker, pcm, target, text_from)
 
     async def enqueue(self, call_id, audio, mime, speaker):
         pcm = _pcm_from_clip(audio, mime)
@@ -90,9 +91,45 @@ class Pipeline(object):
         self.workers.pop(call_id, None)
         self.queues.pop(call_id, None)
         self.failed = set(key for key in self.failed if key[0] != call_id)
+        self.reply_buffer.pop(call_id, None)
+        self.caller_language.pop(call_id, None)
 
-    def _open(self, call_id, speaker):
-        key = (call_id, speaker)
+    async def _send_session(self, call_id, speaker, pcm, target, text_from):
+        key = (call_id, speaker, target, text_from)
+        if key in self.failed:
+            return
+        session = self.sessions.get(key)
+        if session is None:
+            session = self._open(call_id, speaker, target, text_from)
+        elif not session.running():
+            self.failed.add(key)
+            self.store.set_error(call_id, "Live translation stopped. End the call and start another.")
+            return
+        accepted = await session.send(pcm)
+        if not accepted:
+            self.failed.add(key)
+            self.store.set_error(call_id, "Live translation stopped. End the call and start another.")
+
+    async def _flush_reply(self, call_id):
+        pcm = bytes(self.reply_buffer.pop(call_id, b""))
+        if not pcm:
+            return
+        language = gemini_language(self.caller_language.get(call_id) or "en")
+        await self._send_session(call_id, "Call-taker", pcm, language, "source")
+
+    async def _note_language(self, call_id, text):
+        if call_id in self.caller_language:
+            return
+        code = detect_language(text)
+        if not code:
+            return
+        self.caller_language[call_id] = code
+        log.info("caller language for %s is %s", call_id, code)
+        await self._flush_reply(call_id)
+        await self._publish()
+
+    def _open(self, call_id, speaker, target, text_from):
+        key = (call_id, speaker, target, text_from)
 
         async def on_interim(text, call_id=call_id, speaker=speaker):
             await self._show(call_id, speaker, text, commit=False)
@@ -105,7 +142,24 @@ class Pipeline(object):
             self.store.set_error(call_id, message)
             await self._publish()
 
-        session = LiveSession(on_interim, on_final, on_error)
+        async def on_audio(pcm, rate, call_id=call_id, speaker=speaker):
+            player = self.play_for_desk if speaker == "Caller" else self.play_for_caller
+            if player and pcm:
+                await player(call_id, pcm, rate)
+
+        async def on_source(text, call_id=call_id, speaker=speaker):
+            if speaker == "Caller":
+                await self._note_language(call_id, text)
+
+        session = LiveSession(
+            on_interim,
+            on_final,
+            on_error,
+            on_audio=on_audio,
+            on_source=on_source,
+            target_language=target,
+            text_from=text_from,
+        )
         self.sessions[key] = session
         return session
 

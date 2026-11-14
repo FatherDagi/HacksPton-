@@ -26,6 +26,31 @@ def _decode_mulaw(value):
 MULAW_TABLE = tuple(_decode_mulaw(i) for i in range(256))
 
 
+def pcm16_to_mulaw(pcm):
+    """Encode mono PCM16 as G.711 mu-law for a Twilio call."""
+    count = len(pcm) // 2
+    if count == 0:
+        return b""
+    samples = struct.unpack("<{}h".format(count), pcm[: count * 2])
+    return bytes(_encode_mulaw(sample) for sample in samples)
+
+
+def _encode_mulaw(sample):
+    sign = 0x80 if sample < 0 else 0
+    if sample < 0:
+        sample = -sample
+    if sample > 32635:
+        sample = 32635
+    sample += 0x84
+    exponent = 7
+    mask = 0x4000
+    while exponent > 0 and not (sample & mask):
+        exponent -= 1
+        mask >>= 1
+    mantissa = (sample >> (exponent + 3)) & 0x0F
+    return (~(sign | (exponent << 4) | mantissa)) & 0xFF
+
+
 def mulaw_to_pcm16(data):
     if not data:
         return b""

@@ -20,6 +20,37 @@ def stream_ws_url(public_base_url):
     return base + "/twilio/media"
 
 
+def bridge_twiml(public_base_url, room, role, from_number, intro):
+    """Bidirectional stream so each person can hear a translation."""
+    if not public_base_url:
+        body = "<Say>The dispatch transcriber does not have a public address yet.</Say>"
+        return '<?xml version="1.0" encoding="UTF-8"?><Response>{}</Response>'.format(body)
+    stream = (
+        "<Connect><Stream url=\"{url}\">"
+        '<Parameter name="from" value="{caller}"/>'
+        '<Parameter name="role" value="{role}"/>'
+        '<Parameter name="room" value="{room}"/>'
+        "</Stream></Connect>"
+    ).format(
+        url=xml_escape(stream_ws_url(public_base_url)),
+        caller=xml_escape(from_number or "unknown"),
+        role=xml_escape(role or "caller"),
+        room=xml_escape(room or "room"),
+    )
+    body = "<Say>{}</Say>{}".format(xml_escape(intro), stream)
+    return '<?xml version="1.0" encoding="UTF-8"?><Response>{}</Response>'.format(body)
+
+
+CALLER_INTRO = (
+    "This call is recorded and translated for dispatch. "
+    "Speak in any language. The station hears English."
+)
+DESK_INTRO = (
+    "You are connected to a caller. You hear English. "
+    "Speak English. The caller hears their own language."
+)
+
+
 def voice_twiml(from_number, public_base_url, desk_number):
     """Say the recording notice before the stream starts, so the notice itself is not transcribed."""
     if not public_base_url:

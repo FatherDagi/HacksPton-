@@ -16,7 +16,16 @@ os.environ["TWILIO_AUTH_TOKEN"] = ""
 
 from fastapi.testclient import TestClient
 
-from app.audio_util import MulawSegmenter, mulaw_to_pcm16, pcm16_to_wav, resample_pcm16, rms_pcm16, wav_to_pcm16
+from app.audio_util import (
+    MulawSegmenter,
+    mulaw_to_pcm16,
+    pcm16_to_mulaw,
+    pcm16_to_wav,
+    resample_pcm16,
+    rms_pcm16,
+    wav_to_pcm16,
+)
+from app.languages import detect_language, gemini_language
 from app.live import parse_live_message
 from app.cards import empty_card, merge_card, parse_model_json, utterance_text
 from app.transcripts import (
@@ -88,8 +97,25 @@ class AudioTests(unittest.TestCase):
             '{"serverContent": {"inputTranscription": {"text": "I need police at Frith."}}}'
         )
         self.assertEqual(final["final"], "I need police at Frith.")
+        english = parse_live_message(
+            '{"serverContent": {"inputTranscription": {"text": "Necesito ayuda por favor"},'
+            '"outputTranscription": {"text": "I need help please."}}}'
+        )
+        self.assertEqual(english["english"], "I need help please.")
+        spoken = parse_live_message(
+            '{"serverContent": {"modelTurn": {"parts": [{"inlineData": {"mimeType": "audio/pcm;rate=24000", "data": "AAAA"}}]}}}'
+        )
+        self.assertEqual(spoken["audio"][0]["rate"], 24000)
+        self.assertEqual(len(spoken["audio"][0]["pcm"]), 3)
         setup = parse_live_message('{"setupComplete": {}}')
         self.assertTrue(setup["setup"])
+        self.assertEqual(detect_language("Necesito ayuda por favor en la calle"), "es")
+        self.assertEqual(detect_language("Je suis devant la chapelle et j'ai besoin d'aide"), "fr")
+        self.assertEqual(detect_language("我的朋友晕倒了"), "cmn")
+        self.assertEqual(gemini_language("cmn"), "zh-Hans")
+        self.assertEqual(gemini_language("es"), "es")
+        self.assertEqual(detect_language("I need police at Frist right now"), "en")
+        self.assertEqual(pcm16_to_mulaw(mulaw_to_pcm16(b"\xff\xff")), b"\xff\xff")
 
 
 class TranscriptTests(unittest.TestCase):
@@ -246,7 +272,44 @@ class DeskApiTests(unittest.TestCase):
         self.assertIn("+15551212", response.text)
         self.assertIn("recorded and transcribed", response.text)
 
+        import app.main as desk_main
+
+        async def fake_dial(account_sid, token, from_number, desk_number, twiml):
+            fake_dial.called = {"desk_number": desk_number, "from_number": from_number}
+
+        fake_dial.called = None
+        previous = desk_main.dial_desk
+        desk_main.dial_desk = fake_dial
+        os.environ["TWILIO_AUTH_TOKEN"] = "secret"
+        try:
+            bridged = self.client.post(
+                "/twilio/voice",
+                data={
+                    "From": "+15557654",
+                    "To": "+15550000",
+                    "CallSid": "CA9",
+                    "AccountSid": "AC123",
+                },
+                headers={"X-Twilio-Signature": twilio_signature(
+                    "https://desk.example.com/twilio/voice",
+                    {
+                        "From": "+15557654",
+                        "To": "+15550000",
+                        "CallSid": "CA9",
+                        "AccountSid": "AC123",
+                    },
+                    "secret",
+                )},
+            )
+        finally:
+            desk_main.dial_desk = previous
+        self.assertEqual(bridged.status_code, 200)
+        self.assertIn("<Connect>", bridged.text)
+        self.assertIn("caller", bridged.text)
+        self.assertEqual(fake_dial.called["desk_number"], "+15551212")
+
         os.environ["STATION_DESK_NUMBER"] = ""
+        os.environ["TWILIO_AUTH_TOKEN"] = ""
         caller_only = self.client.post("/twilio/voice", data={"From": "+15557654", "CallSid": "CA2"})
         ET.fromstring(caller_only.text)
         self.assertIn("inbound_track", caller_only.text)

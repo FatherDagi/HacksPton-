@@ -248,6 +248,8 @@ function reduceInner(s: AppState, a: Action): AppState {
     }
 
     case "START_LIVE_CALL": {
+      // Every console auto-opens an answered desk call with the same id; only the first one counts.
+      if (s.incidents.some((i) => i.id === a.incidentId || (i.deskCallId === a.deskCallId && i.status !== "closed"))) return s;
       const inc: Incident = {
         id: a.incidentId, number: a.number, scenarioId: null, category: "other",
         title: `Live call from station desk${a.callerLanguage && !/^english$/i.test(a.callerLanguage) ? ` (${a.callerLanguage}, translated)` : ""}`,

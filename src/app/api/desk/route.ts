@@ -12,6 +12,7 @@ interface DeskCall {
   started_at: string | number;
   ended_at: string | number | null;
   source: string;
+  from_number?: string | null;
   transcript: DeskLine[];
   partial: { speaker: string; text: string } | null;
   caller_language?: string;
@@ -33,6 +34,7 @@ export async function GET() {
       startedAt: ms(c.started_at) ?? 0,
       endedAt: ms(c.ended_at),
       source: String(c.source ?? ""),
+      from: c.from_number ? String(c.from_number).slice(0, 40) : null,
       callerLanguage: c.caller_language ?? null,
       transcript: (c.transcript ?? []).slice(-200).map((l) => ({ t: ms(l.t) ?? 0, speaker: String(l.speaker), text: String(l.text).slice(0, 2000) })),
       partial: c.partial?.text ? { speaker: String(c.partial.speaker), text: String(c.partial.text).slice(0, 2000) } : null,

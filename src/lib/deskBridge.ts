@@ -9,6 +9,7 @@ export interface DeskCall {
   startedAt: number;
   endedAt: number | null;
   source: string;
+  from: string | null;
   callerLanguage: string | null;
   transcript: DeskLine[];
   partial: { speaker: string; text: string } | null;
@@ -58,21 +59,24 @@ export function categoryFrom(text: string): IncidentCategory | null {
 export const deskSpeaker = (s: string): "caller" | "dispatcher" => (/caller/i.test(s) ? "caller" : "dispatcher");
 
 /**
- * The desk stores speech as short fragments ("Hi, I need" / "help."). Join consecutive fragments
- * from the same speaker into sentences: break on . ? !, a speaker change, or a pause over 2.5 s.
- * Segment ids use the first fragment's index, so they stay stable as a sentence grows.
+ * The desk already breaks lines the way dispatch wants (a new line only after 1 s without words or
+ * when the other person talks), so its lines map one-to-one onto transcript segments. Ids use the
+ * line index, so they stay stable while the last line keeps growing.
  */
-export function groupDeskLines(call: DeskCall): { segments: TranscriptSegment[]; finishedCallerSentences: number } {
-  const segments: TranscriptSegment[] = [];
-  let lastT = 0;
-  call.transcript.forEach((l, i) => {
-    const speaker = deskSpeaker(l.speaker);
-    const prev = segments[segments.length - 1];
-    const joinable = prev && prev.speaker === speaker && !/[.?!]["')\]]?$/.test(prev.text) && l.t - lastT <= 2500;
-    if (joinable) prev.text = `${prev.text} ${l.text}`.replace(/\s+/g, " ");
-    else segments.push({ id: `desk-${call.id}-${i}`, t: Math.max(0, Math.round((l.t - call.startedAt) / 1000)), speaker, text: l.text });
-    lastT = l.t;
-  });
-  const finishedCallerSentences = segments.filter((s, i) => s.speaker === "caller" && (i < segments.length - 1 || /[.?!]["')\]]?$/.test(s.text))).length;
-  return { segments, finishedCallerSentences };
+export function deskSegments(call: DeskCall): TranscriptSegment[] {
+  return call.transcript.map((l, i) => ({
+    id: `desk-${call.id}-${i}`,
+    t: Math.max(0, Math.round((l.t - call.startedAt) / 1000)),
+    speaker: deskSpeaker(l.speaker),
+    text: l.text,
+  }));
 }
+
+/** A phone call counts as answered once the call-taker is heard; a desk practice call (mic) at once. */
+export function deskAnswered(call: DeskCall): boolean {
+  if (call.source !== "phone") return true;
+  return call.transcript.some((l) => deskSpeaker(l.speaker) === "dispatcher") || (!!call.partial && deskSpeaker(call.partial.speaker) === "dispatcher");
+}
+
+/** Console incident id for a desk call: the same on every screen, so two consoles never open it twice. */
+export const deskIncidentId = (callId: string) => `desk-${callId}`;

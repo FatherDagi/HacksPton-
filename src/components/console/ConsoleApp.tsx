@@ -20,7 +20,7 @@ import { History, ListTodo, MessageSquareText, X } from "lucide-react";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
 import { OfficerUpdates } from "./OfficerUpdates";
-import { categoryFrom, groupDeskLines, matchBuilding, type DeskCall } from "@/lib/deskBridge";
+import { categoryFrom, deskAnswered, deskIncidentId, deskSegments, matchBuilding, type DeskCall } from "@/lib/deskBridge";
 
 /** Pull-out tabs on the far left of the map. */
 type DrawerTab = "transcript" | "questions" | "log";
@@ -58,7 +58,18 @@ function applyPrerecorded(inc: Incident, from: number, to: number) {
 export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const state = useAppState();
   const terminals = useTerminals();
-  const incident = state.incidents.find((i) => i.id === state.activeIncidentId) ?? null;
+
+  // ---------- incident tabs: every open incident has a tab; each screen picks its own ----------
+  const [viewId, setViewId] = useState<string | null>(null);
+  const openIncidents = useMemo(
+    () => state.incidents.filter((i) => i.status !== "closed").sort((a, b) => a.createdAt - b.createdAt),
+    [state.incidents],
+  );
+  const incident =
+    state.incidents.find((i) => i.id === viewId && i.status !== "closed") ??
+    state.incidents.find((i) => i.id === state.activeIncidentId) ??
+    openIncidents[openIncidents.length - 1] ??
+    null;
   const open = incident && incident.status !== "closed" ? incident : null;
   const scenario = incident ? scenarioById(incident.scenarioId) : null;
   const live = !!incident && !!incident.callStartedAt && !incident.callEndedAt;
@@ -68,13 +79,15 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const [geminiReady, setGeminiReady] = useState<boolean | null>(null);
   const [mode, setMode] = useState<Mode>("prerecorded");
   const [aiBusy, setAiBusy] = useState(false);
-  const [geminiQuestions, setGeminiQuestions] = useState<string[]>([]);
+  const [geminiQs, setGeminiQs] = useState<Record<string, string[]>>({});
+  const geminiQuestions = (incident && geminiQs[incident.id]) || [];
   const [plans, setPlans] = useState<Record<string, RoutePlan>>({});
   const [trips, setTrips] = useState<Record<string, Trip>>({});
   const [dispatchRoutes, setDispatchRoutes] = useState<Record<string, LatLng[]>>({});
   const [flash, setFlash] = useState(0);
-  const seqRef = useRef(0);
-  const appliedSeqRef = useRef(0);
+  // Per-incident request ordering, so an old Gemini answer never overwrites a newer one.
+  const seqRef = useRef<Record<string, number>>({});
+  const appliedSeqRef = useRef<Record<string, number>>({});
 
   // Pull-out drawers over the map: all closed by default; badges count what arrived since last viewed.
   const [drawer, setDrawer] = useState<DrawerTab | null>(null);
@@ -103,7 +116,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
 
   // ---------- call playback (same flow as /dispatch) ----------
   const runGemini = useCallback(async (inc: Incident, transcript: Incident["transcript"]) => {
-    const seq = ++seqRef.current;
+    const seq = (seqRef.current[inc.id] = (seqRef.current[inc.id] ?? 0) + 1);
     setAiBusy(true);
     const confirmed: Record<string, string> = {};
     for (const f of Object.values(inc.fields)) if (f.source === "dispatcher" && f.value) confirmed[f.key] = f.value;
@@ -114,53 +127,64 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       });
       const j = (await res.json()) as ExtractResponse | ExtractError;
       if (!j.ok) throw new Error(j.message);
-      if (seq < appliedSeqRef.current) return;
-      appliedSeqRef.current = seq;
+      if (seq < (appliedSeqRef.current[inc.id] ?? 0)) return;
+      appliedSeqRef.current[inc.id] = seq;
       if (j.updates.length) act({ type: "APPLY_AI_UPDATES", at: Date.now(), incidentId: inc.id, updates: j.updates, source: "ai" });
-      setGeminiQuestions(j.suggestedQuestions);
+      setGeminiQs((p) => ({ ...p, [inc.id]: j.suggestedQuestions }));
     } catch (err) {
       act({ type: "LOG", at: Date.now(), incidentId: inc.id, actor: "system", eventType: "ai_fallback", message: `Gemini unavailable (${err instanceof Error ? err.message : "error"}). Switched to prerecorded extraction.` });
       setMode("prerecorded");
-      setGeminiQuestions([]);
+      setGeminiQs((p) => ({ ...p, [inc.id]: [] }));
       applyPrerecorded(inc, 0, transcript.length);
     } finally {
-      if (seq === seqRef.current) setAiBusy(false);
+      if (seq === seqRef.current[inc.id]) setAiBusy(false);
     }
   }, []);
 
-  const revealNext = useCallback(() => {
-    if (!incident || !scenario || incident.revealed >= scenario.segments.length) return;
-    const idx = incident.revealed;
-    const seg = scenario.segments[idx];
-    act({ type: "REVEAL_SEGMENT", at: Date.now(), incidentId: incident.id });
-    if (mode === "prerecorded") applyPrerecorded(incident, idx, idx + 1);
+  /** Reveal the next scripted line of one demo incident (any tab, not only the one on screen). */
+  const revealFor = useCallback((inc: Incident) => {
+    const sc = scenarioById(inc.scenarioId);
+    if (!sc || inc.revealed >= sc.segments.length) return;
+    const idx = inc.revealed;
+    const seg = sc.segments[idx];
+    act({ type: "REVEAL_SEGMENT", at: Date.now(), incidentId: inc.id });
+    if (mode === "prerecorded") applyPrerecorded(inc, idx, idx + 1);
     else if (seg.speaker === "caller") {
       const { updates: _u, ...plain } = seg;
       void _u;
-      runGemini(incident, [...incident.transcript, plain]);
+      runGemini(inc, [...inc.transcript, plain]);
     }
-  }, [incident, scenario, mode, runGemini]);
+  }, [mode, runGemini]);
+  const revealNext = useCallback(() => { if (incident) revealFor(incident); }, [incident, revealFor]);
 
+  // Scripted calls keep playing in the background while you look at another tab.
+  const nextReveal = (() => {
+    let best: { inc: Incident; due: number } | null = null;
+    for (const inc of openIncidents) {
+      const sc = scenarioById(inc.scenarioId);
+      if (!sc || !inc.callStartedAt || inc.callEndedAt) continue;
+      const seg = sc.segments[inc.revealed];
+      if (!seg) continue;
+      const due = inc.callStartedAt + seg.t * 1000;
+      if (!best || due < best.due) best = { inc, due };
+    }
+    return best;
+  })();
   useEffect(() => {
-    if (!live || !incident || !scenario || now === null) return;
-    const nextSeg = scenario.segments[incident.revealed];
-    if (!nextSeg) return;
-    const t = setTimeout(revealNext, Math.max(0, incident.callStartedAt! + nextSeg.t * 1000 - Date.now()));
+    if (!nextReveal || now === null) return;
+    const { inc, due } = nextReveal;
+    const t = setTimeout(() => revealFor(inc), Math.max(0, due - Date.now()));
     return () => clearTimeout(t);
-  }, [live, incident, scenario, now, revealNext]);
+  }, [nextReveal, now, revealFor]);
 
+  /** A new demo call opens in its own tab; other incidents stay open in theirs. */
   const startDemo = useCallback((id: string) => {
     const at = Date.now();
-    // Switching calls ends and closes the current one (frees its units) so the demo flows.
-    if (live && incident) act({ type: "END_CALL", at, incidentId: incident.id });
-    if (open) act({ type: "CLOSE_INCIDENT", at, incidentId: open.id });
-    seqRef.current = 0;
-    appliedSeqRef.current = 0;
-    setGeminiQuestions([]);
-    setTrips({});
+    const incidentId = newId("inc");
     setMode(geminiReady ? "gemini" : "prerecorded");
-    act({ type: "START_CALL", at, incidentId: newId("inc"), number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, scenarioId: id });
-  }, [live, incident, open, geminiReady]);
+    act({ type: "START_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, scenarioId: id });
+    setViewId(incidentId);
+  }, [geminiReady]);
 
   // ---------- live bridge to the station desk (station-desk/, real calls translated to English) ----------
   const [desk, setDesk] = useState<{ ok: boolean; calls: DeskCall[] } | null>(null);
@@ -176,63 +200,89 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       } catch {
         if (alive) setDesk((prev) => (prev && !prev.ok && prev.calls.length === 0 ? prev : { ok: false, calls: [] }));
       }
-      if (alive) t = setTimeout(poll, 1000);
+      // Poll faster while a call is live so ringing and new words show up quickly.
+      if (alive) t = setTimeout(poll, lastLive.current ? 400 : 1000);
     };
     void poll();
     return () => { alive = false; clearTimeout(t); };
   }, []);
-  const deskLive = desk?.calls.find((c) => c.status === "live") ?? null;
-  const bridgedCall = open?.deskCallId ? desk?.calls.find((c) => c.id === open.deskCallId) ?? null : null;
+  const lastLive = useRef(false);
+  const deskCalls = useMemo(() => desk?.calls ?? [], [desk]);
+  const deskLiveCalls = deskCalls.filter((c) => c.status === "live");
+  useEffect(() => { lastLive.current = deskLiveCalls.length > 0; }, [deskLiveCalls.length]);
+  const ringing = deskLiveCalls.filter((c) => !deskAnswered(c));
+  const bridgedCall = open?.deskCallId ? deskCalls.find((c) => c.id === open.deskCallId) ?? null : null;
 
-  const takeDeskCall = useCallback((call: DeskCall) => {
-    const at = Date.now();
-    if (live && incident) act({ type: "END_CALL", at, incidentId: incident.id });
-    if (open) act({ type: "CLOSE_INCIDENT", at, incidentId: open.id });
-    seqRef.current = 0;
-    appliedSeqRef.current = 0;
-    setGeminiQuestions([]);
-    setTrips({});
-    setMode(geminiReady ? "gemini" : "prerecorded");
-    act({ type: "START_LIVE_CALL", at, incidentId: newId("inc"), number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, deskCallId: call.id, callerLanguage: call.callerLanguage });
-  }, [live, incident, open, geminiReady]);
-
-  // Mirror the desk transcript (fragments joined into sentences); run Gemini once per finished caller
-  // sentence; end the console call when the desk call ends.
-  const extractedSentences = useRef<Record<string, number>>({});
+  // Auto-take: when the dispatcher answers (or a desk practice call starts), open the call as an
+  // incident and switch this screen to its tab. The id is the same on every screen, so it opens once.
+  const [connected, setConnected] = useState<Record<string, number>>({});
+  const switchedTo = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!open?.deskCallId || !bridgedCall) return;
-    const { segments, finishedCallerSentences } = groupDeskLines(bridgedCall);
-    // Only send when the words changed: the store rebuilds objects on every action, so an
-    // unconditional act here would re-run this effect forever.
-    if (JSON.stringify(segments) !== JSON.stringify(open.transcript)) {
-      act({ type: "SET_DESK_TRANSCRIPT", at: Date.now(), incidentId: open.id, transcript: segments });
+    for (const c of deskLiveCalls) {
+      if (!deskAnswered(c) || switchedTo.current.has(c.id)) continue;
+      switchedTo.current.add(c.id);
+      const at = Date.now();
+      const incidentId = deskIncidentId(c.id);
+      if (!state.incidents.some((i) => i.id === incidentId)) {
+        act({ type: "START_LIVE_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, deskCallId: c.id, callerLanguage: c.callerLanguage });
+      }
+      setTimeout(() => {
+        setMode(geminiReady ? "gemini" : "prerecorded");
+        setViewId(incidentId);
+        setConnected((p) => ({ ...p, [c.id]: at }));
+      }, 0);
     }
-    const ended = bridgedCall.status !== "live";
-    const target = ended ? segments.filter((x) => x.speaker === "caller").length : finishedCallerSentences;
-    if (target > (extractedSentences.current[open.id] ?? 0)) {
-      extractedSentences.current[open.id] = target;
-      if (mode === "gemini") setTimeout(() => runGemini({ ...open, transcript: segments }, segments), 0);
-    }
-    if (ended && open.callStartedAt && !open.callEndedAt) act({ type: "END_CALL", at: Date.now(), incidentId: open.id });
-  }, [open, bridgedCall, mode, runGemini]);
+  }, [deskLiveCalls, state.incidents, geminiReady]);
 
-  // Classify and place a live call from what has been said (the dispatcher can still edit fields).
-  const deskText = open?.deskCallId
-    ? [
-        open.fields.category.value, open.fields.description.value, open.fields.building.value, open.fields.location_details.value,
-        bridgedCall?.callType, bridgedCall?.location, ...open.transcript.filter((x) => x.speaker === "caller").map((x) => x.text),
-      ].filter(Boolean).join(" \n ")
-    : "";
+  // Mirror every live desk call's transcript into its incident (not only the tab on screen); run Gemini
+  // once the caller has paused; end the console call when the desk call ends.
+  const extractTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const extractedText = useRef<Record<string, string>>({});
   useEffect(() => {
-    if (!open?.deskCallId || !deskText) return;
-    const at = Date.now();
-    const cat = categoryFrom(deskText);
-    if (cat && open.category === "other") act({ type: "SET_CATEGORY", at, incidentId: open.id, category: cat });
-    if (open.locationPending) {
-      const b = matchBuilding(deskText);
-      if (b) act({ type: "SET_LOCATION", at, incidentId: open.id, buildingId: b });
+    for (const inc of openIncidents) {
+      if (!inc.deskCallId) continue;
+      const call = deskCalls.find((c) => c.id === inc.deskCallId);
+      if (!call) continue;
+      const segments = deskSegments(call);
+      // Only send when the words changed: the store rebuilds objects on every action, so an
+      // unconditional act here would re-run this effect forever.
+      if (JSON.stringify(segments) !== JSON.stringify(inc.transcript)) {
+        act({ type: "SET_DESK_TRANSCRIPT", at: Date.now(), incidentId: inc.id, transcript: segments });
+      }
+      const callerText = segments.filter((x) => x.speaker === "caller").map((x) => x.text).join(" ");
+      if (mode === "gemini" && callerText && callerText !== extractedText.current[inc.id]) {
+        clearTimeout(extractTimers.current[inc.id]);
+        extractTimers.current[inc.id] = setTimeout(() => {
+          extractedText.current[inc.id] = callerText;
+          runGemini({ ...inc, transcript: segments }, segments);
+        }, 1200);
+      }
+      if (call.status !== "live" && inc.callStartedAt && !inc.callEndedAt) act({ type: "END_CALL", at: Date.now(), incidentId: inc.id });
     }
-  }, [open, deskText]);
+  }, [openIncidents, deskCalls, mode, runGemini]);
+
+  // Classify and place each live call from what has been said (the dispatcher can still edit fields).
+  useEffect(() => {
+    for (const inc of openIncidents) {
+      if (!inc.deskCallId) continue;
+      const call = deskCalls.find((c) => c.id === inc.deskCallId);
+      const text = [
+        inc.fields.category.value, inc.fields.description.value, inc.fields.building.value, inc.fields.location_details.value,
+        call?.callType, call?.location, ...inc.transcript.filter((x) => x.speaker === "caller").map((x) => x.text),
+      ].filter(Boolean).join(" \n ");
+      if (!text) continue;
+      const at = Date.now();
+      const cat = categoryFrom(text);
+      if (cat && inc.category === "other") act({ type: "SET_CATEGORY", at, incidentId: inc.id, category: cat });
+      if (inc.locationPending) {
+        const b = matchBuilding(text);
+        if (b) act({ type: "SET_LOCATION", at, incidentId: inc.id, buildingId: b });
+      }
+    }
+  }, [openIncidents, deskCalls]);
+
+  // Banner over the map: ringing calls, then "Connected" for a few seconds after auto-take.
+  const recentlyConnected = deskLiveCalls.filter((c) => connected[c.id] && now !== null && now - connected[c.id] < 5000);
 
   // ---------- priority (AI proposal; dispatcher confirms or overrides) ----------
   const assessment = open ? assessConsole(open.category, open.fields) : null;
@@ -413,24 +463,10 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
             );
           })}
         </div>
-        {/* Live calls from the station desk (separate Python server in station-desk/) */}
-        {deskLive && deskLive.id !== open?.deskCallId ? (
-          <button type="button" className="dc-btn primary" onClick={() => takeDeskCall(deskLive)}>
-            Take live call{deskLive.callerLanguage && !/^english$/i.test(deskLive.callerLanguage) ? ` (${deskLive.callerLanguage})` : ""}
-          </button>
-        ) : open?.deskCallId ? (
-          <span className="dc-chip ai" title="Transcript streams in from the station desk">
-            {live ? "Live from station desk" : "Station desk call ended"}{open.callerLanguage && !/^english$/i.test(open.callerLanguage) ? ` · ${open.callerLanguage} → English` : ""}
-          </span>
-        ) : deskLive ? (
-          <button type="button" className="dc-btn primary" onClick={() => takeDeskCall(deskLive)}>
-            Take live call{deskLive.callerLanguage && !/^english$/i.test(deskLive.callerLanguage) ? ` (${deskLive.callerLanguage})` : ""}
-          </button>
-        ) : (
-          <span className="dc-chip" title={desk?.ok ? "Station desk connected; no live call" : "Start station-desk/run.sh to take real calls"}>
-            {desk === null ? "Checking desk…" : desk.ok ? "Desk: no live call" : "Desk offline"}
-          </span>
-        )}
+        {/* Station desk status. Answered calls open automatically; there is no "take call" button. */}
+        <span className={`dc-chip${desk?.ok ? " ai" : ""}`} title={desk?.ok ? "Answered phone calls open here automatically" : "Run npm run desk to take real phone calls"}>
+          {desk === null ? "Checking desk…" : !desk.ok ? "Desk offline" : deskLiveCalls.length ? `Desk: ${deskLiveCalls.length} live call${deskLiveCalls.length > 1 ? "s" : ""}` : "Desk ready"}
+        </span>
         <span className="dc-spacer" />
         {live && scenario && <button type="button" className="dc-btn" onClick={revealNext}>Next line <kbd>E</kbd></button>}
         {live && <button type="button" className="dc-btn danger" onClick={() => act({ type: "END_CALL", at: Date.now(), incidentId: incident!.id })}>End call</button>}
@@ -442,6 +478,25 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
           <Link href="/incidents">Incidents</Link>
         </nav>
       </header>
+
+      {/* One tab per open incident; this screen chooses which one it shows. */}
+      {openIncidents.length > 0 && (
+        <nav className="dc-tabs" aria-label="Open incidents">
+          {openIncidents.map((inc) => {
+            const p = inc.priorityDecision?.priority ?? assessConsole(inc.category, inc.fields).proposed;
+            const onCall = !!inc.callStartedAt && !inc.callEndedAt;
+            return (
+              <button key={inc.id} type="button" aria-pressed={inc.id === incident?.id} onClick={() => setViewId(inc.id)}
+                title={`${inc.number} · ${inc.title}`}>
+                <i style={{ background: `var(--p${p})` }} />
+                <b>{inc.number}</b>
+                <span>{inc.deskCallId ? "Live call" : DEMO[inc.scenarioId ?? ""]?.label ?? inc.category}</span>
+                {onCall && <em className="dc-tab-live">● on call</em>}
+              </button>
+            );
+          })}
+        </nav>
+      )}
 
       <div className="dc-cols">
         {/* CENTER: what to do next, with the map as the main workspace */}
@@ -515,6 +570,31 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
               ))}
             </nav>
             <div className="dc-mapwrap">
+              {/* Incoming phone calls: large banner while ringing, then "Connected" once auto-taken. */}
+              {(ringing.length > 0 || recentlyConnected.length > 0) && (
+                <div className="dc-callbanners" role="alert" aria-live="assertive">
+                  {ringing.map((c) => (
+                    <div key={c.id} className="dc-callbanner ringing">
+                      <span className="dc-callbanner-icon" aria-hidden>☎</span>
+                      <div>
+                        <b>Incoming emergency call</b>
+                        <span>{c.from ?? "Unknown number"}{c.callerLanguage && !/^english$/i.test(c.callerLanguage) ? ` · ${c.callerLanguage}` : ""}</span>
+                      </div>
+                      <span className="dc-callbanner-time">Ringing {now ? fmtClock(Math.max(0, now - c.startedAt)) : ""}</span>
+                      <span className="dc-callbanner-hint">Opens here when the dispatcher answers</span>
+                    </div>
+                  ))}
+                  {recentlyConnected.map((c) => (
+                    <div key={c.id} className="dc-callbanner connected">
+                      <span className="dc-callbanner-icon" aria-hidden>✓</span>
+                      <div>
+                        <b>Call connected</b>
+                        <span>{c.from ?? (c.source === "mic" ? "Desk practice call" : "Unknown number")} · transcript and incident sheet are live</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               {/* The map never resizes or remounts when a drawer opens. */}
               <ConsoleMap officers={state.officers} incident={open} priority={shownPriority} routes={routes} teamIds={teamIds} theme={theme} fitKey={fitKey} lostIds={lost.map((x) => x.o.id)} />
               <aside id="dc-drawer" className={`dc-drawer${drawer ? " open" : ""}`} aria-hidden={!drawer} inert={!drawer}
@@ -579,7 +659,12 @@ function Transcript({ incident, partial }: { incident: Incident | null; partial?
   const end = useRef<HTMLLIElement>(null);
   const n = incident?.transcript.length ?? 0;
   useEffect(() => { if (list.current) list.current.scrollTop = list.current.scrollHeight; }, [n, partial?.text]);
-  if (!incident) return <p className="dc-empty">Choose a demo call or take a live call to start.</p>;
+  if (!incident) return <p className="dc-empty">Choose a demo call, or answer a phone call, to start.</p>;
+  // Words still being spoken: shown at the end of the current line when the same person is talking
+  // (the desk only starts a new line after a 1 s pause or a speaker change).
+  const last = incident.transcript[incident.transcript.length - 1];
+  const partialSpeaker = partial ? (/caller/i.test(partial.speaker) ? "caller" : "dispatcher") : null;
+  const inline = !!partial && !!last && last.speaker === partialSpeaker;
   return (
     <ol ref={list} className="dc-transcript dc-scroll" aria-live="polite">
       {incident.transcript.map((s) => {
@@ -587,12 +672,14 @@ function Transcript({ incident, partial }: { incident: Incident | null; partial?
         return (
           <li key={s.id}>
             <div className={`dc-who ${s.speaker}`}>{s.speaker === "caller" ? "Caller" : "Dispatcher"}<time>{fmtClock(s.t * 1000)}</time></div>
-            <p>{parts ? <>{parts[0]}<mark>{s.highlight}</mark>{parts[1]}</> : s.text}</p>
+            <p>
+              {parts ? <>{parts[0]}<mark>{s.highlight}</mark>{parts[1]}</> : s.text}
+              {inline && s === last && <i style={{ opacity: 0.65 }}> {partial!.text}…</i>}
+            </p>
           </li>
         );
       })}
-      {/* Words still being spoken on the station desk (not yet a finished sentence) */}
-      {partial && (
+      {partial && !inline && (
         <li style={{ opacity: 0.7 }}>
           <div className={`dc-who ${/caller/i.test(partial.speaker) ? "caller" : "dispatcher"}`}>{/caller/i.test(partial.speaker) ? "Caller" : "Dispatcher"}<time>live</time></div>
           <p><i>{partial.text}…</i></p>

@@ -161,7 +161,9 @@ class DeskStore(object):
         with self.lock:
             self.partials.pop(call_id, None)
 
-    def append_line(self, call_id, speaker, text):
+    def append_line(self, call_id, speaker, text, continue_line=False):
+        """Add a transcript line. continue_line=True appends to the last line instead (same speaker,
+        no pause), so a line only ends after a pause or when the other person talks."""
         text = " ".join(str(text or "").split())
         if not text:
             self.clear_partial(call_id)
@@ -179,7 +181,10 @@ class DeskStore(object):
                 call["partial"] = None
                 written = call
             else:
-                transcript.append({"t": _now(), "speaker": speaker, "text": text})
+                if continue_line and transcript and transcript[-1]["speaker"] == speaker:
+                    transcript[-1]["text"] = transcript[-1]["text"] + " " + text
+                else:
+                    transcript.append({"t": _now(), "speaker": speaker, "text": text})
                 keywords = find_keywords([line["text"] for line in transcript])
                 self.conn.execute(
                     "UPDATE calls SET transcript_json = ?, keywords_json = ?, last_error = NULL WHERE id = ?",
@@ -191,6 +196,30 @@ class DeskStore(object):
                 written["partial"] = None
         if written and written["transcript"]:
             write_transcript(self.transcripts_dir, written)
+        return written
+
+    def replace_last_line(self, call_id, speaker, text):
+        """Replace the last line's words (the model re-sent the same line with more words)."""
+        text = " ".join(str(text or "").split())
+        with self.lock:
+            row = self.conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()
+            if row is None:
+                return None
+            transcript = json.loads(row["transcript_json"])
+            if not text or not transcript or transcript[-1]["speaker"] != speaker:
+                return None
+            transcript[-1]["text"] = text
+            self.partials.pop(call_id, None)
+            keywords = find_keywords([line["text"] for line in transcript])
+            self.conn.execute(
+                "UPDATE calls SET transcript_json = ?, keywords_json = ?, last_error = NULL WHERE id = ?",
+                (json.dumps(transcript), json.dumps(keywords), call_id),
+            )
+            self.conn.commit()
+            row = self.conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()
+            written = self._call(row)
+            written["partial"] = None
+        write_transcript(self.transcripts_dir, written)
         return written
 
     def set_keywords(self, call_id, keywords):

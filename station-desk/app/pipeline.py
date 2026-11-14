@@ -1,8 +1,10 @@
 """Turn phone frames and microphone audio into a live transcript."""
 
+import array
 import asyncio
 import logging
 import os
+import time
 
 from app.audio_util import RATE, mulaw_to_pcm16, resample_pcm16, wav_to_pcm16
 from app.gemini_client import redact
@@ -13,6 +15,13 @@ from app.transcripts import find_keywords, keep_spoken, stitch_text, strip_overl
 log = logging.getLogger("desk.pipeline")
 
 LIVE_RATE = 16000
+LINE_PAUSE_S = 1.0  # start a new transcript line only after this much silence (or a speaker change)
+TEXT_LAG_S = 0.7  # transcribed text arrives about this long after the words were spoken
+VOICE_LEVEL = 400  # mean |sample| (16-bit) above which a chunk counts as speech rather than line noise
+
+
+def _norm(text):
+    return " ".join("".join(c.lower() if c.isalnum() else " " for c in str(text or "")).split())
 
 
 def interpreter_on():
@@ -34,6 +43,10 @@ class Pipeline(object):
         self.workers = {}
         self.caller_language = {}
         self.reply_buffer = {}
+        # Line breaks come from the audio: a speaker's "utterance" ends after LINE_PAUSE_S of silence.
+        self.voice = {}  # (call_id, speaker) -> {"last": t of last voiced audio, "uid": n, "starts": [(t, uid)]}
+        self.line_speaker = {}  # call_id -> speaker of the open line
+        self.line_uid = {}  # call_id -> utterance id of the open line
 
     async def add_phone_audio(self, call_id, track, payload):
         speaker = "Call-taker" if track == "outbound" else "Caller"
@@ -43,6 +56,7 @@ class Pipeline(object):
     async def feed_pcm(self, call_id, speaker, pcm):
         if not pcm:
             return
+        self._note_audio(call_id, speaker, pcm)
         if not os.environ.get("GEMINI_API_KEY", "").strip():
             self._missing_key(call_id)
             return
@@ -104,6 +118,10 @@ class Pipeline(object):
         self.failed = set(key for key in self.failed if key[0] != call_id)
         self.reply_buffer.pop(call_id, None)
         self.caller_language.pop(call_id, None)
+        for book in (self.line_speaker, self.line_uid):
+            book.pop(call_id, None)
+        for key in [k for k in self.voice if k[0] == call_id]:
+            self.voice.pop(key, None)
 
     async def _send_session(self, call_id, speaker, pcm, target, text_from):
         key = (call_id, speaker, target, text_from)
@@ -176,6 +194,34 @@ class Pipeline(object):
         self.sessions[key] = session
         return session
 
+    def _note_audio(self, call_id, speaker, pcm):
+        """Track voiced audio per speaker; speech after LINE_PAUSE_S of silence starts a new utterance."""
+        samples = array.array("h", pcm[: len(pcm) - len(pcm) % 2])
+        if not samples:
+            return
+        level = sum(abs(s) for s in samples[::4]) / len(samples[::4])
+        if level < VOICE_LEVEL:
+            return
+        now = time.monotonic()
+        v = self.voice.setdefault((call_id, speaker), {"last": None, "uid": 0, "starts": []})
+        if v["last"] is None or now - v["last"] >= LINE_PAUSE_S:
+            v["uid"] += 1
+            v["starts"].append((now, v["uid"]))
+            del v["starts"][:-20]
+        v["last"] = now
+
+    def _utterance_for_text(self, call_id, speaker):
+        """Which utterance a phrase arriving now belongs to (text lags the audio by about TEXT_LAG_S)."""
+        v = self.voice.get((call_id, speaker))
+        if not v or not v["starts"]:
+            return 0
+        at = time.monotonic() - TEXT_LAG_S
+        uid = v["starts"][0][1]
+        for t, n in v["starts"]:
+            if t <= at:
+                uid = n
+        return uid
+
     async def _show(self, call_id, speaker, text, commit):
         call = self.store.get_call(call_id)
         last = ""
@@ -188,7 +234,20 @@ class Pipeline(object):
                 await self._publish()
             return
         if commit:
-            self.store.append_line(call_id, speaker, fresh)
+            uid = self._utterance_for_text(call_id, speaker)
+            same_line = self.line_speaker.get(call_id) == speaker and self.line_uid.get(call_id) == uid
+            last_line = (call or {}).get("transcript") or []
+            restated = (
+                same_line and last_line and last_line[-1]["speaker"] == speaker
+                and _norm(text).startswith(_norm(last_line[-1]["text"]))
+            )
+            if restated:
+                # The model re-sent the whole line with more words: replace it instead of repeating it.
+                self.store.replace_last_line(call_id, speaker, " ".join(text.split()))
+            else:
+                self.store.append_line(call_id, speaker, fresh, continue_line=same_line)
+            self.line_speaker[call_id] = speaker
+            self.line_uid[call_id] = uid
             asyncio.create_task(self._refine_keywords(call_id))
         else:
             self.store.set_partial(call_id, speaker, fresh)

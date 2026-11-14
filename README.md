@@ -19,7 +19,7 @@ Open http://localhost:3000 and pick **Dispatcher** (`/console`, the primary prod
 
 | Route | What it is |
 | --- | --- |
-| `/console` | **Primary product.** Map-first dispatch console: real campus map (streets, satellite, NJ leaf-off, 3D) with a left rail of pull-out drawers (Transcript · AI questions · Activity log) that slide over the map; AI team recommendation with Y/N approval; live re-grades; officers travel real routes; incident details with confirm/override; officer communication (pending changes since dispatch, sent only after dispatcher review, acknowledged on the patrol terminal); **Take live call** from the station desk |
+| `/console` | **Primary product.** Map-first dispatch console: real campus map (streets, satellite, NJ leaf-off, 3D) with a left rail of pull-out drawers (Transcript · AI questions · Activity log) that slide over the map; AI team recommendation with Y/N approval; live re-grades; officers travel real routes; incident details with confirm/override; incident tabs (one per open incident, each screen picks its own); critical changes after dispatch are sent to the officer's patrol terminal automatically and acknowledged there; answered phone calls open automatically in their own incident tab, with a large incoming-call banner while ringing |
 | `/officer` | Patrol-car terminal: pick a unit, receive dispatches with live notes and route, acknowledge assignments and dispatcher updates |
 | `/dispatch` | Classic view (fallback): Leaflet map-first workstation |
 | `/incidents`, `/incidents/[id]` | Incident history and full audit timeline |
@@ -27,9 +27,9 @@ Open http://localhost:3000 and pick **Dispatcher** (`/console`, the primary prod
 
 ## Live calls from the station desk
 
-`station-desk/` (Sagar's Python server) answers the station phone (Twilio) or a practice call, streams the audio to Gemini Live, and translates the caller into English. With `npm run desk` running, the console shows **Take live call**:
+`station-desk/` (Sagar's Python server) answers the station phone (Twilio) or a practice call, streams the audio to Gemini Live, and translates the caller into English. With `npm run desk` running, a ringing call shows a large banner over the map, and the call opens automatically in its own incident tab once the dispatcher answers:
 
-- the desk's English transcript streams into the Transcript drawer (sentences rebuilt from the desk's fragments; words still being spoken show as a live line)
+- the desk's English transcript streams into the Transcript drawer; a new line starts only after 1 second of silence or when the other person talks
 - Gemini fills the incident sheet after each finished caller sentence
 - the call is classified (medical / fire / police) and placed on a campus building from what the caller said; both are logged and editable
 - the console call ends when the desk call ends

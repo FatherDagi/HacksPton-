@@ -1,0 +1,13 @@
+# Secrets: never commit API keys (this repo is public)
+.env
+.env.*
+!.env.example
+*.key
+service-account*.json
+credentials*.json
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+node_modules/

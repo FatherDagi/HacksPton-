@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispatcher Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E9EBEE; --panel: #FFFFFF; --strip: #EEF0F2; --line: #C9CED4; --line-soft: #E1E4E8;
+    --text: #1B1F24; --muted: #4F5864; --faint: #6B7380; --btn-border: #AEB4BB;
+    --blue: #1F5FAD; --red: #A3221B;
+    --available: #2E7D4F; --sent: #1F5FAD; --onscene: #5B3A8C; --busy: #9A5B00;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  button { font-family: inherit; font-size: 14px; cursor: pointer; border-radius: 2px; }
+  button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .shell { height: 100vh; min-height: 680px; display: flex; flex-direction: column; }
+  .cols { flex: 1 1 auto; min-height: 0; display: flex; }
+  .col { min-height: 0; display: flex; flex-direction: column; background: var(--panel); }
+  .scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .strip { flex: 0 0 auto; margin: 0; padding: 8px 14px; background: var(--strip); border-bottom: 1px solid #D5D9DE; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #4A525C; }
+
+  header { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  .brand { font-weight: 700; font-size: 15px; }
+  .live { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--red); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .btn { height: 36px; padding: 0 14px; border: 1px solid var(--btn-border); background: #fff; color: var(--text); font-size: 13px; }
+  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+  .btn-danger { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
+  .btn-lg { height: 40px; padding: 0 16px; font-size: 14px; }
+
+  /* Left */
+  .left { flex: 0 1 300px; min-width: 250px; border-right: 1px solid var(--line); }
+  .transcript { flex: 1 1 auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+  .who { font-size: 12px; font-weight: 600; }
+  .who time { font-weight: 400; color: var(--faint); margin-left: 4px; }
+  .transcript p { margin: 2px 0 0; line-height: 1.5; }
+  .questions { flex: 1 1 auto; margin: 0; padding: 10px 14px 12px 34px; display: flex; flex-direction: column; gap: 8px; line-height: 1.45; }
+
+  /* Center */
+  .center { flex: 1 1 560px; min-width: 0; }
+  .bar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .bar-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 280px; min-width: 0; }
+  .bar-kicker { font-size: 12px; color: var(--muted); }
+  .bar-title { font-size: 15px; font-weight: 600; }
+  .bar-actions { display: flex; gap: 8px; align-items: center; }
+  .map { position: relative; flex: 1 1 auto; min-height: 300px; overflow: hidden; background: #ECEEEA; }
+  .surface { position: absolute; inset: 0; cursor: grab; touch-action: none; user-select: none; }
+  .surface.dragging { cursor: grabbing; }
+  .world { position: absolute; left: 0; top: 0; width: 2000px; height: 1400px; transform-origin: 0 0; }
+  .overlay { position: absolute; inset: 0; pointer-events: none; }
+  .overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .incident { position: absolute; width: 0; height: 0; }
+  .incident span { position: absolute; left: 0; top: 0; border-radius: 50%; transform: translate(-50%, -50%); }
+  .officer { position: absolute; transform: translate(-50%, -34px); display: flex; flex-direction: column; align-items: center; gap: 1px; }
+  .officer .fig { padding: 4px; line-height: 0; }
+  .officer.rec .fig { padding: 2px; border: 2px solid; background: #ffffffcc; }
+  .officer .tag { white-space: nowrap; background: #fff; border: 1px solid; font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 2px; }
+  .zoom { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; border: 1px solid var(--btn-border); background: #fff; }
+  .zoom button { width: 40px; height: 40px; border: none; border-bottom: 1px solid #D5D9DE; background: #fff; color: var(--text); display: flex; align-items: center; justify-content: center; border-radius: 0; }
+  .zoom button:last-child { border-bottom: none; }
+
+  .units { flex: 0 0 auto; border-top: 1px solid var(--line); }
+  .units-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 8px 14px; background: var(--strip); border-bottom: 1px solid #D5D9DE; }
+  .units-head h2 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #4A525C; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #4A525C; }
+  .legend span, .status { display: flex; align-items: center; gap: 6px; }
+  .sq { width: 9px; height: 9px; display: inline-block; }
+  .table-wrap { overflow-x: auto; }
+  .table { min-width: 600px; }
+  .row { display: grid; grid-template-columns: minmax(0,1.6fr) 72px 150px minmax(0,1.5fr) 130px; padding: 7px 14px; border-bottom: 1px solid var(--line-soft); }
+  .row.head { padding: 6px 14px; font-size: 12px; color: #5B6470; }
+  .row.rec { background: #EEF3FA; }
+  .status { font-weight: 600; }
+
+  /* Right */
+  .right { flex: 0 1 360px; min-width: 290px; border-left: 1px solid var(--line); }
+  .sev { flex: 0 0 auto; padding: 12px 14px; border-bottom: 1px solid #D5D9DE; display: flex; flex-direction: column; gap: 10px; }
+  .sev-row { display: flex; align-items: center; gap: 12px; }
+  .sev-label { width: 70px; flex: 0 0 auto; font-size: 13px; color: var(--muted); }
+  .prio { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); flex: 1 1 auto; border: 1px solid var(--btn-border); }
+  .prio button { height: 36px; border: none; border-left: 1px solid var(--btn-border); background: #fff; color: var(--text); border-radius: 0; }
+  .prio button:first-child { border-left: none; }
+  .prio button[aria-pressed="true"] { background: var(--red); color: #fff; font-weight: 700; }
+  .fields { flex: 1 1 auto; padding: 0 14px 14px; }
+  .fields h3 { margin: 14px 0 4px; font-size: 12px; font-weight: 600; color: #5B6470; }
+  .field { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid #E6E8EB; }
+  .field .k { font-size: 13px; color: var(--muted); }
+  .field .missing { color: var(--faint); font-style: italic; }
+  .confirm { border: 1px solid var(--btn-border); padding: 0 4px; font-size: 11px; color: var(--muted); margin-left: 4px; }
+  .note { margin: 14px 0 0; font-size: 12px; color: #5B6470; line-height: 1.5; }
+
+  @media (max-width: 1000px) {
+    .shell { height: auto; }
+    .cols { flex-wrap: wrap; }
+    .col { min-height: auto; }
+    .scroll { max-height: 420px; }
+    .map { flex: 0 0 auto; height: 460px; }
+    .left, .right { flex: 1 1 100%; max-width: none; border: none; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <span class="brand">Dispatch Copilot</span>
+    <span class="live"><span class="dot"></span>Call in progress · <span id="timer">02:14</span></span>
+    <span style="color: var(--muted)">Incident 0001 · Demo call</span>
+    <div style="flex: 1 1 0"></div>
+    <button type="button" class="btn">Save to log</button>
+    <button type="button" class="btn btn-danger">End call</button>
+  </header>
+
+  <div class="cols">
+    <!-- LEFT -->
+    <section class="col left" aria-label="Call">
+      <div class="col" style="flex: 3 1 0">
+        <h2 class="strip">Call transcript</h2>
+        <div class="scroll transcript" id="transcript"></div>
+      </div>
+      <div class="col" style="flex: 2 1 0; border-top: 1px solid var(--line)">
+        <h2 class="strip">Still need to ask</h2>
+        <ol class="scroll questions" id="questions"></ol>
+      </div>
+    </section>
+
+    <!-- CENTER -->
+    <section class="col center" aria-label="Map and officers">
+      <div class="bar" id="bar">
+        <div class="bar-text"><span class="bar-kicker" id="bar-kicker"></span><span class="bar-title" id="bar-title"></span></div>
+        <div class="bar-actions" id="bar-actions"></div>
+      </div>
+
+      <div class="map" id="map">
+        <div class="surface" id="surface">
+          <div class="world" id="world">
+            <svg width="2000" height="1400" viewBox="0 0 2000 1400" style="display:block" aria-hidden="true">
+              <defs>
+                <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#F4E6D6"/><line x1="0" y1="0" x2="0" y2="10" stroke="#C98A4B" stroke-width="3"/></pattern>
+              </defs>
+              <rect width="2000" height="1400" fill="#ECEEEA"/>
+              <path d="M270 100 L1960 100 L1960 1240 L120 1240 L170 640 Z" fill="#DFE8D9"/>
+              <path d="M0 1300 C 400 1265, 800 1335, 1200 1290 S 1800 1280, 2000 1310 L 2000 1400 L 0 1400 Z" fill="#CADDEA"/>
+              <text x="1500" y="1360" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-style="italic" fill="#466A86">Lake Carnegie</text>
+              <g fill="none" stroke="#C3CABD" stroke-width="5" stroke-dasharray="2 8" stroke-linecap="round">
+                <path d="M560 860 L760 760 L940 690"/><path d="M690 210 L690 470 L940 640"/><path d="M420 330 L1180 330"/><path d="M690 470 L1180 470"/><path d="M560 860 L560 1250"/>
+              </g>
+              <g id="roads" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <g stroke="#BFC4CA" stroke-width="24">
+                  <path d="M0 80 L2000 80"/><path d="M1180 80 L1180 1400"/><path d="M260 80 L260 620 L60 1400"/><path d="M100 1250 L2000 1250"/><path d="M900 1250 L900 560 L1180 560"/><path d="M1180 520 L1720 520"/><path d="M1180 300 L1720 300"/><path d="M1720 80 L1720 1250"/>
+                </g>
+                <g stroke="#FFFFFF" stroke-width="18">
+                  <path d="M0 80 L2000 80"/><path d="M1180 80 L1180 1400"/><path d="M260 80 L260 620 L60 1400"/><path d="M100 1250 L2000 1250"/><path d="M900 1250 L900 560 L1180 560"/><path d="M1180 520 L1720 520"/><path d="M1180 300 L1720 300"/><path d="M1720 80 L1720 1250"/>
+                </g>
+              </g>
+              <g font-family="Inter, sans-serif" font-size="15" fill="#5B6470">
+                <text x="40" y="70">Nassau St</text><text x="1400" y="70">Nassau St</text>
+                <text x="1196" y="180" transform="rotate(90 1196 180)">Washington Rd</text>
+                <text x="1196" y="900" transform="rotate(90 1196 900)">Washington Rd</text>
+                <text x="276" y="300" transform="rotate(90 276 300)">University Pl</text>
+                <text x="160" y="1090" transform="rotate(-76 160 1090)">Alexander St</text>
+                <text x="600" y="1240">Faculty Rd</text>
+                <text x="886" y="1000" transform="rotate(-90 886 1000)">Elm Dr</text>
+                <text x="1390" y="510">Prospect Ave</text>
+                <text x="1400" y="290">William St</text>
+                <text x="1736" y="700" transform="rotate(90 1736 700)">Olden St</text>
+              </g>
+              <g fill="#D2D6DB" stroke="#AEB4BB" stroke-width="1.5">
+                <rect x="580" y="140" width="200" height="60"/><rect x="740" y="250" width="170" height="70"/><rect x="960" y="230" width="70" height="90"/><rect x="960" y="370" width="170" height="50"/><rect x="330" y="230" width="130" height="80"/><rect x="330" y="470" width="120" height="70"/><rect x="1300" y="330" width="260" height="140"/><rect x="1300" y="560" width="120" height="70"/><rect x="440" y="900" width="180" height="120"/><rect x="650" y="930" width="160" height="110"/><rect x="210" y="740" width="110" height="60"/><rect x="920" y="990" width="110" height="60"/><rect x="1280" y="880" width="260" height="170" rx="80"/><rect x="1300" y="1110" width="200" height="90"/><rect x="560" y="560" width="130" height="80"/><rect x="760" y="380" width="120" height="60"/>
+              </g>
+              <rect x="940" y="640" width="160" height="90" fill="#F2D8CC" stroke="#A3221B" stroke-width="2.5"/>
+              <rect x="780" y="760" width="90" height="70" fill="url(#hatch)" stroke="#B26A28" stroke-width="1.5" stroke-dasharray="6 4"/>
+              <g font-family="Inter, sans-serif" font-size="15" fill="#2E343B" text-anchor="middle">
+                <text x="680" y="176">Nassau Hall</text><text x="825" y="290">Firestone Library</text><text x="995" y="345">Chapel</text><text x="1045" y="400">McCosh Hall</text><text x="395" y="275">Rockefeller</text><text x="390" y="510">Dillon Gym</text><text x="1430" y="405">Engineering Quad</text><text x="1360" y="600">Friend Center</text><text x="530" y="965">Whitman College</text><text x="730" y="990">Butler College</text><text x="265" y="775">McCarter</text><text x="975" y="1025">Public Safety</text><text x="1410" y="970">Princeton Stadium</text><text x="1400" y="1160">Jadwin Gym</text><text x="625" y="605">Frick</text><text x="820" y="415">East Pyne</text>
+                <text x="1020" y="690" font-weight="700" fill="#7E1B15">Frist Campus Center</text>
+                <text x="825" y="852" font-size="13" fill="#7A4413">Construction</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="overlay">
+          <svg aria-hidden="true">
+            <polyline id="route-casing" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+            <polyline id="route" fill="none" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <div class="incident" id="incident">
+            <span style="width:36px;height:36px;background:#A3221B33;border:1px solid #A3221B"></span>
+            <span style="width:14px;height:14px;background:#A3221B;border:2px solid #fff"></span>
+          </div>
+          <div id="officers"></div>
+        </div>
+        <div class="zoom">
+          <button type="button" aria-label="Zoom in" id="zoom-in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button type="button" aria-label="Zoom out" id="zoom-out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+          <button type="button" aria-label="Center on incident" id="recenter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/></svg></button>
+        </div>
+      </div>
+
+      <div class="units">
+        <div class="units-head">
+          <h2>Officers</h2>
+          <div class="legend">
+            <span><i class="sq" style="background:var(--available)"></i>Available</span>
+            <span><i class="sq" style="background:var(--sent)"></i>Sent to this call</span>
+            <span><i class="sq" style="background:var(--onscene)"></i>On scene (at this call)</span>
+            <span><i class="sq" style="background:var(--busy)"></i>Busy (on another call)</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table" role="table" aria-label="Officers">
+            <div class="row head" role="row"><span role="columnheader">Officer</span><span role="columnheader">Badge</span><span role="columnheader">Status</span><span role="columnheader">Location</span><span role="columnheader">Route to call</span></div>
+            <div id="roster"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="col right" aria-label="Incident details">
+      <h2 class="strip">Incident details</h2>
+      <div class="sev">
+        <div class="sev-row">
+          <span class="sev-label">Priority</span>
+          <div class="prio" role="group" aria-label="Priority" id="prio">
+            <button type="button" aria-pressed="true">1</button>
+            <button type="button" aria-pressed="false">2</button>
+            <button type="button" aria-pressed="false">3</button>
+            <button type="button" aria-pressed="false">4</button>
+          </div>
+        </div>
+        <div class="sev-row" style="align-items:flex-start">
+          <span class="sev-label">Urgency</span>
+          <span><strong style="color:var(--red)">High.</strong> Person bleeding; person with knife may still be nearby.</span>
+        </div>
+      </div>
+      <div class="scroll fields" id="fields"></div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ---------- Demo data (scripted fake call) ----------
+const WORLD = { w: 2000, h: 1400 };
+const INCIDENT = { x: 1020, y: 685, name: 'Frist Campus Center' };
+const METERS_PER_UNIT = 1.2;
+const FRIST_DOOR = [1020, 640];
+
+const OFFICERS = [
+  { id: 'U1', name: 'Ofc. Dana Reyes',   short: 'Reyes',    badge: '4127', x: 640,  y: 80,   status: 'available', where: 'Nassau St at Nassau Hall', mode: 'car',
+    route: [[640, 80], [1180, 80], [1180, 560], [1020, 560], FRIST_DOOR] },
+  { id: 'U2', name: 'Ofc. Marcus Hale',  short: 'Hale',     badge: '3381', x: 1410, y: 880,  status: 'busy',      where: 'Princeton Stadium (noise complaint)', mode: 'car',
+    route: [[1410, 880], [1180, 880], [1180, 560], [1020, 560], FRIST_DOOR] },
+  { id: 'U3', name: 'Ofc. Priya Nair',   short: 'Nair',     badge: '2904', x: 1180, y: 470,  status: 'available', where: 'Washington Rd', mode: 'car',
+    route: [[1180, 470], [1180, 560], [1020, 560], FRIST_DOOR] },
+  { id: 'U4', name: 'Ofc. Tom Kowalski', short: 'Kowalski', badge: '5162', x: 560,  y: 860,  status: 'available', where: 'Walking near Whitman College', mode: 'foot',
+    route: [[560, 860], [760, 760], [940, 690], [1020, 685]] },
+  { id: 'U5', name: 'Ofc. Alicia Brooks', short: 'Brooks',  badge: '3745', x: 900,  y: 1020, status: 'available', where: 'Public Safety, Elm Dr', mode: 'car',
+    route: [[900, 1020], [900, 560], [1020, 560], FRIST_DOOR] },
+];
+
+const TRANSCRIPT = [
+  ['Dispatcher', '00:02', 'Princeton Public Safety, where is your emergency?'],
+  ['Caller', '00:05', 'Frist, the campus center. There was a fight and someone is on the ground.'],
+  ['Dispatcher', '00:14', 'Which floor are you on?'],
+  ['Caller', '00:17', 'Second floor, by the study tables. I think one of them had a knife.'],
+  ['Dispatcher', '00:31', 'Is the person on the ground awake? Are they breathing?'],
+  ['Caller', '00:35', 'He is talking a little. There is blood on his arm.'],
+];
+
+const QUESTIONS = [
+  'Is the person with the knife still there? Which way did they go?',
+  'Are you somewhere safe right now?',
+  'What does that person look like?',
+  'What is your name?',
+  'Which entrance is closest to you?',
+];
+
+// state: 'ok' = confirmed, 'heard' = heard but not confirmed, 'missing' = not asked yet
+const SHEET = [
+  ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0142', 'ok'], ['Caller safe?', '', 'missing'], ['Language', 'English', 'ok']]],
+  ['Location', [['Building', 'Frist Campus Center', 'ok'], ['Floor / room', '2nd floor, study tables', 'heard'], ['Best entrance', '', 'missing']]],
+  ['What happened', [['Type', 'Fight, person injured', 'heard'], ['Details', 'One man on the ground, bleeding from his arm', 'heard'], ['Weapons', 'Knife', 'heard'], ['Other dangers', '', 'missing']]],
+  ['Injured person', [['How many hurt', '1', 'heard'], ['Awake?', 'Yes, talking', 'heard'], ['Breathing?', 'Yes', 'heard'], ['Injuries', 'Bleeding, arm', 'heard']]],
+  ['Person with knife', [['Description', '', 'missing'], ['Still there?', '', 'missing'], ['Went which way', '', 'missing']]],
+];
+
+const COLORS = { available: '#2E7D4F', dispatched: '#1F5FAD', onscene: '#5B3A8C', busy: '#9A5B00' };
+const LABELS = { available: 'Available', dispatched: 'Sent to this call', onscene: 'On scene', busy: 'Busy' };
+
+// ---------- Helpers ----------
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const routeMiles = (r) => {
+  let d = 0;
+  for (let i = 1; i < r.length; i++) d += Math.hypot(r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]);
+  return d * METERS_PER_UNIT / 1609;
+};
+OFFICERS.forEach((o) => { o.dist = routeMiles(o.route); });
+const distLabel = (o) => `${o.dist.toFixed(2)} mi ${o.mode === 'foot' ? 'on foot' : 'by car'}`;
+
+const figureSvg = (color) => `
+  <svg width="26" height="34" viewBox="0 0 30 38" aria-hidden="true">
+    <ellipse cx="15" cy="35" rx="10" ry="3" fill="#000" opacity="0.18"/>
+    <rect x="6" y="15" width="18" height="18" rx="6" fill="${color}"/>
+    <circle cx="15" cy="9" r="7" fill="#E9C9A8"/>
+    <path d="M7 7 Q15 -1 23 7 L23 8 L7 8 Z" fill="#26324A"/>
+    <rect x="7" y="7" width="16" height="2.5" fill="#1A2234"/>
+    <path d="M15 19 l1.6 3 3.2.4-2.4 2.2.7 3.2-3.1-1.6-3.1 1.6.7-3.2-2.4-2.2 3.2-.4z" fill="#F3E3B0"/>
+  </svg>`;
+
+// ---------- State ----------
+const state = { recIdx: 0, dispatched: false, onScene: false, s: 0.75, tx: 0, ty: 0 };
+
+function available() {
+  return OFFICERS.filter((o) => o.status === 'available').sort((a, b) => a.dist - b.dist);
+}
+function recommended() { return available()[state.recIdx] || null; }
+function statusOf(o) {
+  const rec = recommended();
+  if (!rec || o.id !== rec.id || !state.dispatched) return o.status;
+  return state.onScene ? 'onscene' : 'dispatched';
+}
+
+// ---------- Map view (pan / zoom, clamped to campus) ----------
+const mapEl = $('map');
+function clampView(s, tx, ty) {
+  const w = mapEl.clientWidth, h = mapEl.clientHeight;
+  const sMin = Math.max(w / WORLD.w, h / WORLD.h);
+  s = Math.min(2.5, Math.max(sMin, s));
+  tx = Math.min(0, Math.max(w - WORLD.w * s, tx));
+  ty = Math.min(0, Math.max(h - WORLD.h * s, ty));
+  return { s, tx, ty };
+}
+function setView(v) { Object.assign(state, clampView(v.s, v.tx, v.ty)); renderMap(); }
+function centerOn(pt, s) {
+  setView({ s, tx: mapEl.clientWidth / 2 - pt.x * s, ty: mapEl.clientHeight / 2 - pt.y * s });
+}
+function zoomAt(px, py, factor) {
+  const s1 = clampView(state.s * factor, 0, 0).s;
+  const k = s1 / state.s;
+  setView({ s: s1, tx: px - (px - state.tx) * k, ty: py - (py - state.ty) * k });
+}
+const toScreen = (x, y) => ({ x: x * state.s + state.tx, y: y * state.s + state.ty });
+
+const surface = $('surface');
+let drag = null;
+surface.addEventListener('pointerdown', (e) => {
+  drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty };
+  surface.setPointerCapture(e.pointerId);
+  surface.classList.add('dragging');
+});
+surface.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  setView({ s: state.s, tx: drag.tx + e.clientX - drag.x, ty: drag.ty + e.clientY - drag.y });
+});
+const endDrag = () => { drag = null; surface.classList.remove('dragging'); };
+surface.addEventListener('pointerup', endDrag);
+surface.addEventListener('pointercancel', endDrag);
+surface.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const r = surface.getBoundingClientRect();
+  zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
+}, { passive: false });
+$('zoom-in').onclick = () => zoomAt(mapEl.clientWidth / 2, mapEl.clientHeight / 2, 1.25);
+$('zoom-out').onclick = () => zoomAt(mapEl.clientWidth / 2, mapEl.clientHeight / 2, 0.8);
+$('recenter').onclick = () => centerOn(INCIDENT, 0.9);
+window.addEventListener('resize', () => setView(state));
+
+// ---------- Rendering ----------
+function renderMap() {
+  $('world').style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.s})`;
+  const inc = toScreen(INCIDENT.x, INCIDENT.y);
+  Object.assign($('incident').style, { left: inc.x + 'px', top: inc.y + 'px' });
+
+  const rec = recommended();
+  $('officers').innerHTML = OFFICERS.map((o) => {
+    const st = statusOf(o);
+    const at = st === 'onscene' ? toScreen(INCIDENT.x + 34, INCIDENT.y + 8) : toScreen(o.x, o.y);
+    const color = COLORS[st];
+    const isRec = rec && rec.id === o.id && st !== 'onscene';
+    return `<div class="officer${isRec ? ' rec' : ''}" style="left:${at.x}px;top:${at.y}px;z-index:${isRec ? 3 : 2}">
+      <div class="fig" style="border-color:${color}">${figureSvg(color)}</div>
+      <span class="tag" style="border-color:${color}">${esc(o.short)} #${esc(o.badge)}</span>
+    </div>`;
+  }).join('');
+
+  const show = rec && !state.onScene;
+  const pts = show ? rec.route.map(([x, y]) => { const p = toScreen(x, y); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(' ') : '';
+  $('route-casing').setAttribute('points', pts);
+  const route = $('route');
+  route.setAttribute('points', pts);
+  route.setAttribute('stroke', state.dispatched ? COLORS.dispatched : COLORS.available);
+  route.setAttribute('stroke-dasharray', show && rec.mode === 'foot' ? '2 7' : 'none');
+}
+
+function renderBar() {
+  const rec = recommended();
+  const avail = available();
+  let kicker, title, bg = '#FFFFFF', actions = '';
+  if (!rec) {
+    kicker = 'Suggested officer'; title = 'No other available officers right now.';
+    actions = `<button type="button" class="btn btn-lg" data-act="reset">Start over</button>`;
+  } else if (state.onScene) {
+    kicker = 'On scene'; bg = '#F4F0F9';
+    title = `${rec.name} (#${rec.badge}) has arrived at ${INCIDENT.name}.`;
+    actions = `<button type="button" class="btn btn-lg" data-act="reset">Start over</button>`;
+  } else if (state.dispatched) {
+    kicker = 'Sent'; bg = '#EEF3FA';
+    title = `${rec.name} (#${rec.badge}) is on the way. Call details sent to their phone.`;
+    actions = `<button type="button" class="btn btn-lg" style="border-color:#5B3A8C;color:#5B3A8C;font-weight:600" data-act="arrive">Mark on scene</button>
+               <button type="button" class="btn btn-lg" data-act="reset">Undo</button>`;
+  } else {
+    kicker = `Suggested officer · option ${state.recIdx + 1} of ${avail.length}`;
+    title = `${rec.name} (#${rec.badge}) · Available · ${distLabel(rec)}`;
+    actions = `<span style="font-weight:600">Send?</span>
+               <button type="button" class="btn btn-lg btn-primary" data-act="yes">Yes, send</button>
+               <button type="button" class="btn btn-lg" data-act="no">No, next option</button>`;
+  }
+  $('bar').style.background = bg;
+  $('bar-kicker').textContent = kicker;
+  $('bar-title').textContent = title;
+  $('bar-actions').innerHTML = actions;
+}
+
+function renderRoster() {
+  const rec = recommended();
+  $('roster').innerHTML = OFFICERS.slice().sort((a, b) => a.dist - b.dist).map((o) => {
+    const st = statusOf(o);
+    const color = COLORS[st];
+    return `<div class="row${rec && rec.id === o.id ? ' rec' : ''}" role="row">
+      <span role="cell" style="font-weight:500">${esc(o.name)}</span>
+      <span role="cell">${esc(o.badge)}</span>
+      <span role="cell" class="status" style="color:${color}"><i class="sq" style="background:${color}"></i>${LABELS[st]}</span>
+      <span role="cell" style="color:var(--muted)">${esc(st === 'onscene' ? INCIDENT.name : o.where)}</span>
+      <span role="cell">${st === 'onscene' ? '—' : distLabel(o)}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderStatic() {
+  $('transcript').innerHTML = TRANSCRIPT.map(([who, t, text]) => `
+    <div><div class="who" style="color:${who === 'Caller' ? '#7A4413' : '#1F5FAD'}">${who}<time>${t}</time></div><p>${esc(text)}</p></div>`
+  ).join('') + `<p style="color:var(--faint);font-style:italic;margin:0">Listening…</p>`;
+
+  $('questions').innerHTML = QUESTIONS.map((q) => `<li>${esc(q)}</li>`).join('');
+
+  $('fields').innerHTML = SHEET.map(([title, fields]) => `
+    <h3>${esc(title)}</h3>
+    ${fields.map(([k, v, s]) => `
+      <div class="field"><span class="k">${esc(k)}</span>
+        <span>${s === 'missing' ? '<span class="missing">Not asked yet</span>' : esc(v)}${s === 'heard' ? '<span class="confirm">confirm</span>' : ''}</span>
+      </div>`).join('')}
+  `).join('') + `<p class="note">Filled in automatically from the call. Items marked <span class="confirm" style="margin:0">confirm</span> were heard but not yet confirmed with the caller.</p>`;
+
+  $('prio').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    [...$('prio').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  });
+}
+
+function render() { renderBar(); renderRoster(); renderMap(); }
+
+$('bar-actions').addEventListener('click', (e) => {
+  const act = e.target.closest('button')?.dataset.act;
+  if (act === 'yes') state.dispatched = true;
+  if (act === 'no') { state.recIdx += 1; state.dispatched = false; }
+  if (act === 'arrive') state.onScene = true;
+  if (act === 'reset') Object.assign(state, { recIdx: 0, dispatched: false, onScene: false });
+  render();
+});
+
+renderStatic();
+render();
+centerOn(INCIDENT, 0.75);
+</script>
+</body>
+</html>

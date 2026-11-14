@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { assessConsole } from "@/lib/console/assess";
-import { along, estimate, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
+import { along, DEMO_TRIP_MS, estimate, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
 import { pickTeam, teamNeeds, type Candidate } from "@/lib/console/team";
 import type { ExtractError, ExtractResponse } from "@/lib/extraction";
 import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
@@ -33,7 +33,6 @@ const DEMO: Record<string, { label: string; p: Priority }> = {
 const ORDER = ["police-frist", "traffic-washington", "medical-whitman", "fire-equad", "theft-firestone", "lockout-whitman"];
 const STATUS_LABEL = { available: "Available", busy: "Busy", responding: "Responding", on_scene: "On scene" } as const;
 const STATUS_VAR = { available: "var(--available)", busy: "var(--busy)", responding: "var(--sent)", on_scene: "var(--onscene)" } as const;
-const TRIP_MS = 12_000; // the demo plays each trip in 12 s; ETAs shown are the real estimates
 
 type Mode = "gemini" | "prerecorded";
 interface Trip { route: LatLng[]; t0: number; eta: number; k: number; next: number; incidentId: string }
@@ -204,7 +203,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       const ts = Date.now();
       const next: Record<string, Trip> = {};
       for (const [id, tr] of Object.entries(trips)) {
-        const k = Math.min(1, (ts - tr.t0) / TRIP_MS);
+        const k = Math.min(1, (ts - tr.t0) / DEMO_TRIP_MS);
         if (k >= 1) {
           act({ type: "OFFICER_STATUS", at: ts, officerId: id, status: "on_scene" });
           continue;

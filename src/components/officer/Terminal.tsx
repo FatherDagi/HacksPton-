@@ -9,20 +9,27 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { assessConsole } from "@/lib/console/assess";
-import { along, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
+import { along, DEMO_TRIP_MS, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
 import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
 import { URGENCY_LABEL } from "@/lib/priority";
-import { act, signInTerminal, stamp, useAppState, useOnline } from "@/lib/store";
+import { buildingById } from "@/lib/campus";
+import { haversine } from "@/lib/recommend";
+import { scenarioById } from "@/lib/scenarios";
+import { act, newId, signInTerminal, stamp, useAppState, useOnline } from "@/lib/store";
 import type { Incident, LatLng, Officer, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "../console/ConsoleMap";
 
 const ConsoleMap = dynamic(() => import("../console/ConsoleMap"), { ssr: false, loading: () => <div className="dc-map"><p className="dc-empty">Loading map…</p></div> });
 
-const TRIP_MS = 12_000; // same demo pace as the console's simulated units
 const PRIORITY_WORD: Record<Priority, string> = { 1: "Critical", 2: "Urgent", 3: "Respond", 4: "Routine" };
 // Same notes the dispatcher sees, ordered for the officer: danger first, caller last.
 const OFFICER_SECTIONS = ["Scene", "People", "Location", "Incident", "Caller"].map((t) => SECTIONS.find((s) => s.title === t)!);
+// Demo button: a scripted call that fits the unit type.
+const DEMO_CALL = { police: "police-frist", ems: "medical-whitman", fire: "fire-equad" } as const;
+const ARRIVE_M = 50; // within this distance of the incident counts as arrived
+const DEMO_PACE = 0.6; // play the scripted call a bit faster than real time
+
 const STATUS_LABEL = { available: "Available", busy: "Busy", responding: "Responding", on_scene: "On scene" } as const;
 
 interface Trip { route: LatLng[]; t0: number; eta: number; incidentId: string; done: boolean }
@@ -44,6 +51,7 @@ export function Terminal({ fontClass }: { fontClass: string }) {
   const [plan, setPlan] = useState<{ incidentId: string; p: RoutePlan } | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [now, setNow] = useState(0);
+  const [demo, setDemo] = useState<{ incidentId: string; scenarioId: string; t0: number } | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(t);
@@ -72,22 +80,60 @@ export function Terminal({ fontClass }: { fontClass: string }) {
     return () => clearTimeout(t);
   }, [me, inc, asg, trip, plan]);
 
-  // GPS reports while driving.
+  // GPS reports while driving. Arrival is automatic: no button to press in a tense moment. The unit is
+  // on scene once its position reaches the end of the route or comes within ARRIVE_M of the incident.
   useEffect(() => {
-    if (!me || !trip || trip.done || me.status !== "responding") return;
+    if (!me || !inc || !trip || trip.done || me.status !== "responding") return;
     const t = setTimeout(() => {
-      const k = Math.min(1, (Date.now() - trip.t0) / TRIP_MS);
-      act({ type: "OFFICER_LOCATION", at: stamp(), officerId: me.id, location: along(trip.route, k).at, label: "En route (car GPS, simulated)" });
-      if (k >= 1) setTrip({ ...trip, done: true });
+      const k = Math.min(1, (Date.now() - trip.t0) / DEMO_TRIP_MS);
+      const at = along(trip.route, k).at;
+      act({ type: "OFFICER_LOCATION", at: stamp(), officerId: me.id, location: at, label: "En route (car GPS, simulated)" });
+      if (k >= 1 || haversine(at, inc.location) < ARRIVE_M) {
+        act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "on_scene" });
+        setTrip({ ...trip, done: true });
+      }
     }, 300);
     return () => clearTimeout(t);
-  }, [me, trip]);
+  }, [me, inc, trip]);
+
+  // Demo call playback: this terminal reveals the scripted call line by line, so the notes fill in live.
+  const demoInc = demo ? state.incidents.find((i) => i.id === demo.incidentId) ?? null : null;
+  useEffect(() => {
+    const sc = demo && scenarioById(demo.scenarioId);
+    if (!demo || !sc || !demoInc || demoInc.status === "closed" || demoInc.revealed >= sc.segments.length) return;
+    const seg = sc.segments[demoInc.revealed];
+    const t = setTimeout(() => {
+      act({ type: "REVEAL_SEGMENT", at: stamp(), incidentId: demo.incidentId });
+      const updates = (seg.updates ?? []).map((u) => ({ ...u, evidenceSegmentId: seg.id }));
+      if (updates.length) act({ type: "APPLY_AI_UPDATES", at: stamp(), incidentId: demo.incidentId, updates, source: "demo" });
+    }, Math.max(0, demo.t0 + seg.t * 1000 * DEMO_PACE - Date.now()));
+    return () => clearTimeout(t);
+  }, [demo, demoInc]);
+
+  const simulateCall = async () => {
+    if (!me || me.status !== "available") return;
+    const sc = scenarioById(DEMO_CALL[me.type]);
+    const b = sc && buildingById(sc.buildingId);
+    if (!sc || !b) return;
+    const at = stamp();
+    const incidentId = newId("inc");
+    // End any call still open on the console so the demo starts clean.
+    const active = state.incidents.find((i) => i.id === state.activeIncidentId && i.status !== "closed");
+    if (active) act({ type: "CLOSE_INCIDENT", at, incidentId: active.id });
+    act({ type: "START_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, scenarioId: sc.id });
+    // This terminal plays the call, so the console must not replay it too: mark the live call ended.
+    act({ type: "END_CALL", at, incidentId });
+    act({ type: "LOG", at, incidentId, actor: "system", eventType: "demo", message: `Demo started from ${me.callsign}'s terminal: simulated call, dispatcher approval simulated.` });
+    setDemo({ incidentId, scenarioId: sc.id, t0: at });
+    const p = await fetchRoute(me.location, b.location, me.mode);
+    act({ type: "APPROVE_ASSIGNMENT", at: stamp(), incidentId, officerId: me.id, assignmentId: newId("asg"), etaSeconds: p.etaSeconds, route: p.route });
+  };
 
   if (!me) return <Picker officers={state.officers} fontClass={fontClass} />;
 
   const assessment = inc ? assessConsole(inc.category, inc.fields) : null;
   const priority: Priority | null = inc ? inc.priorityDecision?.priority ?? assessment!.proposed : null;
-  const k = trip && trip.incidentId === inc?.id ? Math.min(1, (now - trip.t0) / TRIP_MS) : 0;
+  const k = trip && trip.incidentId === inc?.id ? Math.min(1, (now - trip.t0) / DEMO_TRIP_MS) : 0;
   const etaLeft = trip && trip.incidentId === inc?.id ? Math.max(0, Math.round((1 - k) * trip.eta)) : plan?.p.etaSeconds ?? null;
 
   const routes: ConsoleRoute[] = [];
@@ -119,9 +165,8 @@ export function Terminal({ fontClass }: { fontClass: string }) {
                 <h1 className="ot-title">{inc.title}</h1>
                 <p className="ot-where">{[inc.fields.building.value, inc.fields.floor.value && `floor ${inc.fields.floor.value}`, inc.fields.room.value].filter(Boolean).join(", ") || "Location being confirmed"}</p>
 
-                <Actions me={me} acknowledged={!!asg.acknowledgedAt} arrived={!!trip?.done} etaLeft={etaLeft}
+                <Actions me={me} acknowledged={!!asg.acknowledgedAt} etaLeft={etaLeft}
                   onAck={() => act({ type: "ACK_ASSIGNMENT", at: stamp(), assignmentId: asg.id })}
-                  onArrive={() => act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "on_scene" })}
                   onClear={() => act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "available" })} />
 
                 <section className="ot-sec">
@@ -144,6 +189,9 @@ export function Terminal({ fontClass }: { fontClass: string }) {
         </aside>
 
         <div className="ot-mapwrap">
+          {!inc && me.status === "available" && (
+            <button type="button" className="dc-btn lg ot-demo" onClick={simulateCall}>Simulate emergency call</button>
+          )}
           <ConsoleMap officers={state.officers} incident={inc} priority={priority} routes={routes} teamIds={[me.id]} theme="dark"
             fitKey={inc ? `${inc.id}|${plan?.incidentId === inc.id ? "planned" : ""}|${me.status}` : ""} />
         </div>
@@ -152,13 +200,13 @@ export function Terminal({ fontClass }: { fontClass: string }) {
   );
 }
 
-function Actions({ me, acknowledged, arrived, etaLeft, onAck, onArrive, onClear }: {
-  me: Officer; acknowledged: boolean; arrived: boolean; etaLeft: number | null; onAck: () => void; onArrive: () => void; onClear: () => void;
+function Actions({ me, acknowledged, etaLeft, onAck, onClear }: {
+  me: Officer; acknowledged: boolean; etaLeft: number | null; onAck: () => void; onClear: () => void;
 }) {
   if (me.status === "on_scene") {
     return (
       <div className="ot-actions">
-        <p className="ot-step">On scene. Dispatch can see your position.</p>
+        <p className="ot-step">On scene (marked from your position). Dispatch can see where you are.</p>
         <button type="button" className="dc-btn lg" onClick={onClear}>Clear call, back to available</button>
       </div>
     );
@@ -173,8 +221,8 @@ function Actions({ me, acknowledged, arrived, etaLeft, onAck, onArrive, onClear 
   }
   return (
     <div className="ot-actions">
-      <p className="ot-step">{arrived ? "You are at the location." : `En route. ETA ${etaLeft != null ? fmtClock(etaLeft * 1000) : "--:--"}`}</p>
-      <button type="button" className={`dc-btn lg${arrived ? " primary" : ""}`} onClick={onArrive}>Arrived on scene</button>
+      <p className="ot-step">En route. ETA {etaLeft != null ? fmtClock(etaLeft * 1000) : "--:--"}</p>
+      <p className="ot-hint">Arrival is marked automatically from your position.</p>
     </div>
   );
 }

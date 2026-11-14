@@ -1,4 +1,4 @@
-// Real road / footpath routes from OpenStreetMap (FOSSGIS public OSRM servers).
+// Real road / footpath routes from OpenStreetMap (public OSRM servers, via /api/route).
 // Falls back to the simulated straight-line planner when offline.
 import { CLOSURES } from "../campus";
 import { haversine, planRoute } from "../recommend";
@@ -13,10 +13,9 @@ export interface RoutePlan {
   real: boolean;
 }
 
-const ROUTER: Record<TravelMode, string> = {
-  car: "https://routing.openstreetmap.de/routed-car",
-  foot: "https://routing.openstreetmap.de/routed-foot",
-};
+/** Demo pace: every trip plays in this many ms on screen (the ETAs shown stay the real estimates). */
+export const DEMO_TRIP_MS = 6_000;
+
 const SPEED_MPS: Record<TravelMode, number> = { car: 6.7, foot: 1.4 }; // same campus speeds as lib/recommend
 const CLOSURE_PENALTY_S = 60;
 
@@ -42,11 +41,11 @@ export function fetchRoute(from: LatLng, to: LatLng, mode: TravelMode): Promise<
   if (hit) return hit;
   const p = (async () => {
     try {
-      const url = `${ROUTER[mode]}/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
-      const res = await fetch(url);
-      const j = (await res.json()) as { routes?: { distance: number; geometry: { coordinates: [number, number][] } }[] };
-      const best = j.routes?.[0];
-      if (!best) throw new Error("no route");
+      // Through our server (/api/route), which can reach the routers even when the browser can't.
+      const res = await fetch(`/api/route?mode=${mode}&from=${from[1]},${from[0]}&to=${to[1]},${to[0]}`);
+      if (!res.ok) throw new Error("no route");
+      const j = (await res.json()) as { distance: number; coordinates: [number, number][] };
+      const best = { distance: j.distance, geometry: { coordinates: j.coordinates } };
       const route = best.geometry.coordinates.map(([lng, lat]) => [lat, lng] as LatLng);
       // Simulated closures are not in OpenStreetMap: flag them and add the same penalty the simulator uses.
       const avoidsClosure = mode === "car" ? closureOn(route) : null;

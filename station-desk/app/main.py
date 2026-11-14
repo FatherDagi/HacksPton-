@@ -28,7 +28,7 @@ from app.gemini_client import GeminiClient, redact
 from app.languages import language_name
 from app.transcripts import transcript_filename
 from app.twiml import CALLER_INTRO, DESK_INTRO, bridge_twiml
-from app.pipeline import Pipeline
+from app.pipeline import Pipeline, interpreter_on
 from app.store import DeskError, DeskStore
 from app.twiml import public_voice_url, valid_twilio_request, voice_twiml
 
@@ -331,7 +331,10 @@ async def twilio_voice(request: Request):
     twilio_to = params.get("To", "").strip()
     room = params.get("CallSid") or "room"
     caller = params.get("From", "unknown")
-    if desk and token and account and twilio_to and base:
+    # Default: Twilio connects caller and station directly (real voices, no delay) and the desk only
+    # listens to both sides. DESK_INTERPRETER=1 switches to the AI interpreter bridge, where each side
+    # hears a spoken translation instead (adds ~3 s per sentence).
+    if interpreter_on() and desk and token and account and twilio_to and base:
         try:
             await dial_desk(
                 account,

@@ -15,6 +15,12 @@ log = logging.getLogger("desk.pipeline")
 LIVE_RATE = 16000
 
 
+def interpreter_on():
+    """DESK_INTERPRETER=1: each side hears an AI spoken translation (the phones are not directly
+    connected). Default off: the phones talk directly and the desk only listens and transcribes."""
+    return os.environ.get("DESK_INTERPRETER", "").strip().lower() in ("1", "true", "yes", "on")
+
+
 class Pipeline(object):
     def __init__(self, store, gemini, publish, play_for_desk=None, play_for_caller=None):
         self.store = store
@@ -39,6 +45,11 @@ class Pipeline(object):
             return
         if not os.environ.get("GEMINI_API_KEY", "").strip():
             self._missing_key(call_id)
+            return
+        if not interpreter_on():
+            # Listen-only: both people already hear each other. Transcribe both sides as English text
+            # (translated if needed) right away; never hold back the call-taker's words.
+            await self._send_session(call_id, speaker, pcm, "en", "english")
             return
         if speaker != "Caller" and call_id not in self.caller_language:
             buf = self.reply_buffer.setdefault(call_id, bytearray())
@@ -143,6 +154,8 @@ class Pipeline(object):
             await self._publish()
 
         async def on_audio(pcm, rate, call_id=call_id, speaker=speaker):
+            if not interpreter_on():
+                return  # listen-only: never play AI audio into a direct call
             player = self.play_for_desk if speaker == "Caller" else self.play_for_caller
             if player and pcm:
                 await player(call_id, pcm, rate)

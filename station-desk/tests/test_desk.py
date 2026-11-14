@@ -281,6 +281,21 @@ class DeskApiTests(unittest.TestCase):
         previous = desk_main.dial_desk
         desk_main.dial_desk = fake_dial
         os.environ["TWILIO_AUTH_TOKEN"] = "secret"
+        signed = {"X-Twilio-Signature": twilio_signature(
+            "https://desk.example.com/twilio/voice",
+            {"From": "+15557654", "To": "+15550000", "CallSid": "CA9", "AccountSid": "AC123"},
+            "secret",
+        )}
+        form = {"From": "+15557654", "To": "+15550000", "CallSid": "CA9", "AccountSid": "AC123"}
+        # Default: direct call. Twilio dials the station itself; the desk only listens to both sides.
+        os.environ.pop("DESK_INTERPRETER", None)
+        direct = self.client.post("/twilio/voice", data=form, headers=signed)
+        self.assertEqual(direct.status_code, 200)
+        self.assertIn('track="both_tracks"', direct.text)
+        self.assertIn("<Dial", direct.text)
+        self.assertIsNone(fake_dial.called)
+        # DESK_INTERPRETER=1: the AI interpreter bridge rings the station through the API.
+        os.environ["DESK_INTERPRETER"] = "1"
         try:
             bridged = self.client.post(
                 "/twilio/voice",
@@ -303,6 +318,7 @@ class DeskApiTests(unittest.TestCase):
             )
         finally:
             desk_main.dial_desk = previous
+            os.environ.pop("DESK_INTERPRETER", None)
         self.assertEqual(bridged.status_code, 200)
         self.assertIn("<Connect>", bridged.text)
         self.assertIn("caller", bridged.text)

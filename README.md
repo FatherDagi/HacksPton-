@@ -34,6 +34,8 @@ Open http://localhost:3000 and pick **Dispatcher** (`/console`, the primary prod
 - the call is classified (medical / fire / police) and placed on a campus building from what the caller said; both are logged and editable
 - the console call ends when the desk call ends
 
+**Campus places.** `data/princeton-places.json` lists 667 named places on and around campus (buildings, residential colleges, fields, streets, the Dinky station) with coordinates, built by `scripts/build_places.py` from OpenStreetMap (© OpenStreetMap contributors, ODbL) plus curated aliases and common mishearings ("first campus center" → Frist Campus Center, "e quad" → Engineering Quadrangle). The station desk corrects place names in the transcript, and the console pins the incident at the first specific place the caller names; other places mentioned (e.g. where a suspect ran) get their own pins on the dispatch console and every patrol terminal. Rebuild with `python3 scripts/build_places.py`.
+
 The console reads the desk through a read-only proxy (`/api/desk`, `STATION_DESK_URL`, default `http://127.0.0.1:8787`). Scripted demo calls keep working when the desk is offline.
 
 ## Status

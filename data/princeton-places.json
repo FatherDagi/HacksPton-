@@ -1,0 +1,8116 @@
+{
+ "attribution": "Contains data (c) OpenStreetMap contributors, ODbL; curated campus aliases.",
+ "places": [
+  {
+   "id": "any-body-oddly-propped",
+   "name": "(Any) Body Oddly Propped",
+   "kind": "tourism",
+   "lat": 40.347185,
+   "lng": -74.658742,
+   "aliases": [],
+   "match": [
+    "any body oddly propped"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "11-university-place",
+   "name": "11 University Place",
+   "kind": "building",
+   "lat": 40.348005,
+   "lng": -74.662949,
+   "aliases": [],
+   "match": [
+    "11 university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "114-prospect-avenue",
+   "name": "114 Prospect Avenue",
+   "kind": "building",
+   "lat": 40.34982,
+   "lng": -74.648803,
+   "aliases": [],
+   "match": [
+    "114 prospect avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "116-prospect-avenue",
+   "name": "116 Prospect Avenue",
+   "kind": "building",
+   "lat": 40.349882,
+   "lng": -74.648571,
+   "aliases": [],
+   "match": [
+    "116 prospect avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "159-nassau-street",
+   "name": "159 Nassau Street",
+   "kind": "building",
+   "lat": 40.350432,
+   "lng": -74.6564,
+   "aliases": [],
+   "match": [
+    "159 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "161-nassau-court",
+   "name": "161 Nassau Court",
+   "kind": "building",
+   "lat": 40.350278,
+   "lng": -74.656202,
+   "aliases": [],
+   "match": [
+    "161 nassau court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "163-nassau-street",
+   "name": "163 Nassau Street",
+   "kind": "building",
+   "lat": 40.35048,
+   "lng": -74.656216,
+   "aliases": [],
+   "match": [
+    "163 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "165-nassau-court",
+   "name": "165 Nassau Court",
+   "kind": "building",
+   "lat": 40.35033,
+   "lng": -74.65604,
+   "aliases": [],
+   "match": [
+    "165 nassau court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "169-nassau-street",
+   "name": "169 Nassau Street",
+   "kind": "building",
+   "lat": 40.350561,
+   "lng": -74.656094,
+   "aliases": [],
+   "match": [
+    "169 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "171-nassau-court",
+   "name": "171 Nassau Court",
+   "kind": "building",
+   "lat": 40.350365,
+   "lng": -74.655869,
+   "aliases": [],
+   "match": [
+    "171 nassau court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "172-190-prospect-avenue",
+   "name": "172-190 Prospect Avenue",
+   "kind": "building",
+   "lat": 40.351037,
+   "lng": -74.644105,
+   "aliases": [],
+   "match": [
+    "172 190 prospect avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "175-nassau-street",
+   "name": "175 Nassau Street",
+   "kind": "building",
+   "lat": 40.350595,
+   "lng": -74.65591,
+   "aliases": [],
+   "match": [
+    "175 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "177-nassau-court",
+   "name": "177 Nassau Court",
+   "kind": "building",
+   "lat": 40.35045,
+   "lng": -74.655711,
+   "aliases": [],
+   "match": [
+    "177 nassau court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "18-40-edwards-place",
+   "name": "18-40 Edwards Place",
+   "kind": "building",
+   "lat": 40.346415,
+   "lng": -74.662773,
+   "aliases": [],
+   "match": [
+    "18 40 edwards place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "183-nassau-street",
+   "name": "183 Nassau Street",
+   "kind": "building",
+   "lat": 40.350651,
+   "lng": -74.655647,
+   "aliases": [],
+   "match": [
+    "183 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "185-nassau-street",
+   "name": "185 Nassau Street",
+   "kind": "building",
+   "lat": 40.350669,
+   "lng": -74.65487,
+   "aliases": [],
+   "match": [
+    "185 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "1879-hall",
+   "name": "1879 Hall",
+   "kind": "building",
+   "lat": 40.347719,
+   "lng": -74.655314,
+   "aliases": [],
+   "match": [
+    "1879 hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "19-university-place",
+   "name": "19 University Place",
+   "kind": "building",
+   "lat": 40.34763,
+   "lng": -74.662651,
+   "aliases": [],
+   "match": [
+    "19 university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "1903-hall",
+   "name": "1903 Hall",
+   "kind": "building",
+   "lat": 40.346036,
+   "lng": -74.657095,
+   "aliases": [],
+   "match": [
+    "1903 hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "1912-pavilion",
+   "name": "1912 Pavilion",
+   "kind": "building",
+   "lat": 40.343063,
+   "lng": -74.653831,
+   "aliases": [],
+   "match": [
+    "1912 pavilion"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "194-nassau-street",
+   "name": "194 Nassau Street",
+   "kind": "building",
+   "lat": 40.351317,
+   "lng": -74.655145,
+   "aliases": [],
+   "match": [
+    "194 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "199-nassau-street",
+   "name": "199 Nassau Street",
+   "kind": "building",
+   "lat": 40.35113,
+   "lng": -74.654215,
+   "aliases": [],
+   "match": [
+    "199 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "20-washington-road",
+   "name": "20 Washington Road",
+   "kind": "building",
+   "lat": 40.349135,
+   "lng": -74.655245,
+   "aliases": [],
+   "match": [
+    "20 washington road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "200-elm",
+   "name": "200 Elm",
+   "kind": "building",
+   "lat": 40.342765,
+   "lng": -74.65706,
+   "aliases": [],
+   "match": [
+    "200 elm"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "201-nassau-street",
+   "name": "201 Nassau Street",
+   "kind": "building",
+   "lat": 40.351092,
+   "lng": -74.654079,
+   "aliases": [],
+   "match": [
+    "201 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "22-chambers-street",
+   "name": "22 Chambers Street",
+   "kind": "building",
+   "lat": 40.349865,
+   "lng": -74.663181,
+   "aliases": [],
+   "match": [
+    "22 chambers street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "221-nassau-street",
+   "name": "221 Nassau Street",
+   "kind": "building",
+   "lat": 40.351437,
+   "lng": -74.652946,
+   "aliases": [],
+   "match": [
+    "221 nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "23-university-place",
+   "name": "23 University Place",
+   "kind": "building",
+   "lat": 40.34747,
+   "lng": -74.662536,
+   "aliases": [],
+   "match": [
+    "23 university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "292-alexander-street",
+   "name": "292 Alexander Street",
+   "kind": "building",
+   "lat": 40.337646,
+   "lng": -74.656478,
+   "aliases": [],
+   "match": [
+    "292 alexander street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "294-alexander-street",
+   "name": "294 Alexander Street",
+   "kind": "building",
+   "lat": 40.337334,
+   "lng": -74.656085,
+   "aliases": [],
+   "match": [
+    "294 alexander street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "306-alexander-street",
+   "name": "306 Alexander Street",
+   "kind": "building",
+   "lat": 40.33697,
+   "lng": -74.65586,
+   "aliases": [],
+   "match": [
+    "306 alexander street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "36-university-place",
+   "name": "36 University Place",
+   "kind": "building",
+   "lat": 40.347122,
+   "lng": -74.661544,
+   "aliases": [],
+   "match": [
+    "36 university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "361-design-group",
+   "name": "361 Design Group",
+   "kind": "building",
+   "lat": 40.354102,
+   "lng": -74.644439,
+   "aliases": [],
+   "match": [
+    "361 design group"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "4-mercer-street",
+   "name": "4 Mercer Street",
+   "kind": "building",
+   "lat": 40.348242,
+   "lng": -74.663348,
+   "aliases": [],
+   "match": [
+    "4 mercer street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "48-university-place",
+   "name": "48 University Place",
+   "kind": "building",
+   "lat": 40.346505,
+   "lng": -74.661175,
+   "aliases": [],
+   "match": [
+    "48 university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "66-william-street",
+   "name": "66 William Street",
+   "kind": "building",
+   "lat": 40.35089,
+   "lng": -74.652485,
+   "aliases": [],
+   "match": [
+    "66 william street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "a-wing",
+   "name": "A Wing",
+   "kind": "building",
+   "lat": 40.350376,
+   "lng": -74.650857,
+   "aliases": [],
+   "match": [
+    "a wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "aaron-burr-hall",
+   "name": "Aaron Burr Hall",
+   "kind": "building",
+   "lat": 40.3502,
+   "lng": -74.656583,
+   "aliases": [],
+   "match": [
+    "aaron burr hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "abraham-and-isaac-in-memory-of-may-4-1970-kent-state-univers",
+   "name": "Abraham and Isaac: In Memory of May 4, 1970, Kent State University",
+   "kind": "tourism",
+   "lat": 40.349096,
+   "lng": -74.65671,
+   "aliases": [],
+   "match": [
+    "abraham and isaac in memory of may 4 1970 kent state university"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "adams-house",
+   "name": "Adams House",
+   "kind": "building",
+   "lat": 40.345098,
+   "lng": -74.666832,
+   "aliases": [],
+   "match": [
+    "adams house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "addy-aliya-kanji",
+   "name": "Addy & Aliya Kanji",
+   "kind": "building",
+   "lat": 40.342304,
+   "lng": -74.65529,
+   "aliases": [],
+   "match": [
+    "addy aliya kanji"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "addy-hall",
+   "name": "Addy Hall",
+   "kind": "area",
+   "lat": 40.342439,
+   "lng": -74.655048,
+   "aliases": [],
+   "match": [
+    "addy hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "adminstration-building",
+   "name": "Adminstration Building",
+   "kind": "building",
+   "lat": 40.344741,
+   "lng": -74.663454,
+   "aliases": [],
+   "match": [
+    "adminstration building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "agricola-eatery",
+   "name": "Agricola Eatery",
+   "kind": "amenity",
+   "lat": 40.350124,
+   "lng": -74.659806,
+   "aliases": [],
+   "match": [
+    "agricola eatery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "aiken-avenue",
+   "name": "Aiken Avenue",
+   "kind": "street",
+   "lat": 40.352031,
+   "lng": -74.647542,
+   "aliases": [],
+   "match": [
+    "aiken avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ajihei",
+   "name": "Ajihei",
+   "kind": "amenity",
+   "lat": 40.34957,
+   "lng": -74.662599,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "albert-e-hinds-plaza",
+   "name": "Albert E. Hinds Plaza",
+   "kind": "field",
+   "lat": 40.351346,
+   "lng": -74.660166,
+   "aliases": [],
+   "match": [
+    "albert e hinds plaza"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "albert-einstein-house",
+   "name": "Albert Einstein House",
+   "kind": "building",
+   "lat": 40.343363,
+   "lng": -74.666808,
+   "aliases": [],
+   "match": [
+    "albert einstein house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "albert-way",
+   "name": "Albert Way",
+   "kind": "street",
+   "lat": 40.35715,
+   "lng": -74.662061,
+   "aliases": [],
+   "match": [
+    "albert way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "alchemist-barrister",
+   "name": "Alchemist & Barrister",
+   "kind": "amenity",
+   "lat": 40.350623,
+   "lng": -74.660339,
+   "aliases": [],
+   "match": [
+    "alchemist barrister"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "alexander-hall",
+   "name": "Alexander Hall",
+   "kind": "building",
+   "lat": 40.348346,
+   "lng": -74.660589,
+   "aliases": [],
+   "match": [
+    "alexander hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "alexander-street",
+   "name": "Alexander Street",
+   "kind": "street",
+   "lat": 40.340936,
+   "lng": -74.659309,
+   "aliases": [],
+   "match": [
+    "alexander street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "alfalfa",
+   "name": "Alfalfa",
+   "kind": "building",
+   "lat": 40.350485,
+   "lng": -74.658061,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "aliya-kanji-hall",
+   "name": "Aliya Kanji Hall",
+   "kind": "area",
+   "lat": 40.342107,
+   "lng": -74.655223,
+   "aliases": [],
+   "match": [
+    "aliya kanji hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "alo-yoga",
+   "name": "Alo Yoga",
+   "kind": "building",
+   "lat": 40.350985,
+   "lng": -74.661809,
+   "aliases": [],
+   "match": [
+    "alo yoga"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "amazing-thai",
+   "name": "Amazing Thai",
+   "kind": "amenity",
+   "lat": 40.352515,
+   "lng": -74.650862,
+   "aliases": [],
+   "match": [
+    "amazing thai"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "andlinger-center",
+   "name": "Andlinger Center",
+   "kind": "building",
+   "lat": 40.349841,
+   "lng": -74.650631,
+   "aliases": [],
+   "match": [
+    "andlinger center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "archibald-alexander-house",
+   "name": "Archibald Alexander House",
+   "kind": "building",
+   "lat": 40.345664,
+   "lng": -74.664344,
+   "aliases": [],
+   "match": [
+    "archibald alexander house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "architecture-school",
+   "name": "Architecture School",
+   "kind": "building",
+   "lat": 40.347822,
+   "lng": -74.656271,
+   "aliases": [],
+   "match": [
+    "architecture school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "arlee-s-raw-blends",
+   "name": "Arlee's Raw Blends",
+   "kind": "amenity",
+   "lat": 40.350224,
+   "lng": -74.660163,
+   "aliases": [],
+   "match": [
+    "arlee s raw blends"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "arts-tower",
+   "name": "Arts Tower",
+   "kind": "building",
+   "lat": 40.342722,
+   "lng": -74.659693,
+   "aliases": [],
+   "match": [
+    "arts tower"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "aspendos-mediterranean-cuisine",
+   "name": "Aspendos Mediterranean Cuisine",
+   "kind": "amenity",
+   "lat": 40.350998,
+   "lng": -74.655697,
+   "aliases": [],
+   "match": [
+    "aspendos mediterranean cuisine"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ayat",
+   "name": "Ayat",
+   "kind": "amenity",
+   "lat": 40.35094,
+   "lng": -74.659627,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "b-wing",
+   "name": "B Wing",
+   "kind": "building",
+   "lat": 40.3509,
+   "lng": -74.651145,
+   "aliases": [],
+   "match": [
+    "b wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bainbridge-house",
+   "name": "Bainbridge House",
+   "kind": "building",
+   "lat": 40.350474,
+   "lng": -74.657584,
+   "aliases": [],
+   "match": [
+    "bainbridge house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bainbridge-street",
+   "name": "Bainbridge Street",
+   "kind": "street",
+   "lat": 40.356946,
+   "lng": -74.64408,
+   "aliases": [],
+   "match": [
+    "bainbridge street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "baker-lane",
+   "name": "Baker Lane",
+   "kind": "street",
+   "lat": 40.343282,
+   "lng": -74.657455,
+   "aliases": [],
+   "match": [
+    "baker lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bank-of-america",
+   "name": "Bank of America",
+   "kind": "building",
+   "lat": 40.354712,
+   "lng": -74.644242,
+   "aliases": [],
+   "match": [
+    "bank of america"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bank-street",
+   "name": "Bank Street",
+   "kind": "street",
+   "lat": 40.349609,
+   "lng": -74.663489,
+   "aliases": [],
+   "match": [
+    "bank street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "barsky-court",
+   "name": "Barsky Court",
+   "kind": "street",
+   "lat": 40.353607,
+   "lng": -74.648415,
+   "aliases": [],
+   "match": [
+    "barsky court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "battle-road",
+   "name": "Battle Road",
+   "kind": "street",
+   "lat": 40.338409,
+   "lng": -74.668068,
+   "aliases": [],
+   "match": [
+    "battle road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bayard-rustin-center-for-social-justice",
+   "name": "Bayard Rustin Center for Social Justice",
+   "kind": "amenity",
+   "lat": 40.347866,
+   "lng": -74.664681,
+   "aliases": [],
+   "match": [
+    "bayard rustin center for social justice"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bedford-field",
+   "name": "Bedford Field",
+   "kind": "field",
+   "lat": 40.341012,
+   "lng": -74.652388,
+   "aliases": [],
+   "match": [
+    "bedford field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bendheim-hall",
+   "name": "Bendheim Hall",
+   "kind": "building",
+   "lat": 40.348736,
+   "lng": -74.654135,
+   "aliases": [],
+   "match": [
+    "bendheim hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "berlitz",
+   "name": "Berlitz",
+   "kind": "building",
+   "lat": 40.352637,
+   "lng": -74.650428,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "berrien-court",
+   "name": "Berrien Court",
+   "kind": "street",
+   "lat": 40.353345,
+   "lng": -74.66229,
+   "aliases": [],
+   "match": [
+    "berrien court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "birch-avenue",
+   "name": "Birch Avenue",
+   "kind": "street",
+   "lat": 40.356397,
+   "lng": -74.66631,
+   "aliases": [],
+   "match": [
+    "birch avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "blair-hall",
+   "name": "Blair Hall",
+   "kind": "building",
+   "lat": 40.34745,
+   "lng": -74.661488,
+   "aliases": [],
+   "match": [
+    "blair hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bloomberg-hall",
+   "name": "Bloomberg Hall",
+   "kind": "building",
+   "lat": 40.343419,
+   "lng": -74.655768,
+   "aliases": [],
+   "match": [
+    "bloomberg hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "blue-point-grill",
+   "name": "Blue Point Grill",
+   "kind": "amenity",
+   "lat": 40.352451,
+   "lng": -74.651089,
+   "aliases": [],
+   "match": [
+    "blue point grill"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bobst-hall",
+   "name": "Bobst Hall",
+   "kind": "building",
+   "lat": 40.348929,
+   "lng": -74.649503,
+   "aliases": [],
+   "match": [
+    "bobst hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "boudinot-street",
+   "name": "Boudinot Street",
+   "kind": "street",
+   "lat": 40.34897,
+   "lng": -74.667327,
+   "aliases": [],
+   "match": [
+    "boudinot street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "bowen-hall",
+   "name": "Bowen Hall",
+   "kind": "building",
+   "lat": 40.349544,
+   "lng": -74.650316,
+   "aliases": [],
+   "match": [
+    "bowen hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "branch-avenue",
+   "name": "Branch Avenue",
+   "kind": "street",
+   "lat": 40.35202,
+   "lng": -74.655983,
+   "aliases": [],
+   "match": [
+    "branch avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "briger-hall",
+   "name": "Briger Hall",
+   "kind": "building",
+   "lat": 40.347159,
+   "lng": -74.651739,
+   "aliases": [],
+   "match": [
+    "briger hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "broadmead",
+   "name": "Broadmead",
+   "kind": "street",
+   "lat": 40.34518,
+   "lng": -74.642032,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "broadmead-field",
+   "name": "Broadmead Field",
+   "kind": "field",
+   "lat": 40.34857,
+   "lng": -74.644068,
+   "aliases": [],
+   "match": [
+    "broadmead field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "broadmead-swim-club",
+   "name": "Broadmead Swim Club",
+   "kind": "field",
+   "lat": 40.347339,
+   "lng": -74.643347,
+   "aliases": [],
+   "match": [
+    "broadmead swim club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "brown-hall",
+   "name": "Brown Hall",
+   "kind": "building",
+   "lat": 40.344475,
+   "lng": -74.662915,
+   "aliases": [],
+   "match": [
+    "brown hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "building-a",
+   "name": "Building A",
+   "kind": "building",
+   "lat": 40.337844,
+   "lng": -74.645025,
+   "aliases": [],
+   "match": [
+    "building a"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "building-b",
+   "name": "Building B",
+   "kind": "building",
+   "lat": 40.338741,
+   "lng": -74.644702,
+   "aliases": [],
+   "match": [
+    "building b"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "building-c",
+   "name": "Building C",
+   "kind": "building",
+   "lat": 40.338836,
+   "lng": -74.643831,
+   "aliases": [],
+   "match": [
+    "building c"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "butler-avenue",
+   "name": "Butler Avenue",
+   "kind": "street",
+   "lat": 40.347516,
+   "lng": -74.638359,
+   "aliases": [],
+   "match": [
+    "butler avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "butler-college",
+   "name": "Butler College",
+   "kind": "college",
+   "lat": 40.3446,
+   "lng": -74.6569,
+   "aliases": [
+    "butler",
+    "butler dorms"
+   ],
+   "match": [
+    "butler",
+    "butler college",
+    "butler dorms"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "butler-tract",
+   "name": "Butler Tract",
+   "kind": "area",
+   "lat": 40.348724,
+   "lng": -74.637516,
+   "aliases": [],
+   "match": [
+    "butler tract"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "buyers-hall",
+   "name": "Buyers Hall",
+   "kind": "building",
+   "lat": 40.347416,
+   "lng": -74.6607,
+   "aliases": [],
+   "match": [
+    "buyers hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "c-wing",
+   "name": "C Wing",
+   "kind": "building",
+   "lat": 40.350542,
+   "lng": -74.651469,
+   "aliases": [],
+   "match": [
+    "c wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "caldwell-field-house",
+   "name": "Caldwell Field House",
+   "kind": "building",
+   "lat": 40.344294,
+   "lng": -74.648308,
+   "aliases": [],
+   "match": [
+    "caldwell field house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cambell-field",
+   "name": "Cambell Field",
+   "kind": "field",
+   "lat": 40.345552,
+   "lng": -74.647142,
+   "aliases": [],
+   "match": [
+    "cambell field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cameron-court",
+   "name": "Cameron Court",
+   "kind": "street",
+   "lat": 40.356281,
+   "lng": -74.646465,
+   "aliases": [],
+   "match": [
+    "cameron court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "campbell-hall",
+   "name": "Campbell Hall",
+   "kind": "building",
+   "lat": 40.348053,
+   "lng": -74.661316,
+   "aliases": [],
+   "match": [
+    "campbell hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "campus-club",
+   "name": "Campus Club",
+   "kind": "building",
+   "lat": 40.347583,
+   "lng": -74.654432,
+   "aliases": [],
+   "match": [
+    "campus club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "campus-meadows-dr",
+   "name": "Campus Meadows Dr",
+   "kind": "street",
+   "lat": 40.336761,
+   "lng": -74.643616,
+   "aliases": [],
+   "match": [
+    "campus meadows dr"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cannon-dial-elm-club",
+   "name": "Cannon Dial Elm Club",
+   "kind": "building",
+   "lat": 40.347815,
+   "lng": -74.653323,
+   "aliases": [],
+   "match": [
+    "cannon dial elm club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cannon-green",
+   "name": "Cannon Green",
+   "kind": "field",
+   "lat": 40.348208,
+   "lng": -74.659098,
+   "aliases": [],
+   "match": [
+    "cannon green"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cap-and-gown-club",
+   "name": "Cap and Gown Club",
+   "kind": "building",
+   "lat": 40.348295,
+   "lng": -74.651019,
+   "aliases": [],
+   "match": [
+    "cap and gown club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "carl-a-fields-center",
+   "name": "Carl A. Fields Center",
+   "kind": "building",
+   "lat": 40.349157,
+   "lng": -74.651753,
+   "aliases": [],
+   "match": [
+    "carl a fields center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "carl-icahn-laboratory",
+   "name": "Carl Icahn Laboratory",
+   "kind": "building",
+   "lat": 40.34437,
+   "lng": -74.653344,
+   "aliases": [],
+   "match": [
+    "carl icahn laboratory"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "carriage-house",
+   "name": "Carriage House",
+   "kind": "building",
+   "lat": 40.34622,
+   "lng": -74.66525,
+   "aliases": [],
+   "match": [
+    "carriage house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cedar-lane",
+   "name": "Cedar Lane",
+   "kind": "street",
+   "lat": 40.352539,
+   "lng": -74.640321,
+   "aliases": [],
+   "match": [
+    "cedar lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "center-for-jewish-life",
+   "name": "Center for Jewish Life",
+   "kind": "building",
+   "lat": 40.346684,
+   "lng": -74.653601,
+   "aliases": [],
+   "match": [
+    "center for jewish life"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "center-for-statistics-and-machine-learning",
+   "name": "Center for Statistics and Machine Learning",
+   "kind": "building",
+   "lat": 40.348778,
+   "lng": -74.653477,
+   "aliases": [],
+   "match": [
+    "center for statistics and machine learning"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chambers-street",
+   "name": "Chambers Street",
+   "kind": "street",
+   "lat": 40.350308,
+   "lng": -74.662926,
+   "aliases": [],
+   "match": [
+    "chambers street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chambers-street-garage",
+   "name": "Chambers Street Garage",
+   "kind": "building",
+   "lat": 40.350143,
+   "lng": -74.662492,
+   "aliases": [],
+   "match": [
+    "chambers street garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chancellor-green",
+   "name": "Chancellor Green",
+   "kind": "building",
+   "lat": 40.34907,
+   "lng": -74.658585,
+   "aliases": [],
+   "match": [
+    "chancellor green"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chancellor-way",
+   "name": "Chancellor Way",
+   "kind": "street",
+   "lat": 40.348995,
+   "lng": -74.65807,
+   "aliases": [],
+   "match": [
+    "chancellor way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chapel-drive",
+   "name": "Chapel Drive",
+   "kind": "street",
+   "lat": 40.347991,
+   "lng": -74.658748,
+   "aliases": [],
+   "match": [
+    "chapel drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chapel-of-the-transfiguration",
+   "name": "Chapel of the Transfiguration",
+   "kind": "amenity",
+   "lat": 40.34791,
+   "lng": -74.657902,
+   "aliases": [],
+   "match": [
+    "chapel of the transfiguration"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "charles-schwab",
+   "name": "Charles Schwab",
+   "kind": "amenity",
+   "lat": 40.350216,
+   "lng": -74.658437,
+   "aliases": [],
+   "match": [
+    "charles schwab"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "charlotte-w-newcombe-foundation",
+   "name": "Charlotte W. Newcombe Foundation",
+   "kind": "building",
+   "lat": 40.351664,
+   "lng": -74.656021,
+   "aliases": [],
+   "match": [
+    "charlotte w newcombe foundation"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "charlton-street",
+   "name": "Charlton Street",
+   "kind": "street",
+   "lat": 40.350287,
+   "lng": -74.653488,
+   "aliases": [],
+   "match": [
+    "charlton street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "charter-club",
+   "name": "Charter Club",
+   "kind": "building",
+   "lat": 40.348759,
+   "lng": -74.650027,
+   "aliases": [],
+   "match": [
+    "charter club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chase",
+   "name": "Chase",
+   "kind": "amenity",
+   "lat": 40.348954,
+   "lng": -74.662964,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "chennai-chimney",
+   "name": "Chennai Chimney",
+   "kind": "amenity",
+   "lat": 40.34971,
+   "lng": -74.662654,
+   "aliases": [],
+   "match": [
+    "chennai chimney"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chestnut-street",
+   "name": "Chestnut Street",
+   "kind": "street",
+   "lat": 40.353556,
+   "lng": -74.652836,
+   "aliases": [],
+   "match": [
+    "chestnut street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chilled-water-plant",
+   "name": "Chilled Water Plant",
+   "kind": "building",
+   "lat": 40.341834,
+   "lng": -74.656685,
+   "aliases": [],
+   "match": [
+    "chilled water plant"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "christ-congregation",
+   "name": "Christ Congregation",
+   "kind": "building",
+   "lat": 40.356614,
+   "lng": -74.654473,
+   "aliases": [],
+   "match": [
+    "christ congregation"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "chuck-s-spring-street-cafe",
+   "name": "Chuck's Spring Street Cafe",
+   "kind": "amenity",
+   "lat": 40.35112,
+   "lng": -74.659712,
+   "aliases": [],
+   "match": [
+    "chuck s spring street cafe"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "circle-of-animals-zodiac-heads",
+   "name": "Circle of Animals/Zodiac Heads",
+   "kind": "tourism",
+   "lat": 40.343602,
+   "lng": -74.659293,
+   "aliases": [],
+   "match": [
+    "circle of animals zodiac heads"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "clarke-field",
+   "name": "Clarke Field",
+   "kind": "field",
+   "lat": 40.346603,
+   "lng": -74.648064,
+   "aliases": [],
+   "match": [
+    "clarke field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "class-of-1887-boathouse",
+   "name": "Class of 1887 Boathouse",
+   "kind": "building",
+   "lat": 40.339385,
+   "lng": -74.650824,
+   "aliases": [],
+   "match": [
+    "class of 1887 boathouse"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "class-of-1952-stadium",
+   "name": "Class of 1952 Stadium",
+   "kind": "field",
+   "lat": 40.34123,
+   "lng": -74.651888,
+   "aliases": [],
+   "match": [
+    "class of 1952 stadium"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "clay-street",
+   "name": "Clay Street",
+   "kind": "street",
+   "lat": 40.355604,
+   "lng": -74.66346,
+   "aliases": [],
+   "match": [
+    "clay street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cleveland-lane",
+   "name": "Cleveland Lane",
+   "kind": "street",
+   "lat": 40.350538,
+   "lng": -74.671857,
+   "aliases": [],
+   "match": [
+    "cleveland lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "clio-hall",
+   "name": "Clio Hall",
+   "kind": "building",
+   "lat": 40.347673,
+   "lng": -74.659147,
+   "aliases": [
+    "admission office",
+    "admissions office",
+    "clio",
+    "dean of the graduate school"
+   ],
+   "match": [
+    "admission office",
+    "admissions office",
+    "clio",
+    "clio hall",
+    "dean of the graduate school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cloister-inn",
+   "name": "Cloister Inn",
+   "kind": "building",
+   "lat": 40.348616,
+   "lng": -74.650561,
+   "aliases": [],
+   "match": [
+    "cloister inn"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cogeneration-plant",
+   "name": "Cogeneration Plant",
+   "kind": "building",
+   "lat": 40.341512,
+   "lng": -74.657224,
+   "aliases": [],
+   "match": [
+    "cogeneration plant"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "college-road",
+   "name": "College Road",
+   "kind": "street",
+   "lat": 40.34314,
+   "lng": -74.663024,
+   "aliases": [],
+   "match": [
+    "college road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "college-road-apartments",
+   "name": "College Road Apartments",
+   "kind": "building",
+   "lat": 40.344818,
+   "lng": -74.661463,
+   "aliases": [],
+   "match": [
+    "college road apartments"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "college-road-west",
+   "name": "College Road West",
+   "kind": "street",
+   "lat": 40.341541,
+   "lng": -74.666263,
+   "aliases": [],
+   "match": [
+    "college road west"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "colonial-club",
+   "name": "Colonial Club",
+   "kind": "building",
+   "lat": 40.348864,
+   "lng": -74.652828,
+   "aliases": [],
+   "match": [
+    "colonial club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "commons",
+   "name": "Commons",
+   "kind": "building",
+   "lat": 40.347252,
+   "lng": -74.650025,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "community-park-south",
+   "name": "Community Park South",
+   "kind": "field",
+   "lat": 40.358083,
+   "lng": -74.667233,
+   "aliases": [],
+   "match": [
+    "community park south"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "computer-science-building",
+   "name": "Computer Science Building",
+   "kind": "building",
+   "lat": 40.35025,
+   "lng": -74.652244,
+   "aliases": [],
+   "match": [
+    "computer science building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "construction-in-the-third-and-fourth-dimension",
+   "name": "Construction in the Third and Fourth Dimension",
+   "kind": "tourism",
+   "lat": 40.345071,
+   "lng": -74.651878,
+   "aliases": [],
+   "match": [
+    "construction in the third and fourth dimension"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "copper-river-salon-spa",
+   "name": "Copper River Salon & Spa",
+   "kind": "building",
+   "lat": 40.351587,
+   "lng": -74.654792,
+   "aliases": [],
+   "match": [
+    "copper river salon spa"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "corwin-hall",
+   "name": "Corwin Hall",
+   "kind": "building",
+   "lat": 40.348914,
+   "lng": -74.654303,
+   "aliases": [],
+   "match": [
+    "corwin hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cotsen-children-s-library",
+   "name": "Cotsen Children's Library",
+   "kind": "amenity",
+   "lat": 40.349321,
+   "lng": -74.656928,
+   "aliases": [],
+   "match": [
+    "cotsen children s library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cottage-club",
+   "name": "Cottage Club",
+   "kind": "building",
+   "lat": 40.348246,
+   "lng": -74.651714,
+   "aliases": [],
+   "match": [
+    "cottage club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "court-drive",
+   "name": "Court Drive",
+   "kind": "street",
+   "lat": 40.338731,
+   "lng": -74.642882,
+   "aliases": [],
+   "match": [
+    "court drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "craft-cleaners",
+   "name": "Craft Cleaners",
+   "kind": "building",
+   "lat": 40.351322,
+   "lng": -74.652727,
+   "aliases": [],
+   "match": [
+    "craft cleaners"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cross-country-course",
+   "name": "Cross Country Course",
+   "kind": "field",
+   "lat": 40.336112,
+   "lng": -74.638424,
+   "aliases": [],
+   "match": [
+    "cross country course"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cubi-xiii",
+   "name": "Cubi XIII",
+   "kind": "tourism",
+   "lat": 40.347786,
+   "lng": -74.658186,
+   "aliases": [],
+   "match": [
+    "cubi xiii"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cuyler-hall",
+   "name": "Cuyler Hall",
+   "kind": "building",
+   "lat": 40.345962,
+   "lng": -74.657449,
+   "aliases": [],
+   "match": [
+    "cuyler hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "cyclab",
+   "name": "Cyclab",
+   "kind": "amenity",
+   "lat": 40.348495,
+   "lng": -74.662723,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "cynthia-lynn-paul-94-field",
+   "name": "Cynthia Lynn Paul '94 Field",
+   "kind": "field",
+   "lat": 40.338199,
+   "lng": -74.641739,
+   "aliases": [],
+   "match": [
+    "cynthia lynn paul 94 field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "d-wing",
+   "name": "D Wing",
+   "kind": "building",
+   "lat": 40.350777,
+   "lng": -74.650641,
+   "aliases": [],
+   "match": [
+    "d wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "d-r-canal-towpath-parking",
+   "name": "D&R Canal Towpath Parking",
+   "kind": "amenity",
+   "lat": 40.338513,
+   "lng": -74.647279,
+   "aliases": [],
+   "match": [
+    "d r canal towpath parking"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "delaware-and-raritan-canal-state-park",
+   "name": "Delaware and Raritan Canal State Park",
+   "kind": "field",
+   "lat": 40.355192,
+   "lng": -74.771801,
+   "aliases": [],
+   "match": [
+    "delaware and raritan canal state park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "denunzio-pool",
+   "name": "DeNunzio Pool",
+   "kind": "building",
+   "lat": 40.343922,
+   "lng": -74.647428,
+   "aliases": [],
+   "match": [
+    "denunzio pool"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "department-of-public-safety",
+   "name": "Department of Public Safety",
+   "kind": "building",
+   "lat": 40.3434,
+   "lng": -74.6563,
+   "aliases": [
+    "200 elm drive",
+    "dps",
+    "public safety",
+    "public safety building"
+   ],
+   "match": [
+    "200 elm drive",
+    "department of public safety",
+    "dps",
+    "public safety",
+    "public safety building"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "devereux-avenue",
+   "name": "Devereux Avenue",
+   "kind": "street",
+   "lat": 40.348864,
+   "lng": -74.639365,
+   "aliases": [],
+   "match": [
+    "devereux avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dickinson-hall",
+   "name": "Dickinson Hall",
+   "kind": "building",
+   "lat": 40.348863,
+   "lng": -74.656181,
+   "aliases": [],
+   "match": [
+    "dickinson hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dickinson-street",
+   "name": "Dickinson Street",
+   "kind": "street",
+   "lat": 40.345705,
+   "lng": -74.661831,
+   "aliases": [],
+   "match": [
+    "dickinson street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "diesel-duke",
+   "name": "Diesel & Duke",
+   "kind": "amenity",
+   "lat": 40.350126,
+   "lng": -74.658711,
+   "aliases": [],
+   "match": [
+    "diesel duke"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dillon-gymnasium",
+   "name": "Dillon Gymnasium",
+   "kind": "building",
+   "lat": 40.345601,
+   "lng": -74.658599,
+   "aliases": [
+    "dillon",
+    "dillon gym"
+   ],
+   "match": [
+    "dillon",
+    "dillon gym",
+    "dillon gymnasium"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dod-hall",
+   "name": "Dod Hall",
+   "kind": "building",
+   "lat": 40.34679,
+   "lng": -74.658671,
+   "aliases": [],
+   "match": [
+    "dod hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dodge-hall",
+   "name": "Dodge Hall",
+   "kind": "building",
+   "lat": 40.347954,
+   "lng": -74.657929,
+   "aliases": [],
+   "match": [
+    "dodge hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dohm-alley",
+   "name": "Dohm Alley",
+   "kind": "street",
+   "lat": 40.350058,
+   "lng": -74.659435,
+   "aliases": [],
+   "match": [
+    "dohm alley"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "dorothea-s-house",
+   "name": "Dorothea's House",
+   "kind": "building",
+   "lat": 40.35203,
+   "lng": -74.663269,
+   "aliases": [],
+   "match": [
+    "dorothea s house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "double-sights",
+   "name": "Double Sights",
+   "kind": "tourism",
+   "lat": 40.348591,
+   "lng": -74.65517,
+   "aliases": [],
+   "match": [
+    "double sights"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "e-wing",
+   "name": "E Wing",
+   "kind": "building",
+   "lat": 40.350007,
+   "lng": -74.651185,
+   "aliases": [],
+   "match": [
+    "e wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "e-y-staats-company",
+   "name": "E Y Staats & Company",
+   "kind": "building",
+   "lat": 40.351747,
+   "lng": -74.654841,
+   "aliases": [],
+   "match": [
+    "e y staats company"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "east-pyne-hall",
+   "name": "East Pyne Hall",
+   "kind": "building",
+   "lat": 40.348679,
+   "lng": -74.658402,
+   "aliases": [],
+   "match": [
+    "east pyne hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "east-stanworth-drive",
+   "name": "East Stanworth Drive",
+   "kind": "street",
+   "lat": 40.354798,
+   "lng": -74.665164,
+   "aliases": [],
+   "match": [
+    "east stanworth drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "eastridge-design-home",
+   "name": "Eastridge Design Home",
+   "kind": "building",
+   "lat": 40.354047,
+   "lng": -74.645799,
+   "aliases": [],
+   "match": [
+    "eastridge design home"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "edgehill-street",
+   "name": "Edgehill Street",
+   "kind": "street",
+   "lat": 40.344813,
+   "lng": -74.667725,
+   "aliases": [],
+   "match": [
+    "edgehill street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "edwards-hall",
+   "name": "Edwards Hall",
+   "kind": "building",
+   "lat": 40.347154,
+   "lng": -74.659284,
+   "aliases": [],
+   "match": [
+    "edwards hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "edwards-place",
+   "name": "Edwards Place",
+   "kind": "street",
+   "lat": 40.346733,
+   "lng": -74.662507,
+   "aliases": [],
+   "match": [
+    "edwards place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "efes-mediterranean-grill",
+   "name": "Efes Mediterranean Grill",
+   "kind": "amenity",
+   "lat": 40.351817,
+   "lng": -74.652188,
+   "aliases": [],
+   "match": [
+    "efes mediterranean grill"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "effron-music-building",
+   "name": "Effron Music Building",
+   "kind": "building",
+   "lat": 40.342585,
+   "lng": -74.659233,
+   "aliases": [],
+   "match": [
+    "effron music building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "einstein-statue",
+   "name": "Einstein Statue",
+   "kind": "tourism",
+   "lat": 40.348295,
+   "lng": -74.664658,
+   "aliases": [],
+   "match": [
+    "einstein statue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "elements",
+   "name": "elements",
+   "kind": "amenity",
+   "lat": 40.351483,
+   "lng": -74.660748,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "ellinikon",
+   "name": "Ellinikon",
+   "kind": "amenity",
+   "lat": 40.351303,
+   "lng": -74.654813,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "elm-drive",
+   "name": "Elm Drive",
+   "kind": "street",
+   "lat": 40.342822,
+   "lng": -74.656902,
+   "aliases": [],
+   "match": [
+    "elm drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "embodied-computation-lab",
+   "name": "Embodied Computation Lab",
+   "kind": "building",
+   "lat": 40.343641,
+   "lng": -74.649871,
+   "aliases": [],
+   "match": [
+    "embodied computation lab"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "engineering-quadrangle",
+   "name": "Engineering Quadrangle",
+   "kind": "building",
+   "lat": 40.3503,
+   "lng": -74.6515,
+   "aliases": [
+    "e quad",
+    "engineering quad",
+    "equad",
+    "the e quad"
+   ],
+   "match": [
+    "e quad",
+    "engineering quad",
+    "engineering quadrangle",
+    "equad",
+    "the e quad"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "eno-hall",
+   "name": "Eno Hall",
+   "kind": "building",
+   "lat": 40.345424,
+   "lng": -74.655289,
+   "aliases": [],
+   "match": [
+    "eno hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "enterprise",
+   "name": "Enterprise",
+   "kind": "amenity",
+   "lat": 40.338298,
+   "lng": -74.65679,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "episcopal-church",
+   "name": "Episcopal Church",
+   "kind": "amenity",
+   "lat": 40.346088,
+   "lng": -74.661433,
+   "aliases": [],
+   "match": [
+    "episcopal church"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "erdman-center",
+   "name": "Erdman Center",
+   "kind": "building",
+   "lat": 40.34528,
+   "lng": -74.667226,
+   "aliases": [],
+   "match": [
+    "erdman center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "eric-and-wendy-schmidt-hall",
+   "name": "Eric and Wendy Schmidt Hall",
+   "kind": "building",
+   "lat": 40.345664,
+   "lng": -74.654454,
+   "aliases": [],
+   "match": [
+    "eric and wendy schmidt hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "esther-plaza",
+   "name": "Esther Plaza",
+   "kind": "street",
+   "lat": 40.351406,
+   "lng": -74.662245,
+   "aliases": [],
+   "match": [
+    "esther plaza"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "evelyn-place",
+   "name": "Evelyn Place",
+   "kind": "street",
+   "lat": 40.354146,
+   "lng": -74.646968,
+   "aliases": [],
+   "match": [
+    "evelyn place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "f-wing",
+   "name": "F Wing",
+   "kind": "building",
+   "lat": 40.350904,
+   "lng": -74.651646,
+   "aliases": [],
+   "match": [
+    "f wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "faculty-road",
+   "name": "Faculty Road",
+   "kind": "street",
+   "lat": 40.339293,
+   "lng": -74.654269,
+   "aliases": [],
+   "match": [
+    "faculty road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "faherty",
+   "name": "Faherty",
+   "kind": "building",
+   "lat": 40.349573,
+   "lng": -74.661402,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "feinberg-hall",
+   "name": "Feinberg Hall",
+   "kind": "building",
+   "lat": 40.345824,
+   "lng": -74.656519,
+   "aliases": [],
+   "match": [
+    "feinberg hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ficus",
+   "name": "Ficus",
+   "kind": "amenity",
+   "lat": 40.351768,
+   "lng": -74.652302,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "fine-hall",
+   "name": "Fine Hall",
+   "kind": "building",
+   "lat": 40.345791,
+   "lng": -74.652394,
+   "aliases": [
+    "math building"
+   ],
+   "match": [
+    "fine hall",
+    "math building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "finney-field",
+   "name": "Finney Field",
+   "kind": "field",
+   "lat": 40.345327,
+   "lng": -74.647797,
+   "aliases": [],
+   "match": [
+    "finney field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "firestone-court",
+   "name": "Firestone Court",
+   "kind": "street",
+   "lat": 40.3507,
+   "lng": -74.653159,
+   "aliases": [],
+   "match": [
+    "firestone court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "firestone-library",
+   "name": "Firestone Library",
+   "kind": "building",
+   "lat": 40.34962,
+   "lng": -74.657462,
+   "aliases": [
+    "fire stone",
+    "fire stone library",
+    "firestone"
+   ],
+   "match": [
+    "fire stone",
+    "fire stone library",
+    "firestone",
+    "firestone library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "first-college",
+   "name": "First College",
+   "kind": "college",
+   "lat": 40.346,
+   "lng": -74.656,
+   "aliases": [
+    "wilson college"
+   ],
+   "match": [
+    "first college",
+    "wilson college"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "fisher-hall",
+   "name": "Fisher Hall",
+   "kind": "building",
+   "lat": 40.348508,
+   "lng": -74.654076,
+   "aliases": [],
+   "match": [
+    "fisher hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "fitzrandolph-gate",
+   "name": "FitzRandolph Gate",
+   "kind": "building",
+   "lat": 40.349546,
+   "lng": -74.659695,
+   "aliases": [],
+   "match": [
+    "fitzrandolph gate"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "fitzrandolph-road",
+   "name": "Fitzrandolph Road",
+   "kind": "street",
+   "lat": 40.347169,
+   "lng": -74.64559,
+   "aliases": [],
+   "match": [
+    "fitzrandolph road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "five-disks-one-empty",
+   "name": "Five Disks: One Empty",
+   "kind": "tourism",
+   "lat": 40.345536,
+   "lng": -74.652239,
+   "aliases": [],
+   "match": [
+    "five disks one empty"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "flower-fields-forever",
+   "name": "Flower Fields Forever",
+   "kind": "tourism",
+   "lat": 40.34144,
+   "lng": -74.654507,
+   "aliases": [],
+   "match": [
+    "flower fields forever"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "forbes-college",
+   "name": "Forbes College",
+   "kind": "building",
+   "lat": 40.342022,
+   "lng": -74.660939,
+   "aliases": [
+    "forbes"
+   ],
+   "match": [
+    "forbes",
+    "forbes college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "forester-drive",
+   "name": "Forester Drive",
+   "kind": "street",
+   "lat": 40.353769,
+   "lng": -74.638299,
+   "aliases": [],
+   "match": [
+    "forester drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "forget-me-not",
+   "name": "Forget Me Not",
+   "kind": "tourism",
+   "lat": 40.342314,
+   "lng": -74.655492,
+   "aliases": [],
+   "match": [
+    "forget me not"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "foulke-hall",
+   "name": "Foulke Hall",
+   "kind": "building",
+   "lat": 40.346326,
+   "lng": -74.660904,
+   "aliases": [],
+   "match": [
+    "foulke hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "fountain-of-freedom",
+   "name": "Fountain of Freedom",
+   "kind": "amenity",
+   "lat": 40.348731,
+   "lng": -74.654871,
+   "aliases": [],
+   "match": [
+    "fountain of freedom"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "franklin-avenue",
+   "name": "Franklin Avenue",
+   "kind": "street",
+   "lat": 40.356604,
+   "lng": -74.659814,
+   "aliases": [],
+   "match": [
+    "franklin avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "frick-chemistry-laboratory",
+   "name": "Frick Chemistry Laboratory",
+   "kind": "building",
+   "lat": 40.344046,
+   "lng": -74.650698,
+   "aliases": [
+    "frick",
+    "frick chemistry",
+    "frick lab"
+   ],
+   "match": [
+    "frick",
+    "frick chemistry",
+    "frick chemistry laboratory",
+    "frick lab"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "friend-center",
+   "name": "Friend Center",
+   "kind": "building",
+   "lat": 40.350335,
+   "lng": -74.652708,
+   "aliases": [],
+   "match": [
+    "friend center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "frist-campus-center",
+   "name": "Frist Campus Center",
+   "kind": "building",
+   "lat": 40.34675,
+   "lng": -74.655169,
+   "aliases": [
+    "first campus center",
+    "first center",
+    "frist",
+    "frist center",
+    "frist student center",
+    "the campus center"
+   ],
+   "match": [
+    "first campus center",
+    "first center",
+    "frist",
+    "frist campus center",
+    "frist center",
+    "frist student center",
+    "the campus center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "frist-health-center",
+   "name": "Frist Health Center",
+   "kind": "building",
+   "lat": 40.345159,
+   "lng": -74.65517,
+   "aliases": [],
+   "match": [
+    "frist health center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "frist-lane",
+   "name": "Frist Lane",
+   "kind": "street",
+   "lat": 40.346251,
+   "lng": -74.654895,
+   "aliases": [],
+   "match": [
+    "frist lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "fruita-bowl",
+   "name": "fruita bowl",
+   "kind": "amenity",
+   "lat": 40.350363,
+   "lng": -74.657864,
+   "aliases": [],
+   "match": [
+    "fruita bowl"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "fruity-yogurt",
+   "name": "Fruity Yogurt",
+   "kind": "amenity",
+   "lat": 40.350734,
+   "lng": -74.656502,
+   "aliases": [],
+   "match": [
+    "fruity yogurt"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "future-princeton-university-baseball-ballpark",
+   "name": "Future Princeton University Baseball Ballpark",
+   "kind": "area",
+   "lat": 40.338337,
+   "lng": -74.640015,
+   "aliases": [],
+   "match": [
+    "future princeton university baseball ballpark"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "g-wing",
+   "name": "G Wing",
+   "kind": "building",
+   "lat": 40.350646,
+   "lng": -74.649918,
+   "aliases": [],
+   "match": [
+    "g wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "garage-drive",
+   "name": "Garage Drive",
+   "kind": "street",
+   "lat": 40.345903,
+   "lng": -74.646974,
+   "aliases": [],
+   "match": [
+    "garage drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "garden-theater",
+   "name": "Garden Theater",
+   "kind": "building",
+   "lat": 40.350678,
+   "lng": -74.657557,
+   "aliases": [],
+   "match": [
+    "garden theater"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "george-s-roasters-and-ribs",
+   "name": "George's Roasters and Ribs",
+   "kind": "amenity",
+   "lat": 40.352201,
+   "lng": -74.651748,
+   "aliases": [],
+   "match": [
+    "george s roasters and ribs"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "goheen-walk",
+   "name": "Goheen Walk",
+   "kind": "street",
+   "lat": 40.345199,
+   "lng": -74.653944,
+   "aliases": [],
+   "match": [
+    "goheen walk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "gordon-way",
+   "name": "Gordon Way",
+   "kind": "street",
+   "lat": 40.356386,
+   "lng": -74.645711,
+   "aliases": [],
+   "match": [
+    "gordon way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "graduate-by-hilton-princeton",
+   "name": "Graduate by Hilton Princeton",
+   "kind": "building",
+   "lat": 40.349273,
+   "lng": -74.662914,
+   "aliases": [],
+   "match": [
+    "graduate by hilton princeton"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "gratitude-yoga",
+   "name": "Gratitude Yoga",
+   "kind": "field",
+   "lat": 40.350669,
+   "lng": -74.659982,
+   "aliases": [],
+   "match": [
+    "gratitude yoga"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "green-hall",
+   "name": "Green Hall",
+   "kind": "building",
+   "lat": 40.349807,
+   "lng": -74.656063,
+   "aliases": [],
+   "match": [
+    "green hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "green-street",
+   "name": "Green Street",
+   "kind": "street",
+   "lat": 40.35234,
+   "lng": -74.662035,
+   "aliases": [],
+   "match": [
+    "green street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "greenholm-street",
+   "name": "Greenholm Street",
+   "kind": "street",
+   "lat": 40.350477,
+   "lng": -74.665172,
+   "aliases": [],
+   "match": [
+    "greenholm street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "greenview-avenue",
+   "name": "Greenview Avenue",
+   "kind": "street",
+   "lat": 40.353726,
+   "lng": -74.659222,
+   "aliases": [],
+   "match": [
+    "greenview avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "griggs-lot",
+   "name": "Griggs Lot",
+   "kind": "amenity",
+   "lat": 40.351308,
+   "lng": -74.660796,
+   "aliases": [],
+   "match": [
+    "griggs lot"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "grousbeck",
+   "name": "Grousbeck",
+   "kind": "building",
+   "lat": 40.341919,
+   "lng": -74.654013,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "gulf",
+   "name": "Gulf",
+   "kind": "building",
+   "lat": 40.352368,
+   "lng": -74.649965,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "gund-investment-corporation",
+   "name": "Gund Investment Corporation",
+   "kind": "amenity",
+   "lat": 40.348949,
+   "lng": -74.663116,
+   "aliases": [],
+   "match": [
+    "gund investment corporation"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "guyot-hall",
+   "name": "Guyot Hall",
+   "kind": "building",
+   "lat": 40.34594,
+   "lng": -74.654325,
+   "aliases": [],
+   "match": [
+    "guyot hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "guyot-lane",
+   "name": "Guyot Lane",
+   "kind": "street",
+   "lat": 40.344967,
+   "lng": -74.653833,
+   "aliases": [],
+   "match": [
+    "guyot lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "haaga-house",
+   "name": "Haaga House",
+   "kind": "building",
+   "lat": 40.339717,
+   "lng": -74.640187,
+   "aliases": [],
+   "match": [
+    "haaga house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "halo-pub",
+   "name": "Halo Pub",
+   "kind": "building",
+   "lat": 40.351176,
+   "lng": -74.660973,
+   "aliases": [],
+   "match": [
+    "halo pub"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hamilton-avenue",
+   "name": "Hamilton Avenue",
+   "kind": "street",
+   "lat": 40.356543,
+   "lng": -74.648133,
+   "aliases": [],
+   "match": [
+    "hamilton avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hamilton-hall",
+   "name": "Hamilton Hall",
+   "kind": "building",
+   "lat": 40.34815,
+   "lng": -74.662195,
+   "aliases": [],
+   "match": [
+    "hamilton hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hariri",
+   "name": "Hariri",
+   "kind": "building",
+   "lat": 40.342737,
+   "lng": -74.654358,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "harriet-drive",
+   "name": "Harriet Drive",
+   "kind": "street",
+   "lat": 40.357157,
+   "lng": -74.642346,
+   "aliases": [],
+   "match": [
+    "harriet drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "harris-road",
+   "name": "Harris Road",
+   "kind": "street",
+   "lat": 40.358267,
+   "lng": -74.66047,
+   "aliases": [],
+   "match": [
+    "harris road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "harrison-lane",
+   "name": "Harrison Lane",
+   "kind": "street",
+   "lat": 40.347648,
+   "lng": -74.639851,
+   "aliases": [],
+   "match": [
+    "harrison lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "harrison-street",
+   "name": "Harrison Street",
+   "kind": "street",
+   "lat": 40.352095,
+   "lng": -74.644096,
+   "aliases": [],
+   "match": [
+    "harrison street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "harrison-street-park",
+   "name": "Harrison Street Park",
+   "kind": "field",
+   "lat": 40.352669,
+   "lng": -74.645505,
+   "aliases": [],
+   "match": [
+    "harrison street park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hartley-avenue",
+   "name": "Hartley Avenue",
+   "kind": "street",
+   "lat": 40.346371,
+   "lng": -74.638402,
+   "aliases": [],
+   "match": [
+    "hartley avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "haslet-avenue",
+   "name": "Haslet Avenue",
+   "kind": "street",
+   "lat": 40.33706,
+   "lng": -74.666943,
+   "aliases": [],
+   "match": [
+    "haslet avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hawthorne-avenue",
+   "name": "Hawthorne Avenue",
+   "kind": "street",
+   "lat": 40.356282,
+   "lng": -74.652549,
+   "aliases": [],
+   "match": [
+    "hawthorne avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "head-of-a-woman",
+   "name": "Head of a Woman",
+   "kind": "tourism",
+   "lat": 40.344297,
+   "lng": -74.659309,
+   "aliases": [],
+   "match": [
+    "head of a woman"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "helm-building",
+   "name": "Helm Building",
+   "kind": "building",
+   "lat": 40.336548,
+   "lng": -74.655493,
+   "aliases": [],
+   "match": [
+    "helm building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "henry-hall",
+   "name": "Henry Hall",
+   "kind": "building",
+   "lat": 40.34583,
+   "lng": -74.660652,
+   "aliases": [],
+   "match": [
+    "henry hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "henry-house",
+   "name": "Henry House",
+   "kind": "building",
+   "lat": 40.349387,
+   "lng": -74.658936,
+   "aliases": [],
+   "match": [
+    "henry house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "herm-s",
+   "name": "Hermès",
+   "kind": "building",
+   "lat": 40.349695,
+   "lng": -74.661471,
+   "aliases": [],
+   "match": [
+    "herm s"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hibben-magie-road",
+   "name": "Hibben Magie Road",
+   "kind": "street",
+   "lat": 40.337762,
+   "lng": -74.654026,
+   "aliases": [],
+   "match": [
+    "hibben magie road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hibben-road",
+   "name": "Hibben Road",
+   "kind": "street",
+   "lat": 40.343958,
+   "lng": -74.668742,
+   "aliases": [],
+   "match": [
+    "hibben road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hoagie-haven",
+   "name": "Hoagie Haven",
+   "kind": "building",
+   "lat": 40.352195,
+   "lng": -74.651905,
+   "aliases": [],
+   "match": [
+    "hoagie haven"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hobey-baker-memorial-ice-rink",
+   "name": "Hobey Baker Memorial Ice Rink",
+   "kind": "building",
+   "lat": 40.342894,
+   "lng": -74.657798,
+   "aliases": [],
+   "match": [
+    "hobey baker memorial ice rink"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hobson-college",
+   "name": "Hobson College",
+   "kind": "area",
+   "lat": 40.345215,
+   "lng": -74.656479,
+   "aliases": [],
+   "match": [
+    "hobson college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hodge-hall",
+   "name": "Hodge Hall",
+   "kind": "building",
+   "lat": 40.344516,
+   "lng": -74.664061,
+   "aliases": [],
+   "match": [
+    "hodge hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hodge-house",
+   "name": "Hodge House",
+   "kind": "building",
+   "lat": 40.344869,
+   "lng": -74.665022,
+   "aliases": [],
+   "match": [
+    "hodge house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hodge-road",
+   "name": "Hodge Road",
+   "kind": "street",
+   "lat": 40.350583,
+   "lng": -74.668211,
+   "aliases": [],
+   "match": [
+    "hodge road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "holder-hall",
+   "name": "Holder Hall",
+   "kind": "building",
+   "lat": 40.348632,
+   "lng": -74.661525,
+   "aliases": [],
+   "match": [
+    "holder hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hornor-lane",
+   "name": "Hornor Lane",
+   "kind": "street",
+   "lat": 40.357634,
+   "lng": -74.647429,
+   "aliases": [],
+   "match": [
+    "hornor lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "houghton-road",
+   "name": "Houghton Road",
+   "kind": "street",
+   "lat": 40.356623,
+   "lng": -74.655482,
+   "aliases": [],
+   "match": [
+    "houghton road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hoyt-lab",
+   "name": "Hoyt Lab",
+   "kind": "building",
+   "lat": 40.349668,
+   "lng": -74.654666,
+   "aliases": [],
+   "match": [
+    "hoyt lab"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hulfish-garage",
+   "name": "Hulfish Garage",
+   "kind": "amenity",
+   "lat": 40.351097,
+   "lng": -74.661231,
+   "aliases": [],
+   "match": [
+    "hulfish garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hulfish-street",
+   "name": "Hulfish Street",
+   "kind": "street",
+   "lat": 40.350839,
+   "lng": -74.661715,
+   "aliases": [],
+   "match": [
+    "hulfish street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "humbert-lane",
+   "name": "Humbert Lane",
+   "kind": "street",
+   "lat": 40.353887,
+   "lng": -74.658079,
+   "aliases": [],
+   "match": [
+    "humbert lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "humbert-street",
+   "name": "Humbert Street",
+   "kind": "street",
+   "lat": 40.353603,
+   "lng": -74.658274,
+   "aliases": [],
+   "match": [
+    "humbert street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "hunan",
+   "name": "Hunan",
+   "kind": "amenity",
+   "lat": 40.353983,
+   "lng": -74.661498,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "illy-coffee-at-earth-s-end-princeton",
+   "name": "illy Coffee At Earth's End Princeton",
+   "kind": "building",
+   "lat": 40.351176,
+   "lng": -74.65848,
+   "aliases": [],
+   "match": [
+    "illy coffee at earth s end princeton"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ivy-club",
+   "name": "Ivy Club",
+   "kind": "building",
+   "lat": 40.348105,
+   "lng": -74.652189,
+   "aliases": [],
+   "match": [
+    "ivy club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ivy-hall",
+   "name": "Ivy Hall",
+   "kind": "building",
+   "lat": 40.346703,
+   "lng": -74.664871,
+   "aliases": [],
+   "match": [
+    "ivy hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ivy-inn",
+   "name": "Ivy Inn",
+   "kind": "amenity",
+   "lat": 40.352382,
+   "lng": -74.651546,
+   "aliases": [],
+   "match": [
+    "ivy inn"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ivy-lane",
+   "name": "Ivy Lane",
+   "kind": "street",
+   "lat": 40.346691,
+   "lng": -74.65172,
+   "aliases": [],
+   "match": [
+    "ivy lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "j-s-foodies",
+   "name": "J S Foodies",
+   "kind": "building",
+   "lat": 40.350506,
+   "lng": -74.658977,
+   "aliases": [],
+   "match": [
+    "j s foodies"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "j-wing",
+   "name": "J Wing",
+   "kind": "building",
+   "lat": 40.350919,
+   "lng": -74.650389,
+   "aliases": [],
+   "match": [
+    "j wing"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jadwin-gymnasium",
+   "name": "Jadwin Gymnasium",
+   "kind": "building",
+   "lat": 40.343387,
+   "lng": -74.648653,
+   "aliases": [
+    "athletic ticket office",
+    "jad win",
+    "jadwin",
+    "jadwin gym"
+   ],
+   "match": [
+    "athletic ticket office",
+    "jad win",
+    "jadwin",
+    "jadwin gym",
+    "jadwin gymnasium"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jadwin-hall",
+   "name": "Jadwin Hall",
+   "kind": "building",
+   "lat": 40.344981,
+   "lng": -74.651758,
+   "aliases": [],
+   "match": [
+    "jadwin hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jammin-crepes",
+   "name": "Jammin' Crepes",
+   "kind": "amenity",
+   "lat": 40.348972,
+   "lng": -74.662889,
+   "aliases": [],
+   "match": [
+    "jammin crepes"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jammin-community-cafe",
+   "name": "Jammin’ Community Cafe",
+   "kind": "amenity",
+   "lat": 40.351508,
+   "lng": -74.660313,
+   "aliases": [],
+   "match": [
+    "jammin community cafe"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jay-s-cycles",
+   "name": "Jay's Cycles",
+   "kind": "building",
+   "lat": 40.351996,
+   "lng": -74.651312,
+   "aliases": [],
+   "match": [
+    "jay s cycles"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jefferson-road",
+   "name": "Jefferson Road",
+   "kind": "street",
+   "lat": 40.360193,
+   "lng": -74.659297,
+   "aliases": [],
+   "match": [
+    "jefferson road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "john-street",
+   "name": "John Street",
+   "kind": "street",
+   "lat": 40.356235,
+   "lng": -74.664561,
+   "aliases": [],
+   "match": [
+    "john street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "john-street-alley",
+   "name": "John Street Alley",
+   "kind": "street",
+   "lat": 40.3499,
+   "lng": -74.662034,
+   "aliases": [],
+   "match": [
+    "john street alley"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "john-witherspoon",
+   "name": "John Witherspoon",
+   "kind": "tourism",
+   "lat": 40.348632,
+   "lng": -74.657966,
+   "aliases": [],
+   "match": [
+    "john witherspoon"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "joline-beach-volleyball-court",
+   "name": "Joline Beach Volleyball Court",
+   "kind": "field",
+   "lat": 40.347578,
+   "lng": -74.661526,
+   "aliases": [],
+   "match": [
+    "joline beach volleyball court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "joline-hall",
+   "name": "Joline Hall",
+   "kind": "building",
+   "lat": 40.347798,
+   "lng": -74.661933,
+   "aliases": [],
+   "match": [
+    "joline hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jones-hall",
+   "name": "Jones Hall",
+   "kind": "building",
+   "lat": 40.346435,
+   "lng": -74.655868,
+   "aliases": [],
+   "match": [
+    "jones hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jose-enrique-feliciano-hall",
+   "name": "Jose Enrique Feliciano Hall",
+   "kind": "building",
+   "lat": 40.341209,
+   "lng": -74.655024,
+   "aliases": [],
+   "match": [
+    "jose enrique feliciano hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "jules-thin-crust",
+   "name": "Jules Thin Crust",
+   "kind": "amenity",
+   "lat": 40.350369,
+   "lng": -74.660218,
+   "aliases": [],
+   "match": [
+    "jules thin crust"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "julis-romo-rabinowitz-building",
+   "name": "Julis Romo Rabinowitz Building",
+   "kind": "building",
+   "lat": 40.349118,
+   "lng": -74.655448,
+   "aliases": [],
+   "match": [
+    "julis romo rabinowitz building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "junbi",
+   "name": "Junbi",
+   "kind": "amenity",
+   "lat": 40.35066,
+   "lng": -74.660025,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "kimble-funeral-home",
+   "name": "Kimble Funeral Home",
+   "kind": "building",
+   "lat": 40.353675,
+   "lng": -74.655387,
+   "aliases": [],
+   "match": [
+    "kimble funeral home"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "king-street",
+   "name": "King Street",
+   "kind": "street",
+   "lat": 40.348526,
+   "lng": -74.638368,
+   "aliases": [],
+   "match": [
+    "king street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "kristine",
+   "name": "Kristine",
+   "kind": "amenity",
+   "lat": 40.351254,
+   "lng": -74.659933,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "kung-fu-tea",
+   "name": "Kung Fu Tea",
+   "kind": "amenity",
+   "lat": 40.349682,
+   "lng": -74.660336,
+   "aliases": [],
+   "match": [
+    "kung fu tea"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "kwanza-jones",
+   "name": "Kwanza Jones",
+   "kind": "building",
+   "lat": 40.341547,
+   "lng": -74.655096,
+   "aliases": [],
+   "match": [
+    "kwanza jones"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "la-lupita-grocery",
+   "name": "La Lupita Grocery",
+   "kind": "building",
+   "lat": 40.355922,
+   "lng": -74.664991,
+   "aliases": [],
+   "match": [
+    "la lupita grocery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "la-mezzaluna",
+   "name": "La Mezzaluna",
+   "kind": "amenity",
+   "lat": 40.3506,
+   "lng": -74.659997,
+   "aliases": [],
+   "match": [
+    "la mezzaluna"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lake-drive",
+   "name": "Lake Drive",
+   "kind": "street",
+   "lat": 40.343967,
+   "lng": -74.640324,
+   "aliases": [],
+   "match": [
+    "lake drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lake-field",
+   "name": "Lake Field",
+   "kind": "field",
+   "lat": 40.341279,
+   "lng": -74.648731,
+   "aliases": [],
+   "match": [
+    "lake field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lake-lane",
+   "name": "Lake Lane",
+   "kind": "street",
+   "lat": 40.344807,
+   "lng": -74.640042,
+   "aliases": [],
+   "match": [
+    "lake lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lakeside-garage",
+   "name": "Lakeside Garage",
+   "kind": "building",
+   "lat": 40.337827,
+   "lng": -74.655342,
+   "aliases": [],
+   "match": [
+    "lakeside garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lakeside-road",
+   "name": "Lakeside Road",
+   "kind": "street",
+   "lat": 40.338303,
+   "lng": -74.654911,
+   "aliases": [],
+   "match": [
+    "lakeside road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lan-ramen",
+   "name": "Lan Ramen",
+   "kind": "amenity",
+   "lat": 40.351011,
+   "lng": -74.660744,
+   "aliases": [],
+   "match": [
+    "lan ramen"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "laughlin-1901-hall",
+   "name": "Laughlin/1901 Hall",
+   "kind": "building",
+   "lat": 40.346085,
+   "lng": -74.660182,
+   "aliases": [],
+   "match": [
+    "laughlin 1901 hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "launch-house",
+   "name": "Launch House",
+   "kind": "building",
+   "lat": 40.339146,
+   "lng": -74.650586,
+   "aliases": [],
+   "match": [
+    "launch house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "laura-wooten-hall",
+   "name": "Laura Wooten Hall",
+   "kind": "building",
+   "lat": 40.348127,
+   "lng": -74.655577,
+   "aliases": [],
+   "match": [
+    "laura wooten hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "le-kiosk",
+   "name": "Le Kiosk",
+   "kind": "building",
+   "lat": 40.352174,
+   "lng": -74.650903,
+   "aliases": [],
+   "match": [
+    "le kiosk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "leigh-avenue",
+   "name": "Leigh Avenue",
+   "kind": "street",
+   "lat": 40.355776,
+   "lng": -74.665959,
+   "aliases": [],
+   "match": [
+    "leigh avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lemonick-court",
+   "name": "Lemonick Court",
+   "kind": "street",
+   "lat": 40.337659,
+   "lng": -74.653802,
+   "aliases": [],
+   "match": [
+    "lemonick court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lennox-house",
+   "name": "Lennox House",
+   "kind": "building",
+   "lat": 40.34622,
+   "lng": -74.667234,
+   "aliases": [],
+   "match": [
+    "lennox house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lewis-center-for-the-arts",
+   "name": "Lewis Center for the Arts",
+   "kind": "amenity",
+   "lat": 40.350661,
+   "lng": -74.655008,
+   "aliases": [],
+   "match": [
+    "lewis center for the arts"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lewis-library",
+   "name": "Lewis Library",
+   "kind": "building",
+   "lat": 40.346198,
+   "lng": -74.652723,
+   "aliases": [
+    "broadcast studio",
+    "lewis science library"
+   ],
+   "match": [
+    "broadcast studio",
+    "lewis library",
+    "lewis science library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lewis-thomas-laboratory",
+   "name": "Lewis Thomas Laboratory",
+   "kind": "building",
+   "lat": 40.344969,
+   "lng": -74.653808,
+   "aliases": [],
+   "match": [
+    "lewis thomas laboratory"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "library-place",
+   "name": "Library Place",
+   "kind": "street",
+   "lat": 40.348706,
+   "lng": -74.6691,
+   "aliases": [],
+   "match": [
+    "library place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lincoln-court",
+   "name": "Lincoln Court",
+   "kind": "street",
+   "lat": 40.350974,
+   "lng": -74.658541,
+   "aliases": [],
+   "match": [
+    "lincoln court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "linden-lane",
+   "name": "Linden Lane",
+   "kind": "street",
+   "lat": 40.357374,
+   "lng": -74.651454,
+   "aliases": [],
+   "match": [
+    "linden lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "little-hall",
+   "name": "Little Hall",
+   "kind": "building",
+   "lat": 40.346525,
+   "lng": -74.659834,
+   "aliases": [],
+   "match": [
+    "little hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lloyd-terrace",
+   "name": "Lloyd Terrace",
+   "kind": "area",
+   "lat": 40.355727,
+   "lng": -74.647475,
+   "aliases": [],
+   "match": [
+    "lloyd terrace"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "local-greek",
+   "name": "Local Greek",
+   "kind": "building",
+   "lat": 40.355963,
+   "lng": -74.664592,
+   "aliases": [],
+   "match": [
+    "local greek"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lockhart-hall",
+   "name": "Lockhart Hall",
+   "kind": "building",
+   "lat": 40.346771,
+   "lng": -74.661254,
+   "aliases": [],
+   "match": [
+    "lockhart hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-1",
+   "name": "Lot 1",
+   "kind": "amenity",
+   "lat": 40.351201,
+   "lng": -74.652916,
+   "aliases": [],
+   "match": [
+    "lot 1"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-10",
+   "name": "Lot 10",
+   "kind": "amenity",
+   "lat": 40.350191,
+   "lng": -74.655106,
+   "aliases": [],
+   "match": [
+    "lot 10"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-13",
+   "name": "Lot 13",
+   "kind": "amenity",
+   "lat": 40.349774,
+   "lng": -74.654175,
+   "aliases": [],
+   "match": [
+    "lot 13"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-16",
+   "name": "Lot 16",
+   "kind": "amenity",
+   "lat": 40.340222,
+   "lng": -74.656629,
+   "aliases": [],
+   "match": [
+    "lot 16"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-19",
+   "name": "Lot 19",
+   "kind": "amenity",
+   "lat": 40.338833,
+   "lng": -74.665531,
+   "aliases": [],
+   "match": [
+    "lot 19"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-2",
+   "name": "Lot 2",
+   "kind": "amenity",
+   "lat": 40.35133,
+   "lng": -74.65003,
+   "aliases": [],
+   "match": [
+    "lot 2"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-20",
+   "name": "Lot 20",
+   "kind": "amenity",
+   "lat": 40.339308,
+   "lng": -74.656302,
+   "aliases": [],
+   "match": [
+    "lot 20"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-23",
+   "name": "Lot 23",
+   "kind": "amenity",
+   "lat": 40.340504,
+   "lng": -74.656716,
+   "aliases": [],
+   "match": [
+    "lot 23"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-28",
+   "name": "Lot 28",
+   "kind": "amenity",
+   "lat": 40.341263,
+   "lng": -74.65695,
+   "aliases": [],
+   "match": [
+    "lot 28"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-30",
+   "name": "Lot 30",
+   "kind": "amenity",
+   "lat": 40.337163,
+   "lng": -74.655925,
+   "aliases": [],
+   "match": [
+    "lot 30"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-31",
+   "name": "Lot 31",
+   "kind": "amenity",
+   "lat": 40.336349,
+   "lng": -74.655266,
+   "aliases": [],
+   "match": [
+    "lot 31"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-40",
+   "name": "Lot 40",
+   "kind": "amenity",
+   "lat": 40.340773,
+   "lng": -74.664463,
+   "aliases": [],
+   "match": [
+    "lot 40"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-60",
+   "name": "Lot 60",
+   "kind": "street",
+   "lat": 40.339817,
+   "lng": -74.641005,
+   "aliases": [],
+   "match": [
+    "lot 60"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lot-9",
+   "name": "Lot 9",
+   "kind": "amenity",
+   "lat": 40.348293,
+   "lng": -74.663083,
+   "aliases": [],
+   "match": [
+    "lot 9"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "louis-a-simpson-international-building",
+   "name": "Louis A. Simpson International Building",
+   "kind": "building",
+   "lat": 40.349278,
+   "lng": -74.654854,
+   "aliases": [],
+   "match": [
+    "louis a simpson international building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lower-pyne",
+   "name": "Lower Pyne",
+   "kind": "building",
+   "lat": 40.350107,
+   "lng": -74.659325,
+   "aliases": [],
+   "match": [
+    "lower pyne"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "luna-dr",
+   "name": "Luna Dr",
+   "kind": "street",
+   "lat": 40.337065,
+   "lng": -74.642851,
+   "aliases": [],
+   "match": [
+    "luna dr"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lutheran-church-of-the-messiah",
+   "name": "Lutheran Church of the Messiah",
+   "kind": "building",
+   "lat": 40.354873,
+   "lng": -74.642061,
+   "aliases": [],
+   "match": [
+    "lutheran church of the messiah"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "lytle-street",
+   "name": "Lytle Street",
+   "kind": "street",
+   "lat": 40.354973,
+   "lng": -74.663191,
+   "aliases": [],
+   "match": [
+    "lytle street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mackay-campus-center",
+   "name": "Mackay Campus Center",
+   "kind": "building",
+   "lat": 40.344184,
+   "lng": -74.663546,
+   "aliases": [],
+   "match": [
+    "mackay campus center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maclean-house",
+   "name": "Maclean House",
+   "kind": "building",
+   "lat": 40.34908,
+   "lng": -74.660224,
+   "aliases": [
+    "alumni association"
+   ],
+   "match": [
+    "alumni association",
+    "maclean house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maclean-street",
+   "name": "Maclean Street",
+   "kind": "street",
+   "lat": 40.354247,
+   "lng": -74.662871,
+   "aliases": [],
+   "match": [
+    "maclean street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "macmillan",
+   "name": "MacMillan",
+   "kind": "building",
+   "lat": 40.342287,
+   "lng": -74.656992,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "macmillan-annex",
+   "name": "MacMillan Annex",
+   "kind": "building",
+   "lat": 40.342419,
+   "lng": -74.657014,
+   "aliases": [],
+   "match": [
+    "macmillan annex"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "madison-hall",
+   "name": "Madison Hall",
+   "kind": "building",
+   "lat": 40.348491,
+   "lng": -74.662261,
+   "aliases": [],
+   "match": [
+    "madison hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "madison-street",
+   "name": "Madison Street",
+   "kind": "street",
+   "lat": 40.352483,
+   "lng": -74.656875,
+   "aliases": [],
+   "match": [
+    "madison street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maeder-hall",
+   "name": "Maeder Hall",
+   "kind": "building",
+   "lat": 40.34922,
+   "lng": -74.650834,
+   "aliases": [],
+   "match": [
+    "maeder hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maggie-s-playground",
+   "name": "Maggie's Playground",
+   "kind": "field",
+   "lat": 40.355427,
+   "lng": -74.648966,
+   "aliases": [],
+   "match": [
+    "maggie s playground"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maman",
+   "name": "maman",
+   "kind": "amenity",
+   "lat": 40.350821,
+   "lng": -74.662341,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "mamoun-s-falafel",
+   "name": "Mamoun's Falafel",
+   "kind": "amenity",
+   "lat": 40.350422,
+   "lng": -74.660242,
+   "aliases": [],
+   "match": [
+    "mamoun s falafel"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mannion",
+   "name": "Mannion",
+   "kind": "building",
+   "lat": 40.341553,
+   "lng": -74.653857,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "maple-street",
+   "name": "Maple Street",
+   "kind": "street",
+   "lat": 40.354116,
+   "lng": -74.650706,
+   "aliases": [],
+   "match": [
+    "maple street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "maple-terrace",
+   "name": "Maple Terrace",
+   "kind": "street",
+   "lat": 40.356005,
+   "lng": -74.661096,
+   "aliases": [],
+   "match": [
+    "maple terrace"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "margerum-court",
+   "name": "Margerum Court",
+   "kind": "street",
+   "lat": 40.35288,
+   "lng": -74.663642,
+   "aliases": [],
+   "match": [
+    "margerum court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "marion-buckelew-cullen-center",
+   "name": "Marion Buckelew Cullen Center",
+   "kind": "building",
+   "lat": 40.356926,
+   "lng": -74.652326,
+   "aliases": [],
+   "match": [
+    "marion buckelew cullen center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "markham-road",
+   "name": "Markham Road",
+   "kind": "street",
+   "lat": 40.353643,
+   "lng": -74.643331,
+   "aliases": [],
+   "match": [
+    "markham road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "marshall-avenue",
+   "name": "Marshall Avenue",
+   "kind": "street",
+   "lat": 40.347885,
+   "lng": -74.63937,
+   "aliases": [],
+   "match": [
+    "marshall avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mary-moss-park",
+   "name": "Mary Moss Park",
+   "kind": "field",
+   "lat": 40.355007,
+   "lng": -74.664139,
+   "aliases": [],
+   "match": [
+    "mary moss park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mather-hodge-funeral-home",
+   "name": "Mather-Hodge Funeral Home",
+   "kind": "building",
+   "lat": 40.352188,
+   "lng": -74.658426,
+   "aliases": [],
+   "match": [
+    "mather hodge funeral home"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mathey-college",
+   "name": "Mathey College",
+   "kind": "college",
+   "lat": 40.3486,
+   "lng": -74.6624,
+   "aliases": [
+    "mathey",
+    "mathy",
+    "matty college"
+   ],
+   "match": [
+    "mathey",
+    "mathey college",
+    "mathy",
+    "matty college"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "mccarter-theater-center",
+   "name": "McCarter Theater Center",
+   "kind": "building",
+   "lat": 40.344021,
+   "lng": -74.660538,
+   "aliases": [],
+   "match": [
+    "mccarter theater center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mccosh-circle",
+   "name": "McCosh Circle",
+   "kind": "street",
+   "lat": 40.345847,
+   "lng": -74.637923,
+   "aliases": [],
+   "match": [
+    "mccosh circle"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mccosh-hall",
+   "name": "McCosh Hall",
+   "kind": "building",
+   "lat": 40.348357,
+   "lng": -74.656477,
+   "aliases": [
+    "mc cosh",
+    "mccosh",
+    "mick cosh"
+   ],
+   "match": [
+    "mc cosh",
+    "mccosh",
+    "mccosh hall",
+    "mick cosh"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mccosh-health-center",
+   "name": "McCosh Health Center",
+   "kind": "building",
+   "lat": 40.346035,
+   "lng": -74.655451,
+   "aliases": [
+    "health services"
+   ],
+   "match": [
+    "health services",
+    "mccosh health center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mccosh-walk",
+   "name": "McCosh Walk",
+   "kind": "street",
+   "lat": 40.347628,
+   "lng": -74.658437,
+   "aliases": [],
+   "match": [
+    "mccosh walk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mcdonnell-hall",
+   "name": "McDonnell Hall",
+   "kind": "building",
+   "lat": 40.345363,
+   "lng": -74.652486,
+   "aliases": [],
+   "match": [
+    "mcdonnell hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "meadow-drive-garage",
+   "name": "Meadow Drive Garage",
+   "kind": "building",
+   "lat": 40.336317,
+   "lng": -74.643136,
+   "aliases": [],
+   "match": [
+    "meadow drive garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "meadows-apartments",
+   "name": "Meadows Apartments",
+   "kind": "area",
+   "lat": 40.338475,
+   "lng": -74.64504,
+   "aliases": [],
+   "match": [
+    "meadows apartments"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mediterra",
+   "name": "Mediterra",
+   "kind": "amenity",
+   "lat": 40.351056,
+   "lng": -74.662187,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "mercer-street",
+   "name": "Mercer Street",
+   "kind": "street",
+   "lat": 40.347346,
+   "lng": -74.664379,
+   "aliases": [],
+   "match": [
+    "mercer street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "merrill-lynch",
+   "name": "Merrill Lynch",
+   "kind": "building",
+   "lat": 40.354382,
+   "lng": -74.646164,
+   "aliases": [],
+   "match": [
+    "merrill lynch"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mershon-drive",
+   "name": "Mershon Drive",
+   "kind": "street",
+   "lat": 40.355762,
+   "lng": -74.646074,
+   "aliases": [],
+   "match": [
+    "mershon drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "merwick-stanworth",
+   "name": "Merwick Stanworth",
+   "kind": "area",
+   "lat": 40.353621,
+   "lng": -74.666072,
+   "aliases": [],
+   "match": [
+    "merwick stanworth"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "michael-graves-associates",
+   "name": "Michael Graves & Associates",
+   "kind": "building",
+   "lat": 40.353733,
+   "lng": -74.645668,
+   "aliases": [],
+   "match": [
+    "michael graves associates"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "michael-graves-design-group",
+   "name": "Michael Graves Design Group",
+   "kind": "building",
+   "lat": 40.354014,
+   "lng": -74.646057,
+   "aliases": [],
+   "match": [
+    "michael graves design group"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "michelle-mews",
+   "name": "Michelle Mews",
+   "kind": "street",
+   "lat": 40.351456,
+   "lng": -74.661597,
+   "aliases": [],
+   "match": [
+    "michelle mews"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "milk-money",
+   "name": "Milk Money",
+   "kind": "building",
+   "lat": 40.351848,
+   "lng": -74.658845,
+   "aliases": [],
+   "match": [
+    "milk money"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "miller-chapel",
+   "name": "Miller Chapel",
+   "kind": "building",
+   "lat": 40.34528,
+   "lng": -74.663515,
+   "aliases": [],
+   "match": [
+    "miller chapel"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mistral",
+   "name": "Mistral",
+   "kind": "amenity",
+   "lat": 40.351458,
+   "lng": -74.660879,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "moffett-laboratory",
+   "name": "Moffett Laboratory",
+   "kind": "building",
+   "lat": 40.345636,
+   "lng": -74.653889,
+   "aliases": [],
+   "match": [
+    "moffett laboratory"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "monument-drive",
+   "name": "Monument Drive",
+   "kind": "street",
+   "lat": 40.348185,
+   "lng": -74.664854,
+   "aliases": [],
+   "match": [
+    "monument drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "moore-street",
+   "name": "Moore Street",
+   "kind": "street",
+   "lat": 40.3558,
+   "lng": -74.656642,
+   "aliases": [],
+   "match": [
+    "moore street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "moran-avenue",
+   "name": "Moran Avenue",
+   "kind": "street",
+   "lat": 40.352809,
+   "lng": -74.653462,
+   "aliases": [],
+   "match": [
+    "moran avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "morning-star-church-of-god-in-christ",
+   "name": "Morning Star Church of God in Christ",
+   "kind": "building",
+   "lat": 40.357206,
+   "lng": -74.664261,
+   "aliases": [],
+   "match": [
+    "morning star church of god in christ"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "morrison-hall",
+   "name": "Morrison Hall",
+   "kind": "building",
+   "lat": 40.348044,
+   "lng": -74.659774,
+   "aliases": [
+    "dean of the college",
+    "dean of undergraduate students",
+    "financial aid undergraduate"
+   ],
+   "match": [
+    "dean of the college",
+    "dean of undergraduate students",
+    "financial aid undergraduate",
+    "morrison hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "morven-museum",
+   "name": "Morven Museum",
+   "kind": "building",
+   "lat": 40.347773,
+   "lng": -74.666961,
+   "aliases": [],
+   "match": [
+    "morven museum"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "morven-place",
+   "name": "Morven Place",
+   "kind": "street",
+   "lat": 40.349897,
+   "lng": -74.667434,
+   "aliases": [],
+   "match": [
+    "morven place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "moses",
+   "name": "Moses",
+   "kind": "tourism",
+   "lat": 40.347588,
+   "lng": -74.656874,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "mtea-sushi-dessert",
+   "name": "MTea Sushi & Dessert",
+   "kind": "amenity",
+   "lat": 40.349734,
+   "lng": -74.660127,
+   "aliases": [],
+   "match": [
+    "mtea sushi dessert"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "mudd-library",
+   "name": "Mudd Library",
+   "kind": "building",
+   "lat": 40.349629,
+   "lng": -74.652032,
+   "aliases": [],
+   "match": [
+    "mudd library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "murray-place",
+   "name": "Murray Place",
+   "kind": "street",
+   "lat": 40.351248,
+   "lng": -74.648702,
+   "aliases": [],
+   "match": [
+    "murray place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "murray-theater",
+   "name": "Murray Theater",
+   "kind": "building",
+   "lat": 40.348071,
+   "lng": -74.657692,
+   "aliases": [
+    "theatre intime"
+   ],
+   "match": [
+    "murray theater",
+    "theatre intime"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "myslik-field",
+   "name": "Myslik Field",
+   "kind": "area",
+   "lat": 40.346065,
+   "lng": -74.646066,
+   "aliases": [],
+   "match": [
+    "myslik field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-christian-center",
+   "name": "Nassau Christian Center",
+   "kind": "building",
+   "lat": 40.349358,
+   "lng": -74.662422,
+   "aliases": [],
+   "match": [
+    "nassau christian center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-court",
+   "name": "Nassau Court",
+   "kind": "street",
+   "lat": 40.35026,
+   "lng": -74.655636,
+   "aliases": [],
+   "match": [
+    "nassau court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-hall",
+   "name": "Nassau Hall",
+   "kind": "building",
+   "lat": 40.348674,
+   "lng": -74.659328,
+   "aliases": [
+    "dean of the faculty",
+    "nasa hall"
+   ],
+   "match": [
+    "dean of the faculty",
+    "nasa hall",
+    "nassau hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-inn",
+   "name": "Nassau Inn",
+   "kind": "building",
+   "lat": 40.350609,
+   "lng": -74.661499,
+   "aliases": [],
+   "match": [
+    "nassau inn"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-presbyterian-church",
+   "name": "Nassau Presbyterian Church",
+   "kind": "building",
+   "lat": 40.348936,
+   "lng": -74.660734,
+   "aliases": [],
+   "match": [
+    "nassau presbyterian church"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-street",
+   "name": "Nassau Street",
+   "kind": "street",
+   "lat": 40.351066,
+   "lng": -74.655426,
+   "aliases": [
+    "nassau st"
+   ],
+   "match": [
+    "nassau st",
+    "nassau street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "nassau-sushi",
+   "name": "Nassau Sushi",
+   "kind": "amenity",
+   "lat": 40.350697,
+   "lng": -74.655746,
+   "aliases": [],
+   "match": [
+    "nassau sushi"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "new-college-west",
+   "name": "New College West",
+   "kind": "amenity",
+   "lat": 40.341853,
+   "lng": -74.655227,
+   "aliases": [
+    "ncw"
+   ],
+   "match": [
+    "ncw",
+    "new college west"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "new-graduate-college",
+   "name": "New Graduate College",
+   "kind": "building",
+   "lat": 40.340932,
+   "lng": -74.666372,
+   "aliases": [],
+   "match": [
+    "new graduate college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "new-south",
+   "name": "New South",
+   "kind": "building",
+   "lat": 40.343353,
+   "lng": -74.658881,
+   "aliases": [],
+   "match": [
+    "new south"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "north-court",
+   "name": "North Court",
+   "kind": "building",
+   "lat": 40.341496,
+   "lng": -74.665159,
+   "aliases": [],
+   "match": [
+    "north court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "north-end-bistro",
+   "name": "North End Bistro",
+   "kind": "building",
+   "lat": 40.35431,
+   "lng": -74.645066,
+   "aliases": [],
+   "match": [
+    "north end bistro"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "north-harrison-street",
+   "name": "North Harrison Street",
+   "kind": "street",
+   "lat": 40.356447,
+   "lng": -74.647485,
+   "aliases": [],
+   "match": [
+    "north harrison street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "north-stanworth-drive",
+   "name": "North Stanworth Drive",
+   "kind": "street",
+   "lat": 40.35496,
+   "lng": -74.667103,
+   "aliases": [],
+   "match": [
+    "north stanworth drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "north-tulane-street",
+   "name": "North Tulane Street",
+   "kind": "street",
+   "lat": 40.351884,
+   "lng": -74.659043,
+   "aliases": [],
+   "match": [
+    "north tulane street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "oak-lane",
+   "name": "Oak Lane",
+   "kind": "street",
+   "lat": 40.352882,
+   "lng": -74.666486,
+   "aliases": [],
+   "match": [
+    "oak lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ober-road",
+   "name": "Ober Road",
+   "kind": "street",
+   "lat": 40.335737,
+   "lng": -74.665855,
+   "aliases": [],
+   "match": [
+    "ober road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "office-of-information-technology",
+   "name": "Office of Information Technology",
+   "kind": "building",
+   "lat": 40.347656,
+   "lng": -74.644873,
+   "aliases": [],
+   "match": [
+    "office of information technology"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "old-graduate-college",
+   "name": "Old Graduate College",
+   "kind": "building",
+   "lat": 40.340892,
+   "lng": -74.665141,
+   "aliases": [],
+   "match": [
+    "old graduate college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "olden-house",
+   "name": "Olden House",
+   "kind": "building",
+   "lat": 40.351088,
+   "lng": -74.652381,
+   "aliases": [],
+   "match": [
+    "olden house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "olden-street",
+   "name": "Olden Street",
+   "kind": "street",
+   "lat": 40.35069,
+   "lng": -74.651975,
+   "aliases": [],
+   "match": [
+    "olden street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "olives",
+   "name": "Olives",
+   "kind": "amenity",
+   "lat": 40.35049,
+   "lng": -74.66028,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "oval-with-points",
+   "name": "Oval with Points",
+   "kind": "tourism",
+   "lat": 40.348312,
+   "lng": -74.659776,
+   "aliases": [],
+   "match": [
+    "oval with points"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-guest-house",
+   "name": "Palmer Guest House",
+   "kind": "building",
+   "lat": 40.349057,
+   "lng": -74.664313,
+   "aliases": [],
+   "match": [
+    "palmer guest house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-house-cottage",
+   "name": "Palmer House Cottage",
+   "kind": "building",
+   "lat": 40.349745,
+   "lng": -74.664301,
+   "aliases": [],
+   "match": [
+    "palmer house cottage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square",
+   "name": "Palmer Square",
+   "kind": "area",
+   "lat": 40.350173,
+   "lng": -74.661092,
+   "aliases": [],
+   "match": [
+    "palmer square"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square-east",
+   "name": "Palmer Square East",
+   "kind": "street",
+   "lat": 40.350094,
+   "lng": -74.660937,
+   "aliases": [],
+   "match": [
+    "palmer square east"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square-green",
+   "name": "Palmer Square Green",
+   "kind": "field",
+   "lat": 40.350161,
+   "lng": -74.661285,
+   "aliases": [],
+   "match": [
+    "palmer square green"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square-post-office",
+   "name": "Palmer Square Post Office",
+   "kind": "amenity",
+   "lat": 40.352007,
+   "lng": -74.650228,
+   "aliases": [],
+   "match": [
+    "palmer square post office"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square-south",
+   "name": "Palmer Square South",
+   "kind": "street",
+   "lat": 40.349942,
+   "lng": -74.661158,
+   "aliases": [],
+   "match": [
+    "palmer square south"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "palmer-square-west",
+   "name": "Palmer Square West",
+   "kind": "street",
+   "lat": 40.349933,
+   "lng": -74.661525,
+   "aliases": [],
+   "match": [
+    "palmer square west"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "park-place",
+   "name": "Park Place",
+   "kind": "street",
+   "lat": 40.351774,
+   "lng": -74.656259,
+   "aliases": [],
+   "match": [
+    "park place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "patricia-s-hair-design",
+   "name": "Patricia's Hair Design",
+   "kind": "building",
+   "lat": 40.354043,
+   "lng": -74.644616,
+   "aliases": [],
+   "match": [
+    "patricia s hair design"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "patton-avenue",
+   "name": "Patton Avenue",
+   "kind": "street",
+   "lat": 40.35178,
+   "lng": -74.644332,
+   "aliases": [],
+   "match": [
+    "patton avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "patton-hall",
+   "name": "Patton Hall",
+   "kind": "building",
+   "lat": 40.345279,
+   "lng": -74.657378,
+   "aliases": [],
+   "match": [
+    "patton hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "paul-robeson-center-for-the-arts",
+   "name": "Paul Robeson Center for the Arts",
+   "kind": "building",
+   "lat": 40.352243,
+   "lng": -74.661172,
+   "aliases": [],
+   "match": [
+    "paul robeson center for the arts"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "paul-robeson-place",
+   "name": "Paul Robeson Place",
+   "kind": "street",
+   "lat": 40.351338,
+   "lng": -74.664649,
+   "aliases": [],
+   "match": [
+    "paul robeson place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pauline-drive",
+   "name": "Pauline Drive",
+   "kind": "street",
+   "lat": 40.357076,
+   "lng": -74.661626,
+   "aliases": [],
+   "match": [
+    "pauline drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "peck-place",
+   "name": "Peck Place",
+   "kind": "street",
+   "lat": 40.353972,
+   "lng": -74.644695,
+   "aliases": [],
+   "match": [
+    "peck place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pelham-street",
+   "name": "Pelham Street",
+   "kind": "street",
+   "lat": 40.353126,
+   "lng": -74.64327,
+   "aliases": [],
+   "match": [
+    "pelham street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "peyton-hall",
+   "name": "Peyton Hall",
+   "kind": "building",
+   "lat": 40.346555,
+   "lng": -74.651687,
+   "aliases": [],
+   "match": [
+    "peyton hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pine-street",
+   "name": "Pine Street",
+   "kind": "street",
+   "lat": 40.353511,
+   "lng": -74.651314,
+   "aliases": [],
+   "match": [
+    "pine street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pizza-den",
+   "name": "Pizza Den",
+   "kind": "building",
+   "lat": 40.352216,
+   "lng": -74.651831,
+   "aliases": [],
+   "match": [
+    "pizza den"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pj-s-pancake-house",
+   "name": "Pj's Pancake House",
+   "kind": "amenity",
+   "lat": 40.35041,
+   "lng": -74.657732,
+   "aliases": [],
+   "match": [
+    "pj s pancake house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "playa-bowls",
+   "name": "Playa Bowls",
+   "kind": "amenity",
+   "lat": 40.350957,
+   "lng": -74.660989,
+   "aliases": [],
+   "match": [
+    "playa bowls"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "plummer-field",
+   "name": "Plummer Field",
+   "kind": "field",
+   "lat": 40.342554,
+   "lng": -74.653187,
+   "aliases": [],
+   "match": [
+    "plummer field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pnc-bank",
+   "name": "PNC Bank",
+   "kind": "amenity",
+   "lat": 40.349672,
+   "lng": -74.660498,
+   "aliases": [],
+   "match": [
+    "pnc bank"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "poe-field",
+   "name": "Poe Field",
+   "kind": "area",
+   "lat": 40.343562,
+   "lng": -74.65428,
+   "aliases": [],
+   "match": [
+    "poe field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "powers-field",
+   "name": "Powers Field",
+   "kind": "field",
+   "lat": 40.345768,
+   "lng": -74.649988,
+   "aliases": [],
+   "match": [
+    "powers field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "powers-field-at-princeton-stadium",
+   "name": "Powers Field at Princeton Stadium",
+   "kind": "field",
+   "lat": 40.345732,
+   "lng": -74.649889,
+   "aliases": [],
+   "match": [
+    "powers field at princeton stadium"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton",
+   "name": "Princeton",
+   "kind": "building",
+   "lat": 40.342096,
+   "lng": -74.65902,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-avenue",
+   "name": "Princeton Avenue",
+   "kind": "street",
+   "lat": 40.351711,
+   "lng": -74.647082,
+   "aliases": [],
+   "match": [
+    "princeton avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-battle-monument",
+   "name": "Princeton Battle Monument",
+   "kind": "field",
+   "lat": 40.348288,
+   "lng": -74.663909,
+   "aliases": [],
+   "match": [
+    "princeton battle monument"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-borough-municipal-building",
+   "name": "Princeton Borough Municipal Building",
+   "kind": "building",
+   "lat": 40.348318,
+   "lng": -74.665836,
+   "aliases": [],
+   "match": [
+    "princeton borough municipal building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-cemetery",
+   "name": "Princeton Cemetery",
+   "kind": "amenity",
+   "lat": 40.353996,
+   "lng": -74.659881,
+   "aliases": [],
+   "match": [
+    "princeton cemetery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-cemetery-road",
+   "name": "Princeton Cemetery Road",
+   "kind": "street",
+   "lat": 40.354736,
+   "lng": -74.660085,
+   "aliases": [],
+   "match": [
+    "princeton cemetery road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-center-for-dental-aesthetics-and-implants",
+   "name": "Princeton Center for Dental Aesthetics and Implants",
+   "kind": "amenity",
+   "lat": 40.349609,
+   "lng": -74.662563,
+   "aliases": [],
+   "match": [
+    "princeton center for dental aesthetics and implants"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-community-japanese",
+   "name": "Princeton Community Japanese",
+   "kind": "amenity",
+   "lat": 40.351929,
+   "lng": -74.654935,
+   "aliases": [],
+   "match": [
+    "princeton community japanese"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-engine-company-no-1",
+   "name": "Princeton Engine Company No. 1",
+   "kind": "building",
+   "lat": 40.352643,
+   "lng": -74.652152,
+   "aliases": [],
+   "match": [
+    "princeton engine company no 1"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-entrepreneurial-hub",
+   "name": "Princeton Entrepreneurial Hub",
+   "kind": "building",
+   "lat": 40.35025,
+   "lng": -74.663387,
+   "aliases": [],
+   "match": [
+    "princeton entrepreneurial hub"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-foot-ankle-associates",
+   "name": "Princeton Foot & Ankle Associates",
+   "kind": "amenity",
+   "lat": 40.354516,
+   "lng": -74.645726,
+   "aliases": [],
+   "match": [
+    "princeton foot ankle associates"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-garden-theatre",
+   "name": "Princeton Garden Theatre",
+   "kind": "amenity",
+   "lat": 40.350556,
+   "lng": -74.65746,
+   "aliases": [],
+   "match": [
+    "princeton garden theatre"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-graduate-college",
+   "name": "Princeton Graduate College",
+   "kind": "amenity",
+   "lat": 40.340941,
+   "lng": -74.665714,
+   "aliases": [],
+   "match": [
+    "princeton graduate college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-high-school",
+   "name": "Princeton High School",
+   "kind": "building",
+   "lat": 40.357843,
+   "lng": -74.655623,
+   "aliases": [],
+   "match": [
+    "princeton high school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-hook-and-ladder-company",
+   "name": "Princeton Hook and Ladder Company",
+   "kind": "building",
+   "lat": 40.354864,
+   "lng": -74.645885,
+   "aliases": [],
+   "match": [
+    "princeton hook and ladder company"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-public-library",
+   "name": "Princeton Public Library",
+   "kind": "building",
+   "lat": 40.351735,
+   "lng": -74.660299,
+   "aliases": [],
+   "match": [
+    "princeton public library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-record-exchange",
+   "name": "Princeton Record Exchange",
+   "kind": "building",
+   "lat": 40.350627,
+   "lng": -74.659046,
+   "aliases": [],
+   "match": [
+    "princeton record exchange"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-senior-resource-center",
+   "name": "Princeton Senior Resource Center",
+   "kind": "amenity",
+   "lat": 40.355882,
+   "lng": -74.647712,
+   "aliases": [],
+   "match": [
+    "princeton senior resource center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-soup-sandwich-company",
+   "name": "Princeton Soup & Sandwich Company",
+   "kind": "amenity",
+   "lat": 40.350851,
+   "lng": -74.661258,
+   "aliases": [],
+   "match": [
+    "princeton soup sandwich company"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-stadium",
+   "name": "Princeton Stadium",
+   "kind": "field",
+   "lat": 40.3457,
+   "lng": -74.6494,
+   "aliases": [
+    "football stadium",
+    "powers field",
+    "the stadium"
+   ],
+   "match": [
+    "football stadium",
+    "powers field",
+    "princeton stadium",
+    "the stadium"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "princeton-station-dinky",
+   "name": "Princeton Station (Dinky)",
+   "kind": "station",
+   "lat": 40.3433,
+   "lng": -74.66,
+   "aliases": [
+    "dinky",
+    "dinky station",
+    "princeton station",
+    "the dinky",
+    "train station"
+   ],
+   "match": [
+    "dinky",
+    "dinky station",
+    "princeton station",
+    "princeton station dinky",
+    "the dinky",
+    "train station"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "princeton-theological-seminary",
+   "name": "Princeton Theological Seminary",
+   "kind": "amenity",
+   "lat": 40.344446,
+   "lng": -74.666267,
+   "aliases": [],
+   "match": [
+    "princeton theological seminary"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-theological-seminary-library",
+   "name": "Princeton Theological Seminary Library",
+   "kind": "building",
+   "lat": 40.345857,
+   "lng": -74.66644,
+   "aliases": [],
+   "match": [
+    "princeton theological seminary library"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-tigers-batting-cage",
+   "name": "Princeton Tigers batting cage",
+   "kind": "field",
+   "lat": 40.338044,
+   "lng": -74.641161,
+   "aliases": [],
+   "match": [
+    "princeton tigers batting cage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-tigers-dugout",
+   "name": "Princeton Tigers dugout",
+   "kind": "building",
+   "lat": 40.338292,
+   "lng": -74.641312,
+   "aliases": [],
+   "match": [
+    "princeton tigers dugout"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-united-methodist-church",
+   "name": "Princeton United Methodist Church",
+   "kind": "building",
+   "lat": 40.350851,
+   "lng": -74.657049,
+   "aliases": [],
+   "match": [
+    "princeton united methodist church"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-university",
+   "name": "Princeton University",
+   "kind": "amenity",
+   "lat": 40.33796,
+   "lng": -74.651535,
+   "aliases": [],
+   "match": [
+    "princeton university"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-university-art-museum",
+   "name": "Princeton University Art Museum",
+   "kind": "building",
+   "lat": 40.347175,
+   "lng": -74.657884,
+   "aliases": [
+    "art museum",
+    "the art museum"
+   ],
+   "match": [
+    "art museum",
+    "princeton university art museum",
+    "the art museum"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-university-chapel",
+   "name": "Princeton University Chapel",
+   "kind": "building",
+   "lat": 40.348834,
+   "lng": -74.656986,
+   "aliases": [
+    "princeton chapel",
+    "the chapel",
+    "university chapel"
+   ],
+   "match": [
+    "princeton chapel",
+    "princeton university chapel",
+    "the chapel",
+    "university chapel"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-university-meadows-neighborhood",
+   "name": "Princeton University Meadows Neighborhood",
+   "kind": "amenity",
+   "lat": 40.336938,
+   "lng": -74.640799,
+   "aliases": [],
+   "match": [
+    "princeton university meadows neighborhood"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-university-press",
+   "name": "Princeton University Press",
+   "kind": "building",
+   "lat": 40.349867,
+   "lng": -74.653638,
+   "aliases": [],
+   "match": [
+    "princeton university press"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-violin",
+   "name": "Princeton Violin",
+   "kind": "building",
+   "lat": 40.352189,
+   "lng": -74.652023,
+   "aliases": [],
+   "match": [
+    "princeton violin"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "princeton-kingston-road",
+   "name": "Princeton-Kingston Road",
+   "kind": "street",
+   "lat": 40.360763,
+   "lng": -74.633674,
+   "aliases": [],
+   "match": [
+    "princeton kingston road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "procter-house",
+   "name": "Procter House",
+   "kind": "building",
+   "lat": 40.346087,
+   "lng": -74.661453,
+   "aliases": [],
+   "match": [
+    "procter house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "proctor-dining-hall",
+   "name": "Proctor Dining Hall",
+   "kind": "building",
+   "lat": 40.340663,
+   "lng": -74.665159,
+   "aliases": [],
+   "match": [
+    "proctor dining hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "proof",
+   "name": "Proof",
+   "kind": "amenity",
+   "lat": 40.349718,
+   "lng": -74.660198,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "prospect-apartments",
+   "name": "Prospect Apartments",
+   "kind": "building",
+   "lat": 40.350082,
+   "lng": -74.648236,
+   "aliases": [],
+   "match": [
+    "prospect apartments"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "prospect-avenue",
+   "name": "Prospect Avenue",
+   "kind": "street",
+   "lat": 40.350653,
+   "lng": -74.645955,
+   "aliases": [],
+   "match": [
+    "prospect avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "prospect-avenue-garage",
+   "name": "Prospect Avenue Garage",
+   "kind": "building",
+   "lat": 40.349781,
+   "lng": -74.649852,
+   "aliases": [],
+   "match": [
+    "prospect avenue garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "prospect-gardens",
+   "name": "Prospect Gardens",
+   "kind": "field",
+   "lat": 40.346694,
+   "lng": -74.65656,
+   "aliases": [],
+   "match": [
+    "prospect gardens"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "prospect-house",
+   "name": "Prospect House",
+   "kind": "building",
+   "lat": 40.347085,
+   "lng": -74.65664,
+   "aliases": [],
+   "match": [
+    "prospect house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "public-table",
+   "name": "Public Table",
+   "kind": "tourism",
+   "lat": 40.348295,
+   "lng": -74.658317,
+   "aliases": [],
+   "match": [
+    "public table"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pure-barre",
+   "name": "Pure Barre",
+   "kind": "field",
+   "lat": 40.35105,
+   "lng": -74.662291,
+   "aliases": [],
+   "match": [
+    "pure barre"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "purinsu-ramen",
+   "name": "Purinsu Ramen",
+   "kind": "amenity",
+   "lat": 40.350718,
+   "lng": -74.660383,
+   "aliases": [],
+   "match": [
+    "purinsu ramen"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pyne-drive",
+   "name": "Pyne Drive",
+   "kind": "street",
+   "lat": 40.345765,
+   "lng": -74.659575,
+   "aliases": [],
+   "match": [
+    "pyne drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "pyne-hall",
+   "name": "Pyne Hall",
+   "kind": "building",
+   "lat": 40.345366,
+   "lng": -74.659623,
+   "aliases": [],
+   "match": [
+    "pyne hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "quadrangle-club",
+   "name": "Quadrangle Club",
+   "kind": "building",
+   "lat": 40.348012,
+   "lng": -74.652729,
+   "aliases": [],
+   "match": [
+    "quadrangle club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "quarry-park",
+   "name": "Quarry Park",
+   "kind": "field",
+   "lat": 40.355524,
+   "lng": -74.648489,
+   "aliases": [],
+   "match": [
+    "quarry park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "quarry-street",
+   "name": "Quarry Street",
+   "kind": "street",
+   "lat": 40.35306,
+   "lng": -74.66235,
+   "aliases": [],
+   "match": [
+    "quarry street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "queenston-common",
+   "name": "Queenston Common",
+   "kind": "area",
+   "lat": 40.356231,
+   "lng": -74.646072,
+   "aliases": [],
+   "match": [
+    "queenston common"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "queenston-place",
+   "name": "Queenston Place",
+   "kind": "street",
+   "lat": 40.353848,
+   "lng": -74.647884,
+   "aliases": [],
+   "match": [
+    "queenston place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "race-street",
+   "name": "Race Street",
+   "kind": "street",
+   "lat": 40.356058,
+   "lng": -74.66716,
+   "aliases": [],
+   "match": [
+    "race street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "racquet-and-recreation-fieldhouse",
+   "name": "Racquet and Recreation Fieldhouse",
+   "kind": "building",
+   "lat": 40.339501,
+   "lng": -74.642294,
+   "aliases": [],
+   "match": [
+    "racquet and recreation fieldhouse"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ramen-stop",
+   "name": "Ramen stop",
+   "kind": "amenity",
+   "lat": 40.352163,
+   "lng": -74.651235,
+   "aliases": [],
+   "match": [
+    "ramen stop"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "re-max-of-princeton",
+   "name": "RE/MAX of Princeton",
+   "kind": "building",
+   "lat": 40.35387,
+   "lng": -74.645215,
+   "aliases": [],
+   "match": [
+    "re max of princeton"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "regatta-row",
+   "name": "Regatta Row",
+   "kind": "street",
+   "lat": 40.344296,
+   "lng": -74.639916,
+   "aliases": [],
+   "match": [
+    "regatta row"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "remembrance",
+   "name": "Remembrance",
+   "kind": "tourism",
+   "lat": 40.348892,
+   "lng": -74.658707,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "richard-court",
+   "name": "Richard Court",
+   "kind": "street",
+   "lat": 40.356436,
+   "lng": -74.655476,
+   "aliases": [],
+   "match": [
+    "richard court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "rickerson-field",
+   "name": "Rickerson Field",
+   "kind": "field",
+   "lat": 40.339648,
+   "lng": -74.638608,
+   "aliases": [],
+   "match": [
+    "rickerson field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "rise-power-yoga",
+   "name": "Rise Power Yoga",
+   "kind": "field",
+   "lat": 40.349721,
+   "lng": -74.66032,
+   "aliases": [],
+   "match": [
+    "rise power yoga"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "riverside-drive",
+   "name": "Riverside Drive",
+   "kind": "street",
+   "lat": 40.355018,
+   "lng": -74.638164,
+   "aliases": [],
+   "match": [
+    "riverside drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "robert-road",
+   "name": "Robert Road",
+   "kind": "street",
+   "lat": 40.353704,
+   "lng": -74.638934,
+   "aliases": [],
+   "match": [
+    "robert road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "roberts-stadium",
+   "name": "Roberts Stadium",
+   "kind": "field",
+   "lat": 40.346066,
+   "lng": -74.646046,
+   "aliases": [],
+   "match": [
+    "roberts stadium"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "robertson-hall",
+   "name": "Robertson Hall",
+   "kind": "building",
+   "lat": 40.34842,
+   "lng": -74.65471,
+   "aliases": [
+    "arthur lewis",
+    "woodrow wilson school"
+   ],
+   "match": [
+    "arthur lewis",
+    "robertson hall",
+    "woodrow wilson school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "rockefeller-college",
+   "name": "Rockefeller College",
+   "kind": "college",
+   "lat": 40.348,
+   "lng": -74.6619,
+   "aliases": [
+    "rockefeller",
+    "rocky college"
+   ],
+   "match": [
+    "rockefeller",
+    "rockefeller college",
+    "rocky college"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "rojo-s-roastery",
+   "name": "Rojo's Roastery",
+   "kind": "amenity",
+   "lat": 40.349834,
+   "lng": -74.661831,
+   "aliases": [],
+   "match": [
+    "rojo s roastery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "roots-ocean-prime",
+   "name": "Roots Ocean Prime",
+   "kind": "building",
+   "lat": 40.343336,
+   "lng": -74.65944,
+   "aliases": [],
+   "match": [
+    "roots ocean prime"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "rubin-observatory-group",
+   "name": "Rubin Observatory Group",
+   "kind": "building",
+   "lat": 40.347643,
+   "lng": -74.644526,
+   "aliases": [],
+   "match": [
+    "rubin observatory group"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "saint-paul-school",
+   "name": "Saint Paul School",
+   "kind": "building",
+   "lat": 40.351994,
+   "lng": -74.653567,
+   "aliases": [],
+   "match": [
+    "saint paul school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "saint-paul-s-cemetery",
+   "name": "Saint Paul's Cemetery",
+   "kind": "area",
+   "lat": 40.353035,
+   "lng": -74.654312,
+   "aliases": [],
+   "match": [
+    "saint paul s cemetery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sakrid-coffee-roasters",
+   "name": "Sakrid Coffee Roasters",
+   "kind": "amenity",
+   "lat": 40.349046,
+   "lng": -74.662635,
+   "aliases": [],
+   "match": [
+    "sakrid coffee roasters"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "salon-54",
+   "name": "Salon 54",
+   "kind": "building",
+   "lat": 40.351891,
+   "lng": -74.659281,
+   "aliases": [],
+   "match": [
+    "salon 54"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "say-cheez",
+   "name": "Say Cheez",
+   "kind": "amenity",
+   "lat": 40.35064,
+   "lng": -74.655537,
+   "aliases": [],
+   "match": [
+    "say cheez"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "scheide-caldwell-house",
+   "name": "Scheide Caldwell House",
+   "kind": "building",
+   "lat": 40.349498,
+   "lng": -74.658566,
+   "aliases": [],
+   "match": [
+    "scheide caldwell house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "scheide-hall",
+   "name": "Scheide Hall",
+   "kind": "building",
+   "lat": 40.34533,
+   "lng": -74.663964,
+   "aliases": [],
+   "match": [
+    "scheide hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "schouse",
+   "name": "Schouse",
+   "kind": "amenity",
+   "lat": 40.352124,
+   "lng": -74.652155,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "schultz-laboratory",
+   "name": "Schultz Laboratory",
+   "kind": "building",
+   "lat": 40.345392,
+   "lng": -74.653964,
+   "aliases": [],
+   "match": [
+    "schultz laboratory"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "scott-lane",
+   "name": "Scott Lane",
+   "kind": "street",
+   "lat": 40.355795,
+   "lng": -74.643848,
+   "aliases": [],
+   "match": [
+    "scott lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "scudder-plaza",
+   "name": "Scudder Plaza",
+   "kind": "street",
+   "lat": 40.348667,
+   "lng": -74.654901,
+   "aliases": [],
+   "match": [
+    "scudder plaza"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "scully-hall",
+   "name": "Scully Hall",
+   "kind": "building",
+   "lat": 40.344373,
+   "lng": -74.654808,
+   "aliases": [],
+   "match": [
+    "scully hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sergeant-street",
+   "name": "Sergeant Street",
+   "kind": "street",
+   "lat": 40.35378,
+   "lng": -74.643608,
+   "aliases": [],
+   "match": [
+    "sergeant street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "shapiro-walk",
+   "name": "Shapiro Walk",
+   "kind": "street",
+   "lat": 40.349571,
+   "lng": -74.653139,
+   "aliases": [],
+   "match": [
+    "shapiro walk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "shea-rowing-center",
+   "name": "Shea Rowing Center",
+   "kind": "field",
+   "lat": 40.339317,
+   "lng": -74.650476,
+   "aliases": [],
+   "match": [
+    "shea rowing center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sherrerd-field",
+   "name": "Sherrerd Field",
+   "kind": "field",
+   "lat": 40.341453,
+   "lng": -74.651329,
+   "aliases": [],
+   "match": [
+    "sherrerd field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sherrerd-hall",
+   "name": "Sherrerd Hall",
+   "kind": "building",
+   "lat": 40.349562,
+   "lng": -74.652675,
+   "aliases": [],
+   "match": [
+    "sherrerd hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "shirley-court",
+   "name": "Shirley Court",
+   "kind": "street",
+   "lat": 40.353928,
+   "lng": -74.661372,
+   "aliases": [],
+   "match": [
+    "shirley court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sigmund-park",
+   "name": "Sigmund Park",
+   "kind": "field",
+   "lat": 40.355082,
+   "lng": -74.652619,
+   "aliases": [],
+   "match": [
+    "sigmund park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "skillman-furniture",
+   "name": "Skillman Furniture",
+   "kind": "building",
+   "lat": 40.339703,
+   "lng": -74.658056,
+   "aliases": [],
+   "match": [
+    "skillman furniture"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "small-world-coffee",
+   "name": "Small World Coffee",
+   "kind": "amenity",
+   "lat": 40.352383,
+   "lng": -74.6512,
+   "aliases": [],
+   "match": [
+    "small world coffee"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "snowden-lane",
+   "name": "Snowden Lane",
+   "kind": "street",
+   "lat": 40.35734,
+   "lng": -74.640102,
+   "aliases": [],
+   "match": [
+    "snowden lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "song-of-the-vowels",
+   "name": "Song of the Vowels",
+   "kind": "tourism",
+   "lat": 40.348915,
+   "lng": -74.657553,
+   "aliases": [],
+   "match": [
+    "song of the vowels"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-drive",
+   "name": "South Drive",
+   "kind": "street",
+   "lat": 40.344329,
+   "lng": -74.652732,
+   "aliases": [],
+   "match": [
+    "south drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-guard-booth",
+   "name": "South Guard Booth",
+   "kind": "building",
+   "lat": 40.341961,
+   "lng": -74.655838,
+   "aliases": [],
+   "match": [
+    "south guard booth"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-harrison-street",
+   "name": "South Harrison Street",
+   "kind": "street",
+   "lat": 40.347122,
+   "lng": -74.640304,
+   "aliases": [],
+   "match": [
+    "south harrison street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-stanworth-drive",
+   "name": "South Stanworth Drive",
+   "kind": "street",
+   "lat": 40.353761,
+   "lng": -74.666284,
+   "aliases": [],
+   "match": [
+    "south stanworth drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-station-drive",
+   "name": "South Station Drive",
+   "kind": "street",
+   "lat": 40.341133,
+   "lng": -74.65901,
+   "aliases": [],
+   "match": [
+    "south station drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "south-tulane-street",
+   "name": "South Tulane Street",
+   "kind": "street",
+   "lat": 40.350618,
+   "lng": -74.658754,
+   "aliases": [],
+   "match": [
+    "south tulane street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "southern-way",
+   "name": "Southern Way",
+   "kind": "street",
+   "lat": 40.350023,
+   "lng": -74.640566,
+   "aliases": [],
+   "match": [
+    "southern way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "space-physics-group",
+   "name": "Space Physics Group",
+   "kind": "building",
+   "lat": 40.347464,
+   "lng": -74.644562,
+   "aliases": [],
+   "match": [
+    "space physics group"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "spring-street",
+   "name": "Spring Street",
+   "kind": "street",
+   "lat": 40.351219,
+   "lng": -74.659023,
+   "aliases": [],
+   "match": [
+    "spring street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "spring-street-garage",
+   "name": "Spring Street Garage",
+   "kind": "building",
+   "lat": 40.351467,
+   "lng": -74.659547,
+   "aliases": [],
+   "match": [
+    "spring street garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "springdale",
+   "name": "Springdale",
+   "kind": "building",
+   "lat": 40.344109,
+   "lng": -74.665305,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "springdale-golf-club",
+   "name": "Springdale Golf Club",
+   "kind": "field",
+   "lat": 40.338003,
+   "lng": -74.661029,
+   "aliases": [],
+   "match": [
+    "springdale golf club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "springdale-road",
+   "name": "Springdale Road",
+   "kind": "street",
+   "lat": 40.339021,
+   "lng": -74.666313,
+   "aliases": [],
+   "match": [
+    "springdale road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "spruce-circle",
+   "name": "Spruce Circle",
+   "kind": "amenity",
+   "lat": 40.355806,
+   "lng": -74.647876,
+   "aliases": [],
+   "match": [
+    "spruce circle"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "spruce-lane",
+   "name": "Spruce Lane",
+   "kind": "street",
+   "lat": 40.355016,
+   "lng": -74.649524,
+   "aliases": [],
+   "match": [
+    "spruce lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "spruce-street",
+   "name": "Spruce Street",
+   "kind": "street",
+   "lat": 40.354949,
+   "lng": -74.650377,
+   "aliases": [],
+   "match": [
+    "spruce street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "st-paul-s-catholic-church",
+   "name": "St. Paul's Catholic Church",
+   "kind": "building",
+   "lat": 40.351827,
+   "lng": -74.65429,
+   "aliases": [],
+   "match": [
+    "st paul s catholic church"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stadium-drive-garage",
+   "name": "Stadium Drive Garage",
+   "kind": "building",
+   "lat": 40.344922,
+   "lng": -74.644825,
+   "aliases": [],
+   "match": [
+    "stadium drive garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stadium-drive-west",
+   "name": "Stadium Drive West",
+   "kind": "street",
+   "lat": 40.344465,
+   "lng": -74.65146,
+   "aliases": [],
+   "match": [
+    "stadium drive west"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stafford-little-hall",
+   "name": "Stafford Little Hall",
+   "kind": "building",
+   "lat": 40.346496,
+   "lng": -74.659325,
+   "aliases": [],
+   "match": [
+    "stafford little hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stanhope-hall",
+   "name": "Stanhope Hall",
+   "kind": "building",
+   "lat": 40.348719,
+   "lng": -74.660033,
+   "aliases": [],
+   "match": [
+    "stanhope hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stanworth-lane",
+   "name": "Stanworth Lane",
+   "kind": "street",
+   "lat": 40.353536,
+   "lng": -74.666046,
+   "aliases": [],
+   "match": [
+    "stanworth lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stanworth-john-street-footpath",
+   "name": "Stanworth-John Street Footpath",
+   "kind": "street",
+   "lat": 40.354701,
+   "lng": -74.664595,
+   "aliases": [],
+   "match": [
+    "stanworth john street footpath"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "starbucks",
+   "name": "Starbucks",
+   "kind": "amenity",
+   "lat": 40.349927,
+   "lng": -74.659455,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "streicker-bridge",
+   "name": "Streicker Bridge",
+   "kind": "street",
+   "lat": 40.344134,
+   "lng": -74.652207,
+   "aliases": [],
+   "match": [
+    "streicker bridge"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "streicker-walk",
+   "name": "Streicker Walk",
+   "kind": "street",
+   "lat": 40.347705,
+   "lng": -74.655352,
+   "aliases": [],
+   "match": [
+    "streicker walk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "strubing-field",
+   "name": "Strubing Field",
+   "kind": "field",
+   "lat": 40.347102,
+   "lng": -74.646504,
+   "aliases": [],
+   "match": [
+    "strubing field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "stuart-hall",
+   "name": "Stuart Hall",
+   "kind": "building",
+   "lat": 40.345312,
+   "lng": -74.663035,
+   "aliases": [],
+   "match": [
+    "stuart hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "studio-one60",
+   "name": "Studio One60",
+   "kind": "building",
+   "lat": 40.353991,
+   "lng": -74.661923,
+   "aliases": [],
+   "match": [
+    "studio one60"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sturges-way",
+   "name": "Sturges Way",
+   "kind": "street",
+   "lat": 40.354971,
+   "lng": -74.63941,
+   "aliases": [],
+   "match": [
+    "sturges way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sunoco",
+   "name": "Sunoco",
+   "kind": "building",
+   "lat": 40.352475,
+   "lng": -74.649274,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "suzanne-patterson-center",
+   "name": "Suzanne Patterson Center",
+   "kind": "building",
+   "lat": 40.348672,
+   "lng": -74.666,
+   "aliases": [],
+   "match": [
+    "suzanne patterson center"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sweetgum-drive",
+   "name": "Sweetgum Drive",
+   "kind": "street",
+   "lat": 40.344681,
+   "lng": -74.645333,
+   "aliases": [],
+   "match": [
+    "sweetgum drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sycamore-road",
+   "name": "Sycamore Road",
+   "kind": "street",
+   "lat": 40.35026,
+   "lng": -74.638407,
+   "aliases": [],
+   "match": [
+    "sycamore road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "sylvia-beach-way",
+   "name": "Sylvia Beach Way",
+   "kind": "street",
+   "lat": 40.352014,
+   "lng": -74.659872,
+   "aliases": [],
+   "match": [
+    "sylvia beach way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "t-i-g-e-r",
+   "name": "T.I.G.E.R.",
+   "kind": "building",
+   "lat": 40.345654,
+   "lng": -74.644003,
+   "aliases": [],
+   "match": [
+    "t i g e r"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tacoria",
+   "name": "Tacoria",
+   "kind": "amenity",
+   "lat": 40.350025,
+   "lng": -74.659124,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "taste-of-mexico",
+   "name": "Taste of Mexico",
+   "kind": "amenity",
+   "lat": 40.3511,
+   "lng": -74.656026,
+   "aliases": [],
+   "match": [
+    "taste of mexico"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "taylor-court",
+   "name": "Taylor Court",
+   "kind": "street",
+   "lat": 40.338414,
+   "lng": -74.653358,
+   "aliases": [],
+   "match": [
+    "taylor court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "templeton-hall",
+   "name": "Templeton Hall",
+   "kind": "building",
+   "lat": 40.34392,
+   "lng": -74.664159,
+   "aliases": [],
+   "match": [
+    "templeton hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "teresa-s-cafe-wine-bar",
+   "name": "Teresa's Cafe & Wine Bar",
+   "kind": "amenity",
+   "lat": 40.350619,
+   "lng": -74.660857,
+   "aliases": [],
+   "match": [
+    "teresa s cafe wine bar"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "terrace-club",
+   "name": "Terrace Club",
+   "kind": "building",
+   "lat": 40.347176,
+   "lng": -74.653922,
+   "aliases": [],
+   "match": [
+    "terrace club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thai-delight",
+   "name": "Thai delight",
+   "kind": "building",
+   "lat": 40.350952,
+   "lng": -74.655945,
+   "aliases": [],
+   "match": [
+    "thai delight"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thai-village",
+   "name": "Thai Village",
+   "kind": "amenity",
+   "lat": 40.351832,
+   "lng": -74.652135,
+   "aliases": [],
+   "match": [
+    "thai village"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-baked-bear",
+   "name": "The Baked Bear",
+   "kind": "amenity",
+   "lat": 40.351014,
+   "lng": -74.660194,
+   "aliases": [],
+   "match": [
+    "the baked bear"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-bent-spoon",
+   "name": "The Bent Spoon",
+   "kind": "amenity",
+   "lat": 40.349881,
+   "lng": -74.661851,
+   "aliases": [],
+   "match": [
+    "the bent spoon"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-dinky-bar-kitchen",
+   "name": "The Dinky Bar & Kitchen",
+   "kind": "building",
+   "lat": 40.343904,
+   "lng": -74.659639,
+   "aliases": [],
+   "match": [
+    "the dinky bar kitchen"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-dreaming-room",
+   "name": "The Dreaming Room",
+   "kind": "tourism",
+   "lat": 40.342632,
+   "lng": -74.654103,
+   "aliases": [],
+   "match": [
+    "the dreaming room"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-hedgehog-and-the-fox",
+   "name": "The Hedgehog and the Fox",
+   "kind": "tourism",
+   "lat": 40.346166,
+   "lng": -74.651965,
+   "aliases": [],
+   "match": [
+    "the hedgehog and the fox"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-jewish-center-of-princeton",
+   "name": "The Jewish Center of Princeton",
+   "kind": "building",
+   "lat": 40.355355,
+   "lng": -74.640569,
+   "aliases": [],
+   "match": [
+    "the jewish center of princeton"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-kiosk",
+   "name": "The Kiosk",
+   "kind": "building",
+   "lat": 40.349574,
+   "lng": -74.660765,
+   "aliases": [],
+   "match": [
+    "the kiosk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-lewis-school-of-princeton",
+   "name": "The Lewis School of Princeton",
+   "kind": "amenity",
+   "lat": 40.350778,
+   "lng": -74.665465,
+   "aliases": [],
+   "match": [
+    "the lewis school of princeton"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-mccarthy-building",
+   "name": "The McCarthy Building",
+   "kind": "building",
+   "lat": 40.353964,
+   "lng": -74.644805,
+   "aliases": [],
+   "match": [
+    "the mccarthy building"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-meeting-house",
+   "name": "The Meeting House",
+   "kind": "amenity",
+   "lat": 40.357314,
+   "lng": -74.662724,
+   "aliases": [],
+   "match": [
+    "the meeting house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-mint",
+   "name": "The Mint",
+   "kind": "amenity",
+   "lat": 40.350752,
+   "lng": -74.656656,
+   "aliases": [],
+   "match": [
+    "the mint"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-peacock-inn",
+   "name": "The Peacock Inn",
+   "kind": "building",
+   "lat": 40.349131,
+   "lng": -74.665498,
+   "aliases": [],
+   "match": [
+    "the peacock inn"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-present-day-club",
+   "name": "The Present Day Club",
+   "kind": "building",
+   "lat": 40.346056,
+   "lng": -74.667607,
+   "aliases": [],
+   "match": [
+    "the present day club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-residences-at-palmer-square",
+   "name": "The Residences at Palmer Square",
+   "kind": "area",
+   "lat": 40.351231,
+   "lng": -74.662083,
+   "aliases": [],
+   "match": [
+    "the residences at palmer square"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "the-ups-store",
+   "name": "The UPS Store",
+   "kind": "amenity",
+   "lat": 40.350854,
+   "lng": -74.656114,
+   "aliases": [],
+   "match": [
+    "the ups store"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "theater-drive",
+   "name": "Theater Drive",
+   "kind": "street",
+   "lat": 40.342454,
+   "lng": -74.659197,
+   "aliases": [],
+   "match": [
+    "theater drive"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "theater-drive-garage",
+   "name": "Theater Drive Garage",
+   "kind": "building",
+   "lat": 40.341704,
+   "lng": -74.658136,
+   "aliases": [],
+   "match": [
+    "theater drive garage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thermal-energy-storage-tank",
+   "name": "Thermal Energy Storage Tank",
+   "kind": "building",
+   "lat": 40.345113,
+   "lng": -74.643107,
+   "aliases": [],
+   "match": [
+    "thermal energy storage tank"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thetis-circle",
+   "name": "Thetis Circle",
+   "kind": "tourism",
+   "lat": 40.344889,
+   "lng": -74.657833,
+   "aliases": [],
+   "match": [
+    "thetis circle"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thomas-sweet-ice-cream",
+   "name": "Thomas Sweet Ice Cream",
+   "kind": "amenity",
+   "lat": 40.350753,
+   "lng": -74.655628,
+   "aliases": [],
+   "match": [
+    "thomas sweet ice cream"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "thompson-court",
+   "name": "Thompson Court",
+   "kind": "building",
+   "lat": 40.340941,
+   "lng": -74.665159,
+   "aliases": [],
+   "match": [
+    "thompson court"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tico-s-eatery-juice-bar",
+   "name": "Tico's Eatery & Juice Bar",
+   "kind": "amenity",
+   "lat": 40.350869,
+   "lng": -74.659904,
+   "aliases": [],
+   "match": [
+    "tico s eatery juice bar"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tiger-inn",
+   "name": "Tiger Inn",
+   "kind": "building",
+   "lat": 40.348969,
+   "lng": -74.65228,
+   "aliases": [],
+   "match": [
+    "tiger inn"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tiger-noodles",
+   "name": "Tiger Noodles",
+   "kind": "amenity",
+   "lat": 40.352376,
+   "lng": -74.651291,
+   "aliases": [],
+   "match": [
+    "tiger noodles"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tiger-park",
+   "name": "Tiger Park",
+   "kind": "field",
+   "lat": 40.349629,
+   "lng": -74.661085,
+   "aliases": [],
+   "match": [
+    "tiger park"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tilghman-walk",
+   "name": "Tilghman Walk",
+   "kind": "street",
+   "lat": 40.343614,
+   "lng": -74.65456,
+   "aliases": [],
+   "match": [
+    "tilghman walk"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tomo-sushi",
+   "name": "Tomo Sushi",
+   "kind": "amenity",
+   "lat": 40.352,
+   "lng": -74.652478,
+   "aliases": [],
+   "match": [
+    "tomo sushi"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "torrey-lane",
+   "name": "Torrey Lane",
+   "kind": "street",
+   "lat": 40.353854,
+   "lng": -74.661906,
+   "aliases": [],
+   "match": [
+    "torrey lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tortuga-s-mexican-village",
+   "name": "Tortuga's Mexican Village",
+   "kind": "building",
+   "lat": 40.356303,
+   "lng": -74.66478,
+   "aliases": [],
+   "match": [
+    "tortuga s mexican village"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "tower-club",
+   "name": "Tower Club",
+   "kind": "building",
+   "lat": 40.347692,
+   "lng": -74.653938,
+   "aliases": [],
+   "match": [
+    "tower club"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "trinity-church",
+   "name": "Trinity Church",
+   "kind": "amenity",
+   "lat": 40.347329,
+   "lng": -74.664603,
+   "aliases": [],
+   "match": [
+    "trinity church"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "triumph-brewing-company",
+   "name": "Triumph Brewing Company",
+   "kind": "building",
+   "lat": 40.350189,
+   "lng": -74.661029,
+   "aliases": [],
+   "match": [
+    "triumph brewing company"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "two-dickinson-street-co-op",
+   "name": "Two Dickinson Street Co-op",
+   "kind": "building",
+   "lat": 40.345779,
+   "lng": -74.661117,
+   "aliases": [],
+   "match": [
+    "two dickinson street co op"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "two-planes-vertical-horizontal-ii",
+   "name": "Two Planes Vertical Horizontal II",
+   "kind": "tourism",
+   "lat": 40.348375,
+   "lng": -74.6579,
+   "aliases": [],
+   "match": [
+    "two planes vertical horizontal ii"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "university-league-nursery-school",
+   "name": "University League Nursery School",
+   "kind": "building",
+   "lat": 40.355647,
+   "lng": -74.63995,
+   "aliases": [],
+   "match": [
+    "university league nursery school"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "university-now-day-nursery",
+   "name": "University NOW Day Nursery",
+   "kind": "building",
+   "lat": 40.346871,
+   "lng": -74.644293,
+   "aliases": [],
+   "match": [
+    "university now day nursery"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "university-place",
+   "name": "University Place",
+   "kind": "street",
+   "lat": 40.344561,
+   "lng": -74.660922,
+   "aliases": [],
+   "match": [
+    "university place"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "upper-strubing-field",
+   "name": "Upper Strubing Field",
+   "kind": "field",
+   "lat": 40.347467,
+   "lng": -74.64708,
+   "aliases": [],
+   "match": [
+    "upper strubing field"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "upstart-ii",
+   "name": "Upstart II",
+   "kind": "tourism",
+   "lat": 40.350821,
+   "lng": -74.651807,
+   "aliases": [],
+   "match": [
+    "upstart ii"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "uroda",
+   "name": "URODA",
+   "kind": "tourism",
+   "lat": 40.349648,
+   "lng": -74.651218,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "vandeventer-apartments",
+   "name": "Vandeventer Apartments",
+   "kind": "building",
+   "lat": 40.352571,
+   "lng": -74.658577,
+   "aliases": [],
+   "match": [
+    "vandeventer apartments"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "vandeventer-avenue",
+   "name": "Vandeventer Avenue",
+   "kind": "street",
+   "lat": 40.351607,
+   "lng": -74.65776,
+   "aliases": [],
+   "match": [
+    "vandeventer avenue"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "victoria-mews",
+   "name": "Victoria Mews",
+   "kind": "street",
+   "lat": 40.351333,
+   "lng": -74.662736,
+   "aliases": [],
+   "match": [
+    "victoria mews"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "visitors-batting-cage",
+   "name": "Visitors batting cage",
+   "kind": "field",
+   "lat": 40.338486,
+   "lng": -74.642009,
+   "aliases": [],
+   "match": [
+    "visitors batting cage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "visitors-team-dugout",
+   "name": "Visitors team dugout",
+   "kind": "building",
+   "lat": 40.338512,
+   "lng": -74.641759,
+   "aliases": [],
+   "match": [
+    "visitors team dugout"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "von-neumann-lab",
+   "name": "Von Neumann Lab",
+   "kind": "building",
+   "lat": 40.350492,
+   "lng": -74.6493,
+   "aliases": [],
+   "match": [
+    "von neumann lab"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "walker-hall",
+   "name": "Walker Hall",
+   "kind": "building",
+   "lat": 40.345588,
+   "lng": -74.656874,
+   "aliases": [],
+   "match": [
+    "walker hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wallace-dance-building-and-theater",
+   "name": "Wallace Dance Building and Theater",
+   "kind": "building",
+   "lat": 40.342308,
+   "lng": -74.659827,
+   "aliases": [],
+   "match": [
+    "wallace dance building and theater"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wallace-hall",
+   "name": "Wallace Hall",
+   "kind": "building",
+   "lat": 40.349269,
+   "lng": -74.653589,
+   "aliases": [],
+   "match": [
+    "wallace hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "walnut-lane",
+   "name": "Walnut Lane",
+   "kind": "street",
+   "lat": 40.356485,
+   "lng": -74.653977,
+   "aliases": [],
+   "match": [
+    "walnut lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "washington-road",
+   "name": "Washington Road",
+   "kind": "street",
+   "lat": 40.342031,
+   "lng": -74.650155,
+   "aliases": [
+    "washington rd"
+   ],
+   "match": [
+    "washington rd",
+    "washington road"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wawa",
+   "name": "Wawa",
+   "kind": "building",
+   "lat": 40.341782,
+   "lng": -74.658847,
+   "aliases": [],
+   "match": [],
+   "source": "osm"
+  },
+  {
+   "id": "wells-fargo",
+   "name": "Wells Fargo",
+   "kind": "amenity",
+   "lat": 40.351219,
+   "lng": -74.655077,
+   "aliases": [],
+   "match": [
+    "wells fargo"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "west-lodge",
+   "name": "West Lodge",
+   "kind": "building",
+   "lat": 40.339653,
+   "lng": -74.666442,
+   "aliases": [],
+   "match": [
+    "west lodge"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "western-section",
+   "name": "Western Section",
+   "kind": "area",
+   "lat": 40.350518,
+   "lng": -74.672684,
+   "aliases": [],
+   "match": [
+    "western section"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "western-way",
+   "name": "Western Way",
+   "kind": "street",
+   "lat": 40.348882,
+   "lng": -74.645103,
+   "aliases": [],
+   "match": [
+    "western way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "westland-mansion",
+   "name": "Westland Mansion",
+   "kind": "building",
+   "lat": 40.351582,
+   "lng": -74.667454,
+   "aliases": [],
+   "match": [
+    "westland mansion"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "westminster-choir-college",
+   "name": "Westminster Choir College",
+   "kind": "amenity",
+   "lat": 40.356498,
+   "lng": -74.653204,
+   "aliases": [],
+   "match": [
+    "westminster choir college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "whig-hall",
+   "name": "Whig Hall",
+   "kind": "building",
+   "lat": 40.347822,
+   "lng": -74.658629,
+   "aliases": [],
+   "match": [
+    "whig hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "whitman-college",
+   "name": "Whitman College",
+   "kind": "college",
+   "lat": 40.3443,
+   "lng": -74.6583,
+   "aliases": [
+    "whitman",
+    "whitman dorms"
+   ],
+   "match": [
+    "whitman",
+    "whitman college",
+    "whitman dorms"
+   ],
+   "source": "curated"
+  },
+  {
+   "id": "wiggins-street",
+   "name": "Wiggins Street",
+   "kind": "street",
+   "lat": 40.352859,
+   "lng": -74.658328,
+   "aliases": [],
+   "match": [
+    "wiggins street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wilkinson-fitness-center-meadows",
+   "name": "Wilkinson Fitness Center (Meadows)",
+   "kind": "field",
+   "lat": 40.339162,
+   "lng": -74.643018,
+   "aliases": [],
+   "match": [
+    "wilkinson fitness center meadows"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "william-street",
+   "name": "William Street",
+   "kind": "street",
+   "lat": 40.350333,
+   "lng": -74.653537,
+   "aliases": [],
+   "match": [
+    "william street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "willow-street",
+   "name": "Willow Street",
+   "kind": "street",
+   "lat": 40.352596,
+   "lng": -74.655694,
+   "aliases": [],
+   "match": [
+    "willow street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wilton-street",
+   "name": "Wilton Street",
+   "kind": "street",
+   "lat": 40.353818,
+   "lng": -74.642229,
+   "aliases": [],
+   "match": [
+    "wilton street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "winberie-s",
+   "name": "Winberie's",
+   "kind": "amenity",
+   "lat": 40.349888,
+   "lng": -74.660882,
+   "aliases": [],
+   "match": [
+    "winberie s"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "witherspoon-grill",
+   "name": "Witherspoon Grill",
+   "kind": "amenity",
+   "lat": 40.351356,
+   "lng": -74.659955,
+   "aliases": [],
+   "match": [
+    "witherspoon grill"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "witherspoon-hall",
+   "name": "Witherspoon Hall",
+   "kind": "building",
+   "lat": 40.347444,
+   "lng": -74.660141,
+   "aliases": [],
+   "match": [
+    "witherspoon hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "witherspoon-lane",
+   "name": "Witherspoon Lane",
+   "kind": "street",
+   "lat": 40.355538,
+   "lng": -74.661607,
+   "aliases": [],
+   "match": [
+    "witherspoon lane"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "witherspoon-street",
+   "name": "Witherspoon Street",
+   "kind": "street",
+   "lat": 40.352998,
+   "lng": -74.661169,
+   "aliases": [],
+   "match": [
+    "witherspoon street"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "woodland-way",
+   "name": "Woodland Way",
+   "kind": "street",
+   "lat": 40.34133,
+   "lng": -74.65499,
+   "aliases": [],
+   "match": [
+    "woodland way"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "woolworth-hall",
+   "name": "Woolworth Hall",
+   "kind": "building",
+   "lat": 40.347236,
+   "lng": -74.655855,
+   "aliases": [],
+   "match": [
+    "woolworth hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wright-hall",
+   "name": "Wright Hall",
+   "kind": "building",
+   "lat": 40.345684,
+   "lng": -74.657613,
+   "aliases": [],
+   "match": [
+    "wright hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wu-hall",
+   "name": "Wu Hall",
+   "kind": "building",
+   "lat": 40.344721,
+   "lng": -74.656474,
+   "aliases": [],
+   "match": [
+    "wu hall"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wyman-cottage",
+   "name": "Wyman Cottage",
+   "kind": "building",
+   "lat": 40.340185,
+   "lng": -74.666279,
+   "aliases": [],
+   "match": [
+    "wyman cottage"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "wyman-house",
+   "name": "Wyman House",
+   "kind": "building",
+   "lat": 40.340087,
+   "lng": -74.665668,
+   "aliases": [],
+   "match": [
+    "wyman house"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "xi-bei-cuisine",
+   "name": "Xi Bei Cuisine",
+   "kind": "amenity",
+   "lat": 40.351058,
+   "lng": -74.660212,
+   "aliases": [],
+   "match": [
+    "xi bei cuisine"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "yankee-doodle-tap-room",
+   "name": "Yankee Doodle Tap Room",
+   "kind": "amenity",
+   "lat": 40.350539,
+   "lng": -74.661737,
+   "aliases": [],
+   "match": [
+    "yankee doodle tap room"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "yeh-college",
+   "name": "Yeh College",
+   "kind": "amenity",
+   "lat": 40.342125,
+   "lng": -74.654069,
+   "aliases": [
+    "yay college"
+   ],
+   "match": [
+    "yay college",
+    "yeh college"
+   ],
+   "source": "osm"
+  },
+  {
+   "id": "ymca-child-care",
+   "name": "YMCA Child Care",
+   "kind": "building",
+   "lat": 40.351445,
+   "lng": -74.665919,
+   "aliases": [],
+   "match": [
+    "ymca child care"
+   ],
+   "source": "osm"
+  }
+ ]
+}

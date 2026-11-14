@@ -405,3 +405,22 @@ def struct_sample(pcm):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PlaceNameTests(unittest.TestCase):
+    def test_misheard_campus_places_are_corrected(self):
+        from app.places import correct_places
+
+        self.assertEqual(
+            correct_places("There is smoke at the first campus center, second floor."),
+            "There is smoke at the Frist Campus Center, second floor.",
+        )
+        self.assertEqual(correct_places("He ran toward fire stone library."), "He ran toward Firestone Library.")
+        self.assertEqual(correct_places("I am outside the E quad."), "I am outside the Engineering Quadrangle.")
+        self.assertEqual(correct_places("Someone collapsed at Jadwen Gymnasium."), "Someone collapsed at Jadwin Gymnasium.")
+
+    def test_everyday_words_are_left_alone(self):
+        from app.places import correct_places
+
+        text = "I think the proof is in the commons, I mean first of all."
+        self.assertEqual(correct_places(text), text)

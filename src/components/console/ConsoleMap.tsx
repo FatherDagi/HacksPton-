@@ -75,6 +75,7 @@ export default function ConsoleMap({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markers = useRef(new Map<string, maplibregl.Marker>());
   const incidentMarker = useRef<maplibregl.Marker | null>(null);
+  const mentionMarkers = useRef(new Map<string, maplibregl.Marker>());
   const latest = useRef({ routes, incident, teamIds });
   const [base, setBase] = useState<Base>("street");
   const [tilted, setTilted] = useState(false);
@@ -99,6 +100,7 @@ export default function ConsoleMap({
     });
     mapRef.current = map;
     const markerMap = markers.current;
+    const mentionMap = mentionMarkers.current;
 
     const pin = (html: string, at: LatLng, z: number) => {
       const el = document.createElement("div");
@@ -163,6 +165,9 @@ export default function ConsoleMap({
       clearTimeout(refit);
       markerMap.forEach((m) => m.remove());
       markerMap.clear();
+      // Mentioned-place pins belong to this map instance; forget them so a new map re-adds them.
+      mentionMap.forEach((m) => m.remove());
+      mentionMap.clear();
       map.remove();
       mapRef.current = null;
     };
@@ -240,6 +245,23 @@ export default function ConsoleMap({
     });
   }, [officers, teamIds, theme, ready, lostIds]);
 
+  // ---- other places the caller named (dispatch console and patrol terminal) ----
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const want = new Map((incident?.mentionedPlaces ?? []).map((p) => [p.id, p]));
+    mentionMarkers.current.forEach((m, id) => { if (!want.has(id)) { m.remove(); mentionMarkers.current.delete(id); } });
+    want.forEach((p, id) => {
+      if (mentionMarkers.current.has(id)) return;
+      const el = document.createElement("div");
+      el.className = "dc-pin";
+      el.style.zIndex = "3";
+      el.innerHTML = `<div class="dc-mention"><span></span><b>${esc(p.name)}</b></div>`;
+      el.title = `Mentioned by the caller: ${p.name}`;
+      mentionMarkers.current.set(id, new maplibregl.Marker({ element: el }).setLngLat(ll(p.location)).addTo(map));
+    });
+  }, [incident, ready]);
+
   // ---- incident pin + building outline ----
   useEffect(() => {
     const map = mapRef.current;
@@ -257,7 +279,7 @@ export default function ConsoleMap({
     el.innerHTML = `<div class="dc-incident">
       <span style="width:36px;height:36px;background:color-mix(in srgb, ${pc} 22%, transparent);border:1px solid ${pc}"></span>
       <span style="width:14px;height:14px;background:${pc};border:2px solid var(--panel)"></span>
-      <b style="border-color:${pc}">${priority ? `P${priority} · ` : ""}${esc(incident.title.split(":")[0])}</b></div>`;
+      <b style="border-color:${pc}">${priority ? `P${priority} · ` : ""}${esc(incident.placeName ?? incident.title.split(":")[0])}</b></div>`;
     const outline = () => highlightBuilding(map, incident.location);
     if (map.loaded()) outline();
     map.once("idle", outline);

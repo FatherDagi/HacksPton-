@@ -163,7 +163,7 @@ export function Terminal({ fontClass }: { fontClass: string }) {
               </div>
               <div className="ot-scroll">
                 <h1 className="ot-title">{inc.title}</h1>
-                <p className="ot-where">{[inc.fields.building.value, inc.fields.floor.value && (/floor/i.test(inc.fields.floor.value) ? inc.fields.floor.value : `floor ${inc.fields.floor.value}`), inc.fields.room.value].filter(Boolean).join(", ") || "Location being confirmed"}</p>
+                <p className="ot-where">{[inc.placeName ?? inc.fields.building.value, inc.fields.floor.value && (/floor/i.test(inc.fields.floor.value) ? inc.fields.floor.value : `floor ${inc.fields.floor.value}`), inc.fields.room.value].filter(Boolean).join(", ") || "Location being confirmed"}</p>
 
                 <Actions me={me} acknowledged={!!asg.acknowledgedAt} etaLeft={etaLeft}
                   onAck={() => act({ type: "ACK_ASSIGNMENT", at: stamp(), assignmentId: asg.id })}
@@ -189,6 +189,13 @@ export function Terminal({ fontClass }: { fontClass: string }) {
                   <ul className="dc-reasons">{assessment.reasons.map((r) => <li key={r}>{r}</li>)}</ul>
                   {inc.priorityDecision?.overrideReason && <p className="ot-note">Dispatcher set P{inc.priorityDecision.priority}: {inc.priorityDecision.overrideReason}</p>}
                 </section>
+
+                {(inc.mentionedPlaces ?? []).length > 0 && (
+                  <section className="ot-sec">
+                    <h2>Also mentioned (pinned on map)</h2>
+                    <p>{(inc.mentionedPlaces ?? []).map((p) => p.name).join(", ")}</p>
+                  </section>
+                )}
 
                 {others.length > 0 && (
                   <section className="ot-sec">

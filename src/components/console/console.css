@@ -290,3 +290,8 @@
 @media (prefers-reduced-motion: no-preference) { .dc .dc-callbanner.ringing { animation: dc-ring 1s ease-in-out infinite; } }
 @keyframes dc-ring { 50% { box-shadow: 0 0 0 8px rgba(255, 138, 128, .35), 0 18px 60px rgba(0, 0, 0, .55); } }
 @media (max-width: 640px) { .dc-callbanner-main b { font-size: 22px; } .dc-callbanner-hint { display: none; } }
+
+/* Places the caller named besides the incident spot (pinned automatically from the transcript) */
+.dc-mention { position: absolute; width: 0; height: 0; pointer-events: none; }
+.dc-mention span { position: absolute; left: 0; top: 0; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--warn); border: 2px solid var(--panel); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 25%, transparent); }
+.dc-mention b { position: absolute; left: 10px; top: -9px; white-space: nowrap; background: var(--panel); color: var(--text); border: 1px dashed var(--warn); padding: 1px 6px; font-size: 11.5px; font-weight: 600; border-radius: 3px; }

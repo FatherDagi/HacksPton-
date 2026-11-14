@@ -129,6 +129,18 @@ export interface Incident {
   callerLanguage?: string | null;
   /** True until a campus building has been matched from the call. */
   locationPending?: boolean;
+  /** Place the incident pin was set to from what the caller said (places database). */
+  placeName?: string | null;
+  /** How specific that place is ("building", "street", ...); a street can later be refined. */
+  placeKind?: string | null;
+  /** Other places named in the call (e.g. where a suspect ran), pinned on every map. */
+  mentionedPlaces?: MentionedPlace[];
+}
+
+export interface MentionedPlace {
+  id: string;
+  name: string;
+  location: LatLng;
 }
 
 export type ResponderType = "police" | "ems" | "fire";

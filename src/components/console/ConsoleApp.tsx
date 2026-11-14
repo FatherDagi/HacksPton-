@@ -20,7 +20,8 @@ import { History, ListTodo, MessageSquareText, X } from "lucide-react";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
 import { OfficerUpdates } from "./OfficerUpdates";
-import { categoryFrom, deskAnswered, deskIncidentId, deskSegments, matchBuilding, type DeskCall } from "@/lib/deskBridge";
+import { categoryFrom, deskAnswered, deskIncidentId, deskSegments, type DeskCall } from "@/lib/deskBridge";
+import { findPlaces, isVague, placeLatLng, primaryPlace, spokenName } from "@/lib/places";
 
 /** Pull-out tabs on the far left of the map. */
 type DrawerTab = "transcript" | "questions" | "log";
@@ -267,22 +268,36 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     }
   }, [openIncidents, deskCalls, mode, runGemini]);
 
-  // Classify and place each live call from what has been said (the dispatcher can still edit fields).
+  // Classify each live call, and pin places as soon as the caller names them (places database).
+  // Main pin: a live call's first specific place (building, field, station...), else a street, refined
+  // when something more specific is said. Every other place named gets its own pin on every map.
   useEffect(() => {
     for (const inc of openIncidents) {
-      if (!inc.deskCallId) continue;
-      const call = deskCalls.find((c) => c.id === inc.deskCallId);
-      const text = [
-        inc.fields.category.value, inc.fields.description.value, inc.fields.building.value, inc.fields.location_details.value,
-        call?.callType, call?.location, ...inc.transcript.filter((x) => x.speaker === "caller").map((x) => x.text),
-      ].filter(Boolean).join(" \n ");
-      if (!text) continue;
+      const call = inc.deskCallId ? deskCalls.find((c) => c.id === inc.deskCallId) : undefined;
+      const callerText = inc.transcript.filter((x) => x.speaker === "caller").map((x) => x.text).join(" \n ");
       const at = Date.now();
-      const cat = categoryFrom(text);
-      if (cat && inc.category === "other") act({ type: "SET_CATEGORY", at, incidentId: inc.id, category: cat });
-      if (inc.locationPending) {
-        const b = matchBuilding(text);
-        if (b) act({ type: "SET_LOCATION", at, incidentId: inc.id, buildingId: b });
+      let mainPlace = inc.placeName ?? null;
+      if (inc.deskCallId) {
+        const text = [inc.fields.category.value, inc.fields.description.value, call?.callType, callerText].filter(Boolean).join(" \n ");
+        const cat = text ? categoryFrom(text) : null;
+        if (cat && inc.category === "other") act({ type: "SET_CATEGORY", at, incidentId: inc.id, category: cat });
+        // Where the caller is: what they said, plus Gemini's building / location fields.
+        const where = findPlaces([callerText, inc.fields.building.value, inc.fields.location_details.value, call?.location].filter(Boolean).join(" \n "));
+        const best = primaryPlace(where);
+        const refine = inc.locationPending || (inc.placeKind && (inc.placeKind === "street" || inc.placeKind === "area") && best && !isVague(best));
+        if (best && refine && spokenName(best) !== inc.placeName) {
+          act({ type: "SET_PLACE", at, incidentId: inc.id, placeId: best.id, name: spokenName(best), kind: best.kind, location: placeLatLng(best) });
+          mainPlace = spokenName(best);
+        }
+      }
+      // Other places mentioned (not the incident's own spot): pinned for dispatch and patrol terminals.
+      const near = (p: { lat: number; lng: number }) => Math.abs(p.lat - inc.location[0]) + Math.abs(p.lng - inc.location[1]) < 0.0004;
+      const pinned = new Set((inc.mentionedPlaces ?? []).map((m) => m.id));
+      // Only act when something new was named: the store rebuilds objects on every action, so acting on
+      // every render would loop.
+      const others = findPlaces(callerText).filter((p) => !near(p) && spokenName(p) !== mainPlace && !pinned.has(p.id));
+      if (others.length) {
+        act({ type: "MENTION_PLACES", at, incidentId: inc.id, places: others.map((p) => ({ id: p.id, name: spokenName(p), location: placeLatLng(p) })) });
       }
     }
   }, [openIncidents, deskCalls]);

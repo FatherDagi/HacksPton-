@@ -4,11 +4,13 @@ import array
 import asyncio
 import logging
 import os
+import re
 import time
 
 from app.audio_util import RATE, mulaw_to_pcm16, resample_pcm16, wav_to_pcm16
 from app.gemini_client import redact
 from app.live import LiveSession
+from app.places import correct_places
 from app.languages import detect_language, gemini_language
 from app.transcripts import find_keywords, keep_spoken, stitch_text, strip_overlap
 
@@ -17,6 +19,7 @@ log = logging.getLogger("desk.pipeline")
 LIVE_RATE = 16000
 LINE_PAUSE_S = 1.0  # start a new transcript line only after this much silence (or a speaker change)
 TEXT_LAG_S = 0.7  # transcribed text arrives about this long after the words were spoken
+TAIL_GRACE_S = 2.0  # late words of an unfinished sentence may arrive up to this long into the next utterance
 VOICE_LEVEL = 400  # mean |sample| (16-bit) above which a chunk counts as speech rather than line noise
 
 
@@ -213,18 +216,23 @@ class Pipeline(object):
         v["last"] = now
 
     def _utterance_for_text(self, call_id, speaker):
-        """Which utterance a phrase arriving now belongs to (text lags the audio by about TEXT_LAG_S)."""
+        """Which utterance a phrase arriving now belongs to (text lags the audio by about TEXT_LAG_S),
+        and how long ago that utterance started."""
         v = self.voice.get((call_id, speaker))
         if not v or not v["starts"]:
-            return 0
-        at = time.monotonic() - TEXT_LAG_S
-        uid = v["starts"][0][1]
+            return 0, None
+        now = time.monotonic()
+        at = now - TEXT_LAG_S
+        uid, started = v["starts"][0][1], v["starts"][0][0]
         for t, n in v["starts"]:
             if t <= at:
-                uid = n
-        return uid
+                uid, started = n, t
+        latest_t, latest_uid = v["starts"][-1]
+        return uid, (now - latest_t if latest_uid != uid else now - started)
 
     async def _show(self, call_id, speaker, text, commit):
+        # Place names are corrected on whole lines (after pieces are joined), never on a lone piece:
+        # "...at the first" + "campus center" must become "Frist Campus Center", not "first Frist...".
         call = self.store.get_call(call_id)
         last = ""
         if call and call["transcript"]:
@@ -236,32 +244,44 @@ class Pipeline(object):
                 await self._publish()
             return
         if commit:
-            uid = self._utterance_for_text(call_id, speaker)
+            uid, since_new = self._utterance_for_text(call_id, speaker)
             lines = (call or {}).get("transcript") or []
             ol = self.open_line.get((call_id, speaker))
-            # Keep adding to this speaker's line while they haven't paused for LINE_PAUSE_S, even if the
-            # other person said something in between (only a few lines back, so order stays readable).
-            same = (
-                ol is not None and ol["uid"] == uid and ol["index"] < len(lines)
+            line_ok = (
+                ol is not None and ol["index"] < len(lines)
                 and lines[ol["index"]]["speaker"] == speaker and len(lines) - 1 - ol["index"] <= 3
             )
-            if same:
+            # Keep adding to this speaker's line while they haven't paused for LINE_PAUSE_S, even if the
+            # other person said something in between (only a few lines back, so order stays readable).
+            same = line_ok and ol["uid"] == uid
+            # The last words before a pause are often transcribed only once the pause is noticed, so they
+            # can arrive after the next utterance began. A line without ending punctuation takes them.
+            tail = (
+                line_ok and not same and since_new is not None and since_new < TAIL_GRACE_S
+                and not re.search(r"[.?!][\"')\]]?\s*$", lines[ol["index"]]["text"])
+            )
+            if same or tail:
                 current = lines[ol["index"]]["text"]
-                if _norm(text).startswith(_norm(current)):
+                if _norm(correct_places(text)).startswith(_norm(current)):
                     # The model re-sent the whole line with more words: replace it instead of repeating it.
-                    self.store.update_line(call_id, ol["index"], speaker, " ".join(text.split()))
+                    merged = " ".join(text.split())
                 else:
                     extra = strip_overlap(current, text)
-                    if extra:
-                        self.store.update_line(call_id, ol["index"], speaker, current + " " + extra)
+                    merged = current + " " + extra if extra else current
+                # Fix place names across the join ("...at the first" + "campus center" -> "Frist Campus Center").
+                merged = correct_places(merged)
+                if merged != current:
+                    self.store.update_line(call_id, ol["index"], speaker, merged)
                 index = ol["index"]
+                if tail:
+                    uid = ol["uid"]  # still the old utterance; the next phrase starts the new line
             else:
-                written = self.store.append_line(call_id, speaker, text)
+                written = self.store.append_line(call_id, speaker, correct_places(text))
                 index = len((written or {}).get("transcript") or lines) - 1
             self.open_line[(call_id, speaker)] = {"uid": uid, "index": index}
             asyncio.create_task(self._refine_keywords(call_id))
         else:
-            self.store.set_partial(call_id, speaker, fresh)
+            self.store.set_partial(call_id, speaker, correct_places(fresh))
         await self._publish()
 
     def _keep_partial(self, call_id):

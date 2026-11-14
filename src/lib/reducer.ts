@@ -1,6 +1,9 @@
 // Shared, pure reducer for the demo state. Runs in the browser (optimistic updates) and on the
 // sync server (/api/sync), which orders every action so all laptops end up with the same state.
-import { buildingById, CAMPUS_CENTER, SEED_OFFICERS } from "./campus";
+import { BUILDINGS, buildingById, CAMPUS_CENTER, SEED_OFFICERS } from "./campus";
+
+/** The seed building with this name, if any (so older pages that look up buildingId still work). */
+const buildingByName = (name: string) => BUILDINGS.find((b) => b.name.toLowerCase() === name.toLowerCase());
 import { emptyFields, initialQuestions } from "./fields";
 import { scenarioById } from "./scenarios";
 import type {
@@ -25,6 +28,8 @@ export type Action =
   | { type: "SET_DESK_TRANSCRIPT"; at: number; incidentId: string; transcript: TranscriptSegment[] }
   | { type: "SET_CATEGORY"; at: number; incidentId: string; category: IncidentCategory }
   | { type: "SET_LOCATION"; at: number; incidentId: string; buildingId: string }
+  | { type: "SET_PLACE"; at: number; incidentId: string; placeId: string; name: string; kind: string; location: [number, number] }
+  | { type: "MENTION_PLACES"; at: number; incidentId: string; places: { id: string; name: string; location: [number, number] }[] }
   | { type: "SEND_OFFICER_UPDATE"; at: number; assignmentId: string; updateId: string; changes: UpdateChange[]; snapshot: Record<string, string | null> }
   | { type: "ACK_OFFICER_UPDATE"; at: number; updateId: string }
   | { type: "OFFICER_STATUS"; at: number; officerId: string; status: OfficerStatus }
@@ -291,6 +296,31 @@ function reduceInner(s: AppState, a: Action): AppState {
       return {
         ...mapIncident(s, inc.id, (i) => ({ ...i, buildingId: b.id, location: b.location, locationPending: false })),
         events: [...s.events, evt(inc.id, a.at, "ai", "location", `Placed the incident at ${b.name} from what the caller said. Confirm with the caller.`)],
+      };
+    }
+
+    case "SET_PLACE": {
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!inc || (inc.placeName === a.name && !inc.locationPending)) return s;
+      const b = buildingByName(a.name);
+      return {
+        ...mapIncident(s, inc.id, (i) => ({
+          ...i, location: a.location, buildingId: b?.id ?? "", placeName: a.name, placeKind: a.kind, locationPending: false,
+        })),
+        events: [...s.events, evt(inc.id, a.at, "ai", "location",
+          `Pinned the incident at ${a.name}${inc.placeName ? ` (was ${inc.placeName})` : ""} from what the caller said. Confirm with the caller.`)],
+      };
+    }
+
+    case "MENTION_PLACES": {
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!inc) return s;
+      const have = new Set((inc.mentionedPlaces ?? []).map((p) => p.id));
+      const added = a.places.filter((p) => !have.has(p.id));
+      if (!added.length) return s;
+      return {
+        ...mapIncident(s, inc.id, (i) => ({ ...i, mentionedPlaces: [...(i.mentionedPlaces ?? []), ...added] })),
+        events: [...s.events, evt(inc.id, a.at, "ai", "places_mentioned", `Caller mentioned ${added.map((p) => p.name).join(", ")}; pinned on the map.`)],
       };
     }
 

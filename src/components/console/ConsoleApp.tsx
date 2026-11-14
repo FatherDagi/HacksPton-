@@ -387,9 +387,6 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
               {open && !dispatched && team.length === 0 && open.declinedOfficerIds.length > 0 && (
                 <button type="button" className="dc-btn lg" onClick={() => act({ type: "RESET_DECLINES", at: Date.now(), incidentId: open.id })}>Reconsider skipped units</button>
               )}
-              {dispatched && assigned[0] && (
-                <Link className="dc-btn lg" href={`/officer?unit=${assigned[0].o.id}`} target="_blank">Open {assigned[0].o.callsign} phone</Link>
-              )}
             </div>
           </div>
 

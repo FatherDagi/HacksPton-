@@ -9,21 +9,32 @@ HackPrinceton Fall 2026. An AI-assisted dispatch workstation that listens to a (
 ```bash
 npm install
 cp .env.example .env.local   # then paste your Gemini key into .env.local
-npm run dev
+npm run dev                  # dispatcher console + patrol terminal + sync server
+npm run desk                 # optional: station desk for live/translated calls (port 8787)
 ```
 
-Open http://localhost:3000/dispatch, pick a scenario, and press **Run demo scenario**. Open `/officer?unit=M1` (or the link shown after you approve an assignment) in another tab to act as the responder.
+Open http://localhost:3000 and pick **Dispatcher** (`/console`, the primary product) or **Patrol officer** (`/officer`). A second laptop on the same network can open `http://<host-ip>:3000`; every screen stays in sync through `/api/sync`.
 
 ## Pages
 
 | Route | What it is |
 | --- | --- |
-| `/console` | **Combined console** (same store and Gemini extraction): real campus map (light/dark streets, 2025 satellite, 2020 NJ leaf-off, 3D), real road/footpath routes, team recommendation (e.g. 2 officers + EMS for a weapon), live re-grade P2→P1 mid-call, officers travel their routes, AI and dispatcher log, light/dark mode, keyboard shortcuts (Y send · N swap · E next line · C confirm · 1–4 override · T theme), phone layout |
-| `/dispatch` | Map-first CAD workstation: campus map with a left rail (Transcript · AI Questions · Activity Log drawers that slide over the map) and a permanent incident panel (priority, missing info, recommended unit with approval, officer communication with dispatcher-approved updates and officer acknowledgment) |
-| `/officer` | Mobile responder page: assignment, Acknowledge, Available / Busy / Responding / On scene |
-| `/incidents` | Incident history |
-| `/incidents/[id]` | Incident record, transcript and full audit timeline, Google Sheets export |
-| `/building` | Sponsor building intelligence (Matterport / Vexcel / CoStar), placeholders until data is connected |
+| `/console` | **Primary product.** Map-first dispatch console: real campus map (streets, satellite, NJ leaf-off, 3D) with a left rail of pull-out drawers (Transcript · AI questions · Activity log) that slide over the map; AI team recommendation with Y/N approval; live re-grades; officers travel real routes; incident details with confirm/override; officer communication (pending changes since dispatch, sent only after dispatcher review, acknowledged on the patrol terminal); **Take live call** from the station desk |
+| `/officer` | Patrol-car terminal: pick a unit, receive dispatches with live notes and route, acknowledge assignments and dispatcher updates |
+| `/dispatch` | Classic view (fallback): Leaflet map-first workstation |
+| `/incidents`, `/incidents/[id]` | Incident history and full audit timeline |
+| `/building` | Sponsor building intelligence placeholders (Matterport / Vexcel / CoStar) |
+
+## Live calls from the station desk
+
+`station-desk/` (Sagar's Python server) answers the station phone (Twilio) or a practice call, streams the audio to Gemini Live, and translates the caller into English. With `npm run desk` running, the console shows **Take live call**:
+
+- the desk's English transcript streams into the Transcript drawer (sentences rebuilt from the desk's fragments; words still being spoken show as a live line)
+- Gemini fills the incident sheet after each finished caller sentence
+- the call is classified (medical / fire / police) and placed on a campus building from what the caller said; both are logged and editable
+- the console call ends when the desk call ends
+
+The console reads the desk through a read-only proxy (`/api/desk`, `STATION_DESK_URL`, default `http://127.0.0.1:8787`). Scripted demo calls keep working when the desk is offline.
 
 ## Status
 
@@ -35,9 +46,9 @@ Open http://localhost:3000/dispatch, pick a scenario, and press **Run demo scena
 | Transparent P1–P4 demo rules, confirm or override with reason | Working |
 | Deterministic unit ranking, simulated ETAs, closure-aware routes, approve / decline with confirmation | Working |
 | Leaflet + OpenStreetMap campus map with unit markers, closures, routes | Working |
-| Officer page synced in real time | Working across tabs in one browser; cross-device needs Supabase |
+| Console and patrol terminal synced in real time | Working across laptops on one network (`/api/sync`, in-memory) |
 | Gemini extraction (`/api/extract`, Zod-validated, falls back to prerecorded) | Implemented; needs `GEMINI_API_KEY` |
-| Supabase database + realtime | Pending |
+| Persistent database (Supabase) | Not used; demo state lives in the dev server's memory |
 | Google Sheets export | Stub, returns "not configured" |
 | Matterport / Vexcel / CoStar | Placeholders |
 

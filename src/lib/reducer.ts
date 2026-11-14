@@ -1,10 +1,11 @@
 // Shared, pure reducer for the demo state. Runs in the browser (optimistic updates) and on the
 // sync server (/api/sync), which orders every action so all laptops end up with the same state.
-import { buildingById, SEED_OFFICERS } from "./campus";
+import { buildingById, CAMPUS_CENTER, SEED_OFFICERS } from "./campus";
 import { emptyFields, initialQuestions } from "./fields";
 import { scenarioById } from "./scenarios";
 import type {
-  AppState, EventActor, FieldKey, FieldStatus, FieldUpdate, Incident, IncidentEvent, OfficerStatus, Priority, UpdateChange,
+  AppState, EventActor, FieldKey, FieldStatus, FieldUpdate, Incident, IncidentCategory, IncidentEvent, OfficerStatus, Priority,
+  TranscriptSegment, UpdateChange,
 } from "./types";
 import { officerSnapshot } from "./officerComms";
 
@@ -20,6 +21,10 @@ export type Action =
   | { type: "DECLINE_UNIT"; at: number; incidentId: string; officerId: string }
   | { type: "RESET_DECLINES"; at: number; incidentId: string }
   | { type: "ACK_ASSIGNMENT"; at: number; assignmentId: string }
+  | { type: "START_LIVE_CALL"; at: number; incidentId: string; number: string; deskCallId: string; callerLanguage: string | null }
+  | { type: "SET_DESK_TRANSCRIPT"; at: number; incidentId: string; transcript: TranscriptSegment[] }
+  | { type: "SET_CATEGORY"; at: number; incidentId: string; category: IncidentCategory }
+  | { type: "SET_LOCATION"; at: number; incidentId: string; buildingId: string }
   | { type: "SEND_OFFICER_UPDATE"; at: number; assignmentId: string; updateId: string; changes: UpdateChange[]; snapshot: Record<string, string | null> }
   | { type: "ACK_OFFICER_UPDATE"; at: number; updateId: string }
   | { type: "OFFICER_STATUS"; at: number; officerId: string; status: OfficerStatus }
@@ -207,6 +212,51 @@ function reduceInner(s: AppState, a: Action): AppState {
         ...s,
         assignments: s.assignments.map((x) => (x.id === asg.id ? { ...x, acknowledgedAt: a.at } : x)),
         events: [...s.events, evt(asg.incidentId, a.at, "officer", "officer_ack", `${off?.callsign ?? asg.officerId} acknowledged the assignment.`)],
+      };
+    }
+
+    case "START_LIVE_CALL": {
+      const inc: Incident = {
+        id: a.incidentId, number: a.number, scenarioId: null, category: "other",
+        title: `Live call from station desk${a.callerLanguage && !/^english$/i.test(a.callerLanguage) ? ` (${a.callerLanguage}, translated)` : ""}`,
+        buildingId: "", location: CAMPUS_CENTER, status: "intake", createdAt: a.at, closedAt: null,
+        callStartedAt: a.at, callEndedAt: null, revealed: 0, transcript: [], fields: emptyFields(),
+        questions: initialQuestions("other"), priorityDecision: null, declinedOfficerIds: [],
+        deskCallId: a.deskCallId, callerLanguage: a.callerLanguage, locationPending: true,
+      };
+      return {
+        ...s,
+        incidents: [inc, ...s.incidents],
+        activeIncidentId: inc.id,
+        events: [...s.events, evt(inc.id, a.at, "system", "incident_created", `Incident ${inc.number} created from a live station-desk call${a.callerLanguage ? ` (caller language: ${a.callerLanguage})` : ""}.`)],
+      };
+    }
+
+    case "SET_DESK_TRANSCRIPT": {
+      // The station desk is the source of truth for a live call's words; replace wholesale (idempotent).
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!inc || !inc.deskCallId || JSON.stringify(inc.transcript) === JSON.stringify(a.transcript)) return s;
+      return mapIncident(s, inc.id, (i) => ({ ...i, transcript: a.transcript }));
+    }
+
+    case "SET_CATEGORY": {
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!inc || inc.category === a.category) return s;
+      // Swap to that category's checklist; questions already answered by known fields start answered.
+      const questions = initialQuestions(a.category).map((q) => (inc.fields[q.fieldKey].value ? { ...q, state: "answered" as const } : q));
+      return {
+        ...mapIncident(s, inc.id, (i) => ({ ...i, category: a.category, questions })),
+        events: [...s.events, evt(inc.id, a.at, "ai", "category", `Classified the call as ${a.category} from what the caller said.`)],
+      };
+    }
+
+    case "SET_LOCATION": {
+      const b = buildingById(a.buildingId);
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!b || !inc || inc.buildingId === b.id) return s;
+      return {
+        ...mapIncident(s, inc.id, (i) => ({ ...i, buildingId: b.id, location: b.location, locationPending: false })),
+        events: [...s.events, evt(inc.id, a.at, "ai", "location", `Placed the incident at ${b.name} from what the caller said. Confirm with the caller.`)],
       };
     }
 

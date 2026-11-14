@@ -123,6 +123,12 @@ export interface Incident {
   priorityDecision: PriorityDecision | null;
   /** Officers the dispatcher declined for this incident. */
   declinedOfficerIds: string[];
+  /** Set when the call comes from the live station desk instead of a scripted scenario. */
+  deskCallId?: string | null;
+  /** Caller's language as detected by the station desk (transcript is translated to English). */
+  callerLanguage?: string | null;
+  /** True until a campus building has been matched from the call. */
+  locationPending?: boolean;
 }
 
 export type ResponderType = "police" | "ems" | "fire";

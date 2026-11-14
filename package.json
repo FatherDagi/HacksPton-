@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "desk": "cd station-desk && test -x .venv/bin/python || (python3 -m venv .venv && .venv/bin/pip install -q -r requirements.txt); set -a; . ../.env.local; set +a; unset GEMINI_MODEL; exec .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8787"
   },
   "dependencies": {
     "@google/genai": "^3.3.0",

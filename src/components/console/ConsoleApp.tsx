@@ -20,6 +20,7 @@ import { History, ListTodo, MessageSquareText, X } from "lucide-react";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
 import { OfficerUpdates } from "./OfficerUpdates";
+import { categoryFrom, groupDeskLines, matchBuilding, type DeskCall } from "@/lib/deskBridge";
 
 /** Pull-out tabs on the far left of the map. */
 type DrawerTab = "transcript" | "questions" | "log";
@@ -161,6 +162,76 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     act({ type: "START_CALL", at, incidentId: newId("inc"), number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, scenarioId: id });
   }, [live, incident, open, geminiReady]);
 
+  // ---------- live bridge to the station desk (station-desk/, real calls translated to English) ----------
+  const [desk, setDesk] = useState<{ ok: boolean; calls: DeskCall[] } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    let t: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      try {
+        const j = (await (await fetch("/api/desk", { cache: "no-store" })).json()) as { ok: boolean; calls?: DeskCall[] };
+        if (alive) setDesk({ ok: j.ok, calls: j.calls ?? [] });
+      } catch {
+        if (alive) setDesk({ ok: false, calls: [] });
+      }
+      if (alive) t = setTimeout(poll, 1000);
+    };
+    void poll();
+    return () => { alive = false; clearTimeout(t); };
+  }, []);
+  const deskLive = desk?.calls.find((c) => c.status === "live") ?? null;
+  const bridgedCall = open?.deskCallId ? desk?.calls.find((c) => c.id === open.deskCallId) ?? null : null;
+
+  const takeDeskCall = useCallback((call: DeskCall) => {
+    const at = Date.now();
+    if (live && incident) act({ type: "END_CALL", at, incidentId: incident.id });
+    if (open) act({ type: "CLOSE_INCIDENT", at, incidentId: open.id });
+    seqRef.current = 0;
+    appliedSeqRef.current = 0;
+    setGeminiQuestions([]);
+    setTrips({});
+    setMode(geminiReady ? "gemini" : "prerecorded");
+    act({ type: "START_LIVE_CALL", at, incidentId: newId("inc"), number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, deskCallId: call.id, callerLanguage: call.callerLanguage });
+  }, [live, incident, open, geminiReady]);
+
+  // Mirror the desk transcript (fragments joined into sentences); run Gemini once per finished caller
+  // sentence; end the console call when the desk call ends.
+  const extractedSentences = useRef<Record<string, number>>({});
+  useEffect(() => {
+    if (!open?.deskCallId || !bridgedCall) return;
+    const { segments, finishedCallerSentences } = groupDeskLines(bridgedCall);
+    // Only send when the words changed: the store rebuilds objects on every action, so an
+    // unconditional act here would re-run this effect forever.
+    if (JSON.stringify(segments) !== JSON.stringify(open.transcript)) {
+      act({ type: "SET_DESK_TRANSCRIPT", at: Date.now(), incidentId: open.id, transcript: segments });
+    }
+    const ended = bridgedCall.status !== "live";
+    const target = ended ? segments.filter((x) => x.speaker === "caller").length : finishedCallerSentences;
+    if (target > (extractedSentences.current[open.id] ?? 0)) {
+      extractedSentences.current[open.id] = target;
+      if (mode === "gemini") setTimeout(() => runGemini({ ...open, transcript: segments }, segments), 0);
+    }
+    if (ended && open.callStartedAt && !open.callEndedAt) act({ type: "END_CALL", at: Date.now(), incidentId: open.id });
+  }, [open, bridgedCall, mode, runGemini]);
+
+  // Classify and place a live call from what has been said (the dispatcher can still edit fields).
+  const deskText = open?.deskCallId
+    ? [
+        open.fields.category.value, open.fields.description.value, open.fields.building.value, open.fields.location_details.value,
+        bridgedCall?.callType, bridgedCall?.location, ...open.transcript.filter((x) => x.speaker === "caller").map((x) => x.text),
+      ].filter(Boolean).join(" \n ")
+    : "";
+  useEffect(() => {
+    if (!open?.deskCallId || !deskText) return;
+    const at = Date.now();
+    const cat = categoryFrom(deskText);
+    if (cat && open.category === "other") act({ type: "SET_CATEGORY", at, incidentId: open.id, category: cat });
+    if (open.locationPending) {
+      const b = matchBuilding(deskText);
+      if (b) act({ type: "SET_LOCATION", at, incidentId: open.id, buildingId: b });
+    }
+  }, [open, deskText]);
+
   // ---------- priority (AI proposal; dispatcher confirms or overrides) ----------
   const assessment = open ? assessConsole(open.category, open.fields) : null;
   const shownPriority: Priority | null = open ? open.priorityDecision?.priority ?? assessment!.proposed : null;
@@ -170,7 +241,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     () => (open ? state.officers.filter((o) => o.status === "available" && !open.declinedOfficerIds.includes(o.id)) : []),
     [open, state.officers],
   );
-  const planKey = (o: Officer, inc: Incident) => `${o.id}|${inc.id}|${o.location[0].toFixed(5)},${o.location[1].toFixed(5)}`;
+  // Includes the incident position: a live desk call starts at a placeholder and moves once the building is known.
+  const planKey = (o: Officer, inc: Incident) => `${o.id}|${inc.id}|${inc.location[0].toFixed(5)},${inc.location[1].toFixed(5)}|${o.location[0].toFixed(5)},${o.location[1].toFixed(5)}`;
   useEffect(() => {
     if (!open) return;
     let alive = true;
@@ -339,8 +411,26 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
             );
           })}
         </div>
+        {/* Live calls from the station desk (separate Python server in station-desk/) */}
+        {deskLive && deskLive.id !== open?.deskCallId ? (
+          <button type="button" className="dc-btn primary" onClick={() => takeDeskCall(deskLive)}>
+            Take live call{deskLive.callerLanguage && !/^english$/i.test(deskLive.callerLanguage) ? ` (${deskLive.callerLanguage})` : ""}
+          </button>
+        ) : open?.deskCallId ? (
+          <span className="dc-chip ai" title="Transcript streams in from the station desk">
+            {live ? "Live from station desk" : "Station desk call ended"}{open.callerLanguage && !/^english$/i.test(open.callerLanguage) ? ` · ${open.callerLanguage} → English` : ""}
+          </span>
+        ) : deskLive ? (
+          <button type="button" className="dc-btn primary" onClick={() => takeDeskCall(deskLive)}>
+            Take live call{deskLive.callerLanguage && !/^english$/i.test(deskLive.callerLanguage) ? ` (${deskLive.callerLanguage})` : ""}
+          </button>
+        ) : (
+          <span className="dc-chip" title={desk?.ok ? "Station desk connected; no live call" : "Start station-desk/run.sh to take real calls"}>
+            {desk === null ? "Checking desk…" : desk.ok ? "Desk: no live call" : "Desk offline"}
+          </span>
+        )}
         <span className="dc-spacer" />
-        {live && <button type="button" className="dc-btn" onClick={revealNext}>Next line <kbd>E</kbd></button>}
+        {live && scenario && <button type="button" className="dc-btn" onClick={revealNext}>Next line <kbd>E</kbd></button>}
         {live && <button type="button" className="dc-btn danger" onClick={() => act({ type: "END_CALL", at: Date.now(), incidentId: incident!.id })}>End call</button>}
         {!live && open && <button type="button" className="dc-btn" onClick={() => act({ type: "CLOSE_INCIDENT", at: Date.now(), incidentId: open.id })}>Close incident</button>}
         <button type="button" className="dc-btn" onClick={toggleTheme}>{theme === "dark" ? "Light mode" : "Dark mode"}</button>
@@ -437,7 +527,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                 </h2>
                 {/* Every pane stays mounted so live updates never pause; only the selected one shows. */}
                 <div className="dc-drawer-body">
-                  <div className={`dc-drawer-pane${drawer === "transcript" ? " on" : ""}`}><Transcript incident={incident} /></div>
+                  <div className={`dc-drawer-pane${drawer === "transcript" ? " on" : ""}`}><Transcript incident={incident} partial={live && bridgedCall?.partial ? bridgedCall.partial : null} /></div>
                   <div className={`dc-drawer-pane${drawer === "questions" ? " on" : ""}`}><AskNext incident={open} geminiQuestions={mode === "gemini" ? geminiQuestions : []} /></div>
                   <div className={`dc-drawer-pane${drawer === "log" ? " on" : ""}`}><Log events={events} /></div>
                 </div>
@@ -481,24 +571,31 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
 }
 
 // ---------------- pieces ----------------
-function Transcript({ incident }: { incident: Incident | null }) {
+function Transcript({ incident, partial }: { incident: Incident | null; partial?: { speaker: string; text: string } | null }) {
   // Scroll only this list (not the page) so it keeps following the call while its drawer is hidden.
   const list = useRef<HTMLOListElement>(null);
   const end = useRef<HTMLLIElement>(null);
   const n = incident?.transcript.length ?? 0;
-  useEffect(() => { if (list.current) list.current.scrollTop = list.current.scrollHeight; }, [n]);
-  if (!incident) return <p className="dc-empty">Choose a demo call to start.</p>;
+  useEffect(() => { if (list.current) list.current.scrollTop = list.current.scrollHeight; }, [n, partial?.text]);
+  if (!incident) return <p className="dc-empty">Choose a demo call or take a live call to start.</p>;
   return (
     <ol ref={list} className="dc-transcript dc-scroll" aria-live="polite">
       {incident.transcript.map((s) => {
         const parts = s.highlight && s.text.includes(s.highlight) ? s.text.split(s.highlight) : null;
         return (
           <li key={s.id}>
-            <div className={`dc-who ${s.speaker}`}>{s.speaker === "caller" ? "Caller" : "Dispatcher"}<time>00:{String(s.t).padStart(2, "0")}</time></div>
+            <div className={`dc-who ${s.speaker}`}>{s.speaker === "caller" ? "Caller" : "Dispatcher"}<time>{fmtClock(s.t * 1000)}</time></div>
             <p>{parts ? <>{parts[0]}<mark>{s.highlight}</mark>{parts[1]}</> : s.text}</p>
           </li>
         );
       })}
+      {/* Words still being spoken on the station desk (not yet a finished sentence) */}
+      {partial && (
+        <li style={{ opacity: 0.7 }}>
+          <div className={`dc-who ${/caller/i.test(partial.speaker) ? "caller" : "dispatcher"}`}>{/caller/i.test(partial.speaker) ? "Caller" : "Dispatcher"}<time>live</time></div>
+          <p><i>{partial.text}…</i></p>
+        </li>
+      )}
       <li ref={end} />
     </ol>
   );

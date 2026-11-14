@@ -156,6 +156,8 @@ export interface DispatchAssignment {
   approvedAt: number;
   acknowledgedAt: number | null;
   clearedAt: number | null;
+  /** Route the dispatcher approved (sent to the unit's terminal). */
+  route?: LatLng[];
   /** What the officer has been sent so far (field key / "priority" -> value). Optional for older saved state. */
   sentSnapshot?: Record<string, string | null>;
 }

@@ -1,5 +1,5 @@
 "use client";
-import { Building2, ListChecks, Play, Smartphone, SkipForward, Square } from "lucide-react";
+import { Building2, ListChecks, Play, SkipForward, Square } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -215,7 +215,6 @@ export function Workstation() {
           )}
           <nav className="flex items-center gap-1 border-l border-line pl-2" aria-label="Pages">
             <Link className="inline-flex h-9 items-center gap-1 px-2 text-[13px] text-sub hover:text-ink" href="/incidents"><ListChecks size={14} /> Incidents</Link>
-            <Link className="inline-flex h-9 items-center gap-1 px-2 text-[13px] text-sub hover:text-ink" href="/officer" target="_blank"><Smartphone size={14} /> Officer</Link>
             <Link className="inline-flex h-9 items-center gap-1 px-2 text-[13px] text-sub hover:text-ink" href="/building"><Building2 size={14} /> Building</Link>
           </nav>
         </div>

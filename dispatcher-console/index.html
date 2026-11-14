@@ -3,96 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#121922">
 <title>Dispatcher Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
 <style>
+  /* Night-shift palette: slate-blue, never pure black or pure white (long shifts, dim rooms). */
   :root {
-    --bg: #E9EBEE; --panel: #FFFFFF; --strip: #EEF0F2; --line: #C9CED4; --line-soft: #E1E4E8;
-    --text: #1B1F24; --muted: #4F5864; --faint: #6B7380; --btn-border: #AEB4BB;
-    --blue: #1F5FAD; --red: #A3221B;
-    --available: #2E7D4F; --sent: #1F5FAD; --onscene: #5B3A8C; --busy: #9A5B00;
+    color-scheme: dark;
+    --bg: #121922; --panel: #18212C; --raised: #212C3A; --strip: #1C2633;
+    --line: #2C394A; --line-soft: #243041;
+    --text: #D8E0EA; --muted: #9AA8B9; --faint: #7F8DA0; --btn-border: #3A4A5E;
+    --blue: #5EA8FF; --red: #FF6B63;
+    /* Priority scale (P1 most urgent) */
+    --p1: #FF5D57; --p2: #F5A524; --p3: #4FA3FF; --p4: #9AA5B4;
+    /* Officer status */
+    --available: #3FD18A; --sent: #5EA8FF; --onscene: #B68CFF; --busy: #F0A43A;
+    --prio: var(--p1);
+    --casing: #0B1118; --sent-bg: #16263D; --onscene-bg: #251E38; --rec-bg: #1D2D44;
+    --caller: #F0B36A; --dispatcher: #7FB3FF;
   }
+  /* Light theme: for daytime / bright rooms. Same meanings, darker hues for contrast on white. */
+  body[data-theme="light"] {
+    color-scheme: light;
+    --bg: #E9ECF0; --panel: #FFFFFF; --raised: #F4F6F8; --strip: #EEF1F4;
+    --line: #CBD2DA; --line-soft: #E3E7EC;
+    --text: #1A2029; --muted: #4F5A67; --faint: #66717F; --btn-border: #AEB7C2;
+    --blue: #1F5FAD; --red: #B3261E;
+    --p1: #C62828; --p2: #B86A00; --p3: #1F5FAD; --p4: #66717F;
+    --available: #23804F; --sent: #1F5FAD; --onscene: #6B3FA8; --busy: #A35F00;
+    --casing: #FFFFFF; --sent-bg: #E8F0FB; --onscene-bg: #F1EBFA; --rec-bg: #E8F0FB;
+    --caller: #8A4B12; --dispatcher: #1F5FAD;
+  }
+  body[data-prio="2"] { --prio: var(--p2); }
+  body[data-prio="3"] { --prio: var(--p3); }
+  body[data-prio="4"] { --prio: var(--p4); }
+
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 Inter, system-ui, sans-serif; font-variant-numeric: tabular-nums; }
-  button { font-family: inherit; font-size: 14px; cursor: pointer; border-radius: 2px; }
-  button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; font-size: 14px; cursor: pointer; border-radius: 3px; }
+  button:focus-visible { outline: 2px solid #FFD166; outline-offset: 2px; }
+  ::selection { background: #5EA8FF55; }
 
   .shell { height: 100vh; min-height: 680px; display: flex; flex-direction: column; }
-  .cols { flex: 1 1 auto; min-height: 0; display: flex; }
+  .cols { flex: 1 1 auto; min-height: 0; display: flex; gap: 1px; background: var(--line); }
   .col { min-height: 0; display: flex; flex-direction: column; background: var(--panel); }
-  .scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-  .strip { flex: 0 0 auto; margin: 0; padding: 8px 14px; background: var(--strip); border-bottom: 1px solid #D5D9DE; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #4A525C; }
+  .scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: var(--btn-border) transparent; }
+  .strip { flex: 0 0 auto; margin: 0; padding: 9px 14px; background: var(--strip); border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted); }
 
-  header { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  /* The priority stripe: readable from across the room. */
+  header { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 10px 16px; background: var(--panel); border-top: 5px solid var(--prio); border-bottom: 1px solid var(--line); }
   .brand { font-weight: 700; font-size: 15px; }
   .live { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--red); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
-  .btn { height: 36px; padding: 0 14px; border: 1px solid var(--btn-border); background: #fff; color: var(--text); font-size: 13px; }
-  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
-  .btn-danger { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
-  .btn-lg { height: 40px; padding: 0 16px; font-size: 14px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 3px #FF6B6333; }
+  @media (prefers-reduced-motion: no-preference) { .dot { animation: live 1.6s ease-in-out infinite; } }
+  @keyframes live { 50% { opacity: .35; } }
+  .btn { height: 36px; padding: 0 14px; border: 1px solid var(--btn-border); background: var(--raised); color: var(--text); font-size: 13px; }
+  .btn:hover { border-color: var(--muted); }
+  /* A button takes the colour of the status it creates: Send = "sent" blue. */
+  .btn-primary { background: var(--sent); border-color: var(--sent); color: var(--bg); font-weight: 700; }
+  .btn-danger { background: #C7372F; border-color: #C7372F; color: #fff; font-weight: 600; }
+  .btn-lg { height: 42px; padding: 0 18px; font-size: 14px; }
+  kbd { font: 600 11px/1 "IBM Plex Sans", sans-serif; padding: 2px 5px; margin-left: 6px; border: 1px solid currentColor; border-radius: 3px; opacity: .7; }
 
   /* Left */
-  .left { flex: 0 1 300px; min-width: 250px; border-right: 1px solid var(--line); }
+  .left { flex: 0 1 300px; min-width: 250px; }
   .transcript { flex: 1 1 auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
   .who { font-size: 12px; font-weight: 600; }
+  .who.caller { color: var(--caller); }
+  .who.dispatcher { color: var(--dispatcher); }
   .who time { font-weight: 400; color: var(--faint); margin-left: 4px; }
   .transcript p { margin: 2px 0 0; line-height: 1.5; }
   .questions { flex: 1 1 auto; margin: 0; padding: 10px 14px 12px 34px; display: flex; flex-direction: column; gap: 8px; line-height: 1.45; }
+  .questions li::marker { color: var(--busy); font-weight: 700; }
+  .log { flex: 1 1 auto; margin: 0; padding: 8px 14px 12px; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.4; }
+  .log li { display: grid; grid-template-columns: 40px 66px minmax(0,1fr); gap: 6px; }
+  .log time { color: var(--faint); }
+  .log .ai { color: var(--sent); font-weight: 600; }
+  .log .human { color: var(--onscene); font-weight: 600; }
+  .log q { color: var(--text); font-style: italic; }
+  .log li.alert span:last-child { color: var(--prio); font-weight: 600; }
+  .play { margin: 6px 14px 12px; align-self: flex-start; }
+  @media (prefers-reduced-motion: no-preference) { header.flash { animation: flash .9s ease-out 2; } }
+  @keyframes flash { 50% { border-top-width: 14px; } }
 
   /* Center */
   .center { flex: 1 1 560px; min-width: 0; }
   .bar { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
   .bar-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 280px; min-width: 0; }
   .bar-kicker { font-size: 12px; color: var(--muted); }
-  .bar-title { font-size: 15px; font-weight: 600; }
+  .bar { background: var(--panel); }
+  .bar[data-mode="sent"] { background: var(--sent-bg); }
+  .bar[data-mode="onscene"] { background: var(--onscene-bg); }
+  .btn-onscene { border-color: var(--onscene); color: var(--onscene); font-weight: 600; }
+  .scen { display: flex; border: 1px solid var(--btn-border); border-radius: 3px; overflow: hidden; }
+  .scen button { height: 32px; padding: 0 11px; border: none; border-left: 1px solid var(--btn-border); background: var(--raised); color: var(--muted); border-radius: 0; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .scen button:first-child { border-left: none; }
+  .scen button i { width: 8px; height: 8px; border-radius: 50%; }
+  .scen button[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
+  .bar-title { font-size: 16px; font-weight: 600; }
   .bar-actions { display: flex; gap: 8px; align-items: center; }
-  .map { position: relative; flex: 1 1 auto; min-height: 300px; overflow: hidden; background: #ECEEEA; }
-  .surface { position: absolute; inset: 0; cursor: grab; touch-action: none; user-select: none; }
-  .surface.dragging { cursor: grabbing; }
-  .world { position: absolute; left: 0; top: 0; width: 2000px; height: 1400px; transform-origin: 0 0; }
-  .overlay { position: absolute; inset: 0; pointer-events: none; }
-  .overlay svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .map { position: relative; flex: 1 1 auto; min-height: 300px; overflow: hidden; background: var(--bg); }
+  #mapgl { position: absolute; inset: 0; }
+  .maplibregl-map { font: inherit; background: var(--bg); }
+  .maplibregl-ctrl-attrib { background: color-mix(in srgb, var(--panel) 80%, transparent) !important; color: var(--faint); }
+  .maplibregl-ctrl-attrib a { color: var(--muted); }
+  .pin { width: 0; height: 0; }
+  .pin .incident b { position: absolute; left: 0; top: -44px; transform: translateX(-50%); white-space: nowrap; background: var(--panel); border: 1px solid; padding: 2px 7px; font-size: 12px; border-radius: 3px; }
+  .station { position: absolute; transform: translate(-16px, -16px); display: flex; align-items: center; gap: 6px; pointer-events: none; }
+  .station span { width: 32px; height: 32px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; border: 2px solid #F2C230; box-shadow: 0 0 0 4px #F2C23026; }
+  .station b { white-space: nowrap; background: var(--panel); color: var(--text); padding: 2px 7px; font-size: 12px; border: 1px solid #F2C23088; border-radius: 3px; }
+  .zone-label { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; background: transparent; color: #F5B65E; font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+  .zoom, .layers { z-index: 1000; }
+  .layers { position: absolute; left: 10px; top: 10px; display: flex; border: 1px solid var(--btn-border); background: var(--raised); border-radius: 3px; overflow: hidden; }
+  .layers button { height: 32px; padding: 0 12px; border: none; border-left: 1px solid var(--btn-border); background: var(--raised); color: var(--text); border-radius: 0; font-size: 13px; }
+  .layers button:first-child { border-left: none; }
+  .layers button[aria-pressed="true"], #tilt[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: 600; }
+  .inc-label { font-weight: 700; color: var(--text); }
   .incident { position: absolute; width: 0; height: 0; }
   .incident span { position: absolute; left: 0; top: 0; border-radius: 50%; transform: translate(-50%, -50%); }
   .officer { position: absolute; transform: translate(-50%, -34px); display: flex; flex-direction: column; align-items: center; gap: 1px; }
-  .officer .fig { padding: 4px; line-height: 0; }
-  .officer.rec .fig { padding: 2px; border: 2px solid; background: #ffffffcc; }
-  .officer .tag { white-space: nowrap; background: #fff; border: 1px solid; font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 2px; }
-  .zoom { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; border: 1px solid var(--btn-border); background: #fff; }
-  .zoom button { width: 40px; height: 40px; border: none; border-bottom: 1px solid #D5D9DE; background: #fff; color: var(--text); display: flex; align-items: center; justify-content: center; border-radius: 0; }
+  .officer .fig { position: relative; padding: 4px; line-height: 0; }
+  .officer.rec .fig { padding: 2px; border: 2px solid; background: color-mix(in srgb, var(--panel) 80%, transparent); border-radius: 3px; }
+  .officer .mode { position: absolute; right: -7px; bottom: -3px; width: 17px; height: 17px; border-radius: 50%; background: var(--raised); color: var(--text); border: 1px solid var(--btn-border); display: grid; place-items: center; }
+  .halo { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none; }
+  .officer .tag { white-space: nowrap; background: var(--panel); color: var(--text); border: 1px solid; font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 3px; }
+  .zoom { position: absolute; right: 10px; bottom: 28px; display: flex; flex-direction: column; border: 1px solid var(--btn-border); background: var(--raised); border-radius: 3px; overflow: hidden; }
+  .zoom button { width: 40px; height: 40px; border: none; border-bottom: 1px solid var(--btn-border); background: var(--raised); color: var(--text); display: flex; align-items: center; justify-content: center; border-radius: 0; }
   .zoom button:last-child { border-bottom: none; }
 
   .units { flex: 0 0 auto; border-top: 1px solid var(--line); }
-  .units-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 8px 14px; background: var(--strip); border-bottom: 1px solid #D5D9DE; }
-  .units-head h2 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #4A525C; }
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #4A525C; }
+  .units-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px; padding: 8px 14px; background: var(--strip); border-bottom: 1px solid var(--line); }
+  .units-head h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); }
   .legend span, .status { display: flex; align-items: center; gap: 6px; }
-  .sq { width: 9px; height: 9px; display: inline-block; }
+  .sq { width: 9px; height: 9px; display: inline-block; border-radius: 2px; }
   .table-wrap { overflow-x: auto; }
   .table { min-width: 600px; }
-  .row { display: grid; grid-template-columns: minmax(0,1.6fr) 72px 150px minmax(0,1.5fr) 130px; padding: 7px 14px; border-bottom: 1px solid var(--line-soft); }
-  .row.head { padding: 6px 14px; font-size: 12px; color: #5B6470; }
-  .row.rec { background: #EEF3FA; }
+  .row { display: grid; grid-template-columns: minmax(0,1.6fr) 72px 150px minmax(0,1.5fr) 150px; padding: 7px 14px; border-bottom: 1px solid var(--line-soft); }
+  .row.head { padding: 6px 14px; font-size: 12px; color: var(--faint); }
+  .row.rec { background: var(--rec-bg); box-shadow: inset 3px 0 0 var(--sent); }
   .status { font-weight: 600; }
 
   /* Right */
-  .right { flex: 0 1 360px; min-width: 290px; border-left: 1px solid var(--line); }
-  .sev { flex: 0 0 auto; padding: 12px 14px; border-bottom: 1px solid #D5D9DE; display: flex; flex-direction: column; gap: 10px; }
+  .right { flex: 0 1 360px; min-width: 290px; }
+  .sev { flex: 0 0 auto; padding: 12px 14px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
   .sev-row { display: flex; align-items: center; gap: 12px; }
   .sev-label { width: 70px; flex: 0 0 auto; font-size: 13px; color: var(--muted); }
-  .prio { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); flex: 1 1 auto; border: 1px solid var(--btn-border); }
-  .prio button { height: 36px; border: none; border-left: 1px solid var(--btn-border); background: #fff; color: var(--text); border-radius: 0; }
+  .prio { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); flex: 1 1 auto; border: 1px solid var(--btn-border); border-radius: 3px; overflow: hidden; }
+  .prio button { height: 40px; border: none; border-left: 1px solid var(--btn-border); background: var(--raised); color: var(--muted); border-radius: 0; font-weight: 600; }
   .prio button:first-child { border-left: none; }
-  .prio button[aria-pressed="true"] { background: var(--red); color: #fff; font-weight: 700; }
+  .prio button:nth-child(1)[aria-pressed="true"] { background: var(--p1); color: var(--bg); }
+  .prio button:nth-child(2)[aria-pressed="true"] { background: var(--p2); color: var(--bg); }
+  .prio button:nth-child(3)[aria-pressed="true"] { background: var(--p3); color: var(--bg); }
+  .prio button:nth-child(4)[aria-pressed="true"] { background: var(--p4); color: var(--bg); }
   .fields { flex: 1 1 auto; padding: 0 14px 14px; }
-  .fields h3 { margin: 14px 0 4px; font-size: 12px; font-weight: 600; color: #5B6470; }
-  .field { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid #E6E8EB; }
+  .fields h3 { margin: 16px 0 4px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .field { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
   .field .k { font-size: 13px; color: var(--muted); }
-  .field .missing { color: var(--faint); font-style: italic; }
-  .confirm { border: 1px solid var(--btn-border); padding: 0 4px; font-size: 11px; color: var(--muted); margin-left: 4px; }
-  .note { margin: 14px 0 0; font-size: 12px; color: #5B6470; line-height: 1.5; }
+  .field .missing { color: var(--busy); font-style: italic; }
+  .confirm { border: 1px solid var(--btn-border); padding: 0 5px; font-size: 11px; color: var(--muted); margin-left: 4px; border-radius: 3px; }
+  .note { margin: 14px 0 0; font-size: 12px; color: var(--faint); line-height: 1.5; }
 
   @media (max-width: 1000px) {
     .shell { height: auto; }
@@ -100,19 +173,57 @@
     .col { min-height: auto; }
     .scroll { max-height: 420px; }
     .map { flex: 0 0 auto; height: 460px; }
-    .left, .right { flex: 1 1 100%; max-width: none; border: none; }
+    .left, .right { flex: 1 1 100%; max-width: none; }
+    /* Small screens: what to do next comes first (suggestion + map), then details, then the call. */
+    .center { order: -1; flex-basis: 100%; }
+    .right { order: 0; }
+    .left { order: 1; }
+  }
+
+  /* Phones (supervisor or officer checking a call on the go). */
+  @media (max-width: 640px) {
+    header { gap: 8px 12px; padding: 8px 12px; }
+    .brand { font-size: 14px; flex: 1 1 100%; }
+    #incident-no { font-size: 13px; }
+    .scen { order: 5; flex: 1 1 100%; overflow-x: auto; scrollbar-width: none; }
+    .scen button { flex: 0 0 auto; height: 36px; }
+    header > div[style*="flex: 1 1 0"] { display: none; }
+    header .btn { height: 34px; padding: 0 10px; }
+    .bar { padding: 10px 12px; gap: 10px; }
+    .bar-title { font-size: 15px; }
+    .bar-actions { flex: 1 1 100%; flex-wrap: wrap; }
+    .bar-actions > span { display: none; }
+    .bar-actions .btn { flex: 1 1 0; height: 46px; } /* big thumb targets */
+    .map { height: 58vh; min-height: 320px; }
+    .layers { left: 8px; top: 8px; right: 60px; overflow-x: auto; }
+    .layers button { flex: 0 0 auto; padding: 0 10px; }
+    .zoom { right: 8px; bottom: 24px; }
+    .zoom button { width: 44px; height: 44px; }
+    .legend { gap: 8px 12px; }
+    .field { grid-template-columns: 110px minmax(0,1fr); }
+    .scroll { max-height: none; }
+    .questions, .log { max-height: 320px; }
+    kbd { display: none; } /* no keyboard on phones */
   }
 </style>
 </head>
-<body>
+<body data-prio="1" data-theme="dark">
+<script>try { document.body.dataset.theme = localStorage.getItem('dispatch-theme') || 'dark'; } catch { /* storage blocked: default dark */ }</script>
 <div class="shell">
   <header>
-    <span class="brand">Dispatch Copilot</span>
+    <span class="brand">Dispatch Copilot · Princeton Public Safety</span>
     <span class="live"><span class="dot"></span>Call in progress · <span id="timer">02:14</span></span>
-    <span style="color: var(--muted)">Incident 0001 · Demo call</span>
+    <span style="color: var(--muted)" id="incident-no">Incident 0001</span>
+    <div class="scen" role="group" aria-label="Demo call" id="scenarios">
+      <button type="button" data-id="p1" aria-pressed="true"><i style="background:var(--p1)"></i>P1 Knife fight</button>
+      <button type="button" data-id="p2" aria-pressed="false"><i style="background:var(--p2)"></i>P2 Bike crash</button>
+      <button type="button" data-id="p3" aria-pressed="false"><i style="background:var(--p3)"></i>P3 Bike theft</button>
+      <button type="button" data-id="p4" aria-pressed="false"><i style="background:var(--p4)"></i>P4 Locked out</button>
+    </div>
     <div style="flex: 1 1 0"></div>
+    <button type="button" class="btn" id="theme">Light mode</button>
     <button type="button" class="btn">Save to log</button>
-    <button type="button" class="btn btn-danger">End call</button>
+    <button type="button" class="btn btn-danger" id="end-call">End call</button>
   </header>
 
   <div class="cols">
@@ -126,77 +237,31 @@
         <h2 class="strip">Still need to ask</h2>
         <ol class="scroll questions" id="questions"></ol>
       </div>
+      <div class="col" style="flex: 2 1 0; border-top: 1px solid var(--line)">
+        <h2 class="strip">AI and dispatcher log</h2>
+        <ol class="scroll log" id="log" aria-live="polite"></ol>
+      </div>
     </section>
 
     <!-- CENTER -->
     <section class="col center" aria-label="Map and officers">
       <div class="bar" id="bar">
-        <div class="bar-text"><span class="bar-kicker" id="bar-kicker"></span><span class="bar-title" id="bar-title"></span></div>
+        <div class="bar-text"><span class="bar-kicker" id="bar-kicker" aria-live="polite"></span><span class="bar-title" id="bar-title"></span></div>
         <div class="bar-actions" id="bar-actions"></div>
       </div>
 
       <div class="map" id="map">
-        <div class="surface" id="surface">
-          <div class="world" id="world">
-            <svg width="2000" height="1400" viewBox="0 0 2000 1400" style="display:block" aria-hidden="true">
-              <defs>
-                <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#F4E6D6"/><line x1="0" y1="0" x2="0" y2="10" stroke="#C98A4B" stroke-width="3"/></pattern>
-              </defs>
-              <rect width="2000" height="1400" fill="#ECEEEA"/>
-              <path d="M270 100 L1960 100 L1960 1240 L120 1240 L170 640 Z" fill="#DFE8D9"/>
-              <path d="M0 1300 C 400 1265, 800 1335, 1200 1290 S 1800 1280, 2000 1310 L 2000 1400 L 0 1400 Z" fill="#CADDEA"/>
-              <text x="1500" y="1360" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-style="italic" fill="#466A86">Lake Carnegie</text>
-              <g fill="none" stroke="#C3CABD" stroke-width="5" stroke-dasharray="2 8" stroke-linecap="round">
-                <path d="M560 860 L760 760 L940 690"/><path d="M690 210 L690 470 L940 640"/><path d="M420 330 L1180 330"/><path d="M690 470 L1180 470"/><path d="M560 860 L560 1250"/>
-              </g>
-              <g id="roads" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                <g stroke="#BFC4CA" stroke-width="24">
-                  <path d="M0 80 L2000 80"/><path d="M1180 80 L1180 1400"/><path d="M260 80 L260 620 L60 1400"/><path d="M100 1250 L2000 1250"/><path d="M900 1250 L900 560 L1180 560"/><path d="M1180 520 L1720 520"/><path d="M1180 300 L1720 300"/><path d="M1720 80 L1720 1250"/>
-                </g>
-                <g stroke="#FFFFFF" stroke-width="18">
-                  <path d="M0 80 L2000 80"/><path d="M1180 80 L1180 1400"/><path d="M260 80 L260 620 L60 1400"/><path d="M100 1250 L2000 1250"/><path d="M900 1250 L900 560 L1180 560"/><path d="M1180 520 L1720 520"/><path d="M1180 300 L1720 300"/><path d="M1720 80 L1720 1250"/>
-                </g>
-              </g>
-              <g font-family="Inter, sans-serif" font-size="15" fill="#5B6470">
-                <text x="40" y="70">Nassau St</text><text x="1400" y="70">Nassau St</text>
-                <text x="1196" y="180" transform="rotate(90 1196 180)">Washington Rd</text>
-                <text x="1196" y="900" transform="rotate(90 1196 900)">Washington Rd</text>
-                <text x="276" y="300" transform="rotate(90 276 300)">University Pl</text>
-                <text x="160" y="1090" transform="rotate(-76 160 1090)">Alexander St</text>
-                <text x="600" y="1240">Faculty Rd</text>
-                <text x="886" y="1000" transform="rotate(-90 886 1000)">Elm Dr</text>
-                <text x="1390" y="510">Prospect Ave</text>
-                <text x="1400" y="290">William St</text>
-                <text x="1736" y="700" transform="rotate(90 1736 700)">Olden St</text>
-              </g>
-              <g fill="#D2D6DB" stroke="#AEB4BB" stroke-width="1.5">
-                <rect x="580" y="140" width="200" height="60"/><rect x="740" y="250" width="170" height="70"/><rect x="960" y="230" width="70" height="90"/><rect x="960" y="370" width="170" height="50"/><rect x="330" y="230" width="130" height="80"/><rect x="330" y="470" width="120" height="70"/><rect x="1300" y="330" width="260" height="140"/><rect x="1300" y="560" width="120" height="70"/><rect x="440" y="900" width="180" height="120"/><rect x="650" y="930" width="160" height="110"/><rect x="210" y="740" width="110" height="60"/><rect x="920" y="990" width="110" height="60"/><rect x="1280" y="880" width="260" height="170" rx="80"/><rect x="1300" y="1110" width="200" height="90"/><rect x="560" y="560" width="130" height="80"/><rect x="760" y="380" width="120" height="60"/>
-              </g>
-              <rect x="940" y="640" width="160" height="90" fill="#F2D8CC" stroke="#A3221B" stroke-width="2.5"/>
-              <rect x="780" y="760" width="90" height="70" fill="url(#hatch)" stroke="#B26A28" stroke-width="1.5" stroke-dasharray="6 4"/>
-              <g font-family="Inter, sans-serif" font-size="15" fill="#2E343B" text-anchor="middle">
-                <text x="680" y="176">Nassau Hall</text><text x="825" y="290">Firestone Library</text><text x="995" y="345">Chapel</text><text x="1045" y="400">McCosh Hall</text><text x="395" y="275">Rockefeller</text><text x="390" y="510">Dillon Gym</text><text x="1430" y="405">Engineering Quad</text><text x="1360" y="600">Friend Center</text><text x="530" y="965">Whitman College</text><text x="730" y="990">Butler College</text><text x="265" y="775">McCarter</text><text x="975" y="1025">Public Safety</text><text x="1410" y="970">Princeton Stadium</text><text x="1400" y="1160">Jadwin Gym</text><text x="625" y="605">Frick</text><text x="820" y="415">East Pyne</text>
-                <text x="1020" y="690" font-weight="700" fill="#7E1B15">Frist Campus Center</text>
-                <text x="825" y="852" font-size="13" fill="#7A4413">Construction</text>
-              </g>
-            </svg>
-          </div>
-        </div>
-        <div class="overlay">
-          <svg aria-hidden="true">
-            <polyline id="route-casing" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
-            <polyline id="route" fill="none" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-          <div class="incident" id="incident">
-            <span style="width:36px;height:36px;background:#A3221B33;border:1px solid #A3221B"></span>
-            <span style="width:14px;height:14px;background:#A3221B;border:2px solid #fff"></span>
-          </div>
-          <div id="officers"></div>
+        <div id="mapgl"></div>
+        <div class="layers" role="group" aria-label="Map style" id="layers">
+          <button type="button" aria-pressed="true" data-layer="street">Map</button>
+          <button type="button" aria-pressed="false" data-layer="sat" title="Esri / Vantor satellite, April 2025">Satellite 2025</button>
+          <button type="button" aria-pressed="false" data-layer="nj" title="NJ state aerial 2020, taken with no leaves: paths under trees are visible">NJ leaf-off 2020</button>
         </div>
         <div class="zoom">
           <button type="button" aria-label="Zoom in" id="zoom-in"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
           <button type="button" aria-label="Zoom out" id="zoom-out"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
-          <button type="button" aria-label="Center on incident" id="recenter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/></svg></button>
+          <button type="button" aria-label="Tilt to 3D" aria-pressed="false" id="tilt" style="font-size:11px;font-weight:700">3D</button>
+          <button type="button" aria-label="Show incident and suggested officer" id="recenter"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/></svg></button>
         </div>
       </div>
 
@@ -208,6 +273,7 @@
             <span><i class="sq" style="background:var(--sent)"></i>Sent to this call</span>
             <span><i class="sq" style="background:var(--onscene)"></i>On scene (at this call)</span>
             <span><i class="sq" style="background:var(--busy)"></i>Busy (on another call)</span>
+            <span style="color:var(--faint)">Officer positions simulated for the demo</span>
           </div>
         </div>
         <div class="table-wrap">
@@ -234,7 +300,11 @@
         </div>
         <div class="sev-row" style="align-items:flex-start">
           <span class="sev-label">Urgency</span>
-          <span><strong style="color:var(--red)">High.</strong> Person bleeding; person with knife may still be nearby.</span>
+          <span id="urgency"></span>
+        </div>
+        <div class="sev-row" style="align-items:flex-start">
+          <span class="sev-label">Response</span>
+          <span id="response"></span>
         </div>
       </div>
       <div class="scroll fields" id="fields"></div>
@@ -243,64 +313,157 @@
 </div>
 
 <script>
-// ---------- Demo data (scripted fake call) ----------
-const WORLD = { w: 2000, h: 1400 };
-const INCIDENT = { x: 1020, y: 685, name: 'Frist Campus Center' };
-const METERS_PER_UNIT = 1.2;
-const FRIST_DOOR = [1020, 640];
+// ---------- Demo data (scripted fake calls, fake names) ----------
+// Calls are taken at Princeton Public Safety (PSAFE) HQ: the building across Baker Lane from Hobey Baker Rink (confirmed by the team).
+const PSAFE = { lat: 40.34368, lng: -74.65727, name: 'Princeton Public Safety (Dispatch)' };
+const CONSTRUCTION = [[40.3457, -74.6578], [40.3457, -74.6568], [40.3451, -74.6568], [40.3451, -74.6578]];
 
 const OFFICERS = [
-  { id: 'U1', name: 'Ofc. Dana Reyes',   short: 'Reyes',    badge: '4127', x: 640,  y: 80,   status: 'available', where: 'Nassau St at Nassau Hall', mode: 'car',
-    route: [[640, 80], [1180, 80], [1180, 560], [1020, 560], FRIST_DOOR] },
-  { id: 'U2', name: 'Ofc. Marcus Hale',  short: 'Hale',     badge: '3381', x: 1410, y: 880,  status: 'busy',      where: 'Princeton Stadium (noise complaint)', mode: 'car',
-    route: [[1410, 880], [1180, 880], [1180, 560], [1020, 560], FRIST_DOOR] },
-  { id: 'U3', name: 'Ofc. Priya Nair',   short: 'Nair',     badge: '2904', x: 1180, y: 470,  status: 'available', where: 'Washington Rd', mode: 'car',
-    route: [[1180, 470], [1180, 560], [1020, 560], FRIST_DOOR] },
-  { id: 'U4', name: 'Ofc. Tom Kowalski', short: 'Kowalski', badge: '5162', x: 560,  y: 860,  status: 'available', where: 'Walking near Whitman College', mode: 'foot',
-    route: [[560, 860], [760, 760], [940, 690], [1020, 685]] },
-  { id: 'U5', name: 'Ofc. Alicia Brooks', short: 'Brooks',  badge: '3745', x: 900,  y: 1020, status: 'available', where: 'Public Safety, Elm Dr', mode: 'car',
-    route: [[900, 1020], [900, 560], [1020, 560], FRIST_DOOR] },
+  { id: 'U1', name: 'Ofc. Dana Reyes',    short: 'Reyes',    badge: '4127', lat: 40.3500, lng: -74.6593, status: 'available', where: 'Nassau St at Nassau Hall', mode: 'car' },
+  { id: 'U2', name: 'Ofc. Marcus Hale',   short: 'Hale',     badge: '3381', lat: 40.3457, lng: -74.6447, status: 'busy',      where: 'Princeton Stadium (noise complaint)', mode: 'car' },
+  { id: 'U3', name: 'Ofc. Priya Nair',    short: 'Nair',     badge: '2904', lat: 40.3488, lng: -74.6527, status: 'available', where: 'Washington Rd', mode: 'car' },
+  { id: 'U4', name: 'Ofc. Tom Kowalski',  short: 'Kowalski', badge: '5162', lat: 40.3440, lng: -74.6585, status: 'available', where: 'Walking near Whitman College', mode: 'foot' },
+  { id: 'U5', name: 'Ofc. Alicia Brooks', short: 'Brooks',   badge: '3745', lat: PSAFE.lat - 0.0003, lng: PSAFE.lng + 0.0007, status: 'available', where: 'Parked outside PSAFE HQ', mode: 'car' },
 ];
 
-const TRANSCRIPT = [
-  ['Dispatcher', '00:02', 'Princeton Public Safety, where is your emergency?'],
-  ['Caller', '00:05', 'Frist, the campus center. There was a fight and someone is on the ground.'],
-  ['Dispatcher', '00:14', 'Which floor are you on?'],
-  ['Caller', '00:17', 'Second floor, by the study tables. I think one of them had a knife.'],
-  ['Dispatcher', '00:31', 'Is the person on the ground awake? Are they breathing?'],
-  ['Caller', '00:35', 'He is talking a little. There is blood on his arm.'],
+// One call per danger level. `units` = officers to send; `support` = who else is alerted.
+// field state: 'ok' confirmed, 'heard' heard but not confirmed, 'missing' not asked yet.
+const SCENARIOS = [
+  {
+    id: 'p1', label: 'Knife fight', prio: 1,
+    incident: { lat: 40.34676, lng: -74.65519, name: 'Frist Campus Center' },
+    urgency: ['Critical', 'Person bleeding; person with a knife may still be nearby.'],
+    units: 2, unitsWhy: 'Weapon reported and a person is hurt: two officers, never one alone.',
+    evidence: ['one of them had a knife', 'There is blood on his arm'],
+    support: 'EMS (Princeton First Aid & Rescue Squad) alerted to stage nearby.',
+    transcript: [
+      ['Dispatcher', '00:02', 'Princeton Public Safety, where is your emergency?'],
+      ['Caller', '00:05', 'Frist, the campus center. There was a fight and someone is on the ground.'],
+      ['Dispatcher', '00:14', 'Which floor are you on?'],
+      ['Caller', '00:17', 'Second floor, by the study tables. I think one of them had a knife.'],
+      ['Dispatcher', '00:31', 'Is the person on the ground awake? Are they breathing?'],
+      ['Caller', '00:35', 'He is talking a little. There is blood on his arm.'],
+    ],
+    questions: ['Is the person with the knife still there? Which way did they go?', 'Are you somewhere safe right now?', 'What does that person look like?', 'What is your name?', 'Which entrance is closest to you?'],
+    sheet: [
+      ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0142', 'ok'], ['Caller safe?', '', 'missing']]],
+      ['Location', [['Building', 'Frist Campus Center', 'ok'], ['Floor / room', '2nd floor, study tables', 'heard'], ['Best entrance', '', 'missing']]],
+      ['What happened', [['Type', 'Fight, person injured', 'heard'], ['Weapons', 'Knife', 'heard'], ['Other dangers', '', 'missing']]],
+      ['Injured person', [['How many hurt', '1', 'heard'], ['Awake?', 'Yes, talking', 'heard'], ['Breathing?', 'Yes', 'heard'], ['Injuries', 'Bleeding, arm', 'heard']]],
+      ['Person with knife', [['Description', '', 'missing'], ['Still there?', '', 'missing']]],
+    ],
+  },
+  {
+    id: 'p2', label: 'Bike crash', prio: 2,
+    incident: { lat: 40.34620, lng: -74.65276, name: 'Lewis Library, Washington Rd' },
+    urgency: ['Urgent', 'Cyclist hit by a car; awake but cannot stand. Traffic still moving.'],
+    units: 2, unitsWhy: 'Injured person on a live road: one officer for the patient, one to hold traffic.',
+    support: 'EMS alerted. Ask the driver to stay.',
+    evidence: ['A car just hit a guy on a bike', 'he can\u2019t stand up'],
+    // The caller adds new information mid-call: the AI re-plans.
+    escalate: {
+      line: ['Caller', '00:41', 'Wait, the driver is out of his car, he\u2019s yelling at the guy and he grabbed a tire iron.'],
+      prio: 1, units: 3, quote: 'grabbed a tire iron',
+      urgency: ['Critical', 'Driver now armed and aggressive next to an injured cyclist.'],
+      unitsWhy: 'Weapon now involved, injured person, live road: three officers.',
+      questions: ['Is the driver moving toward the cyclist or anyone else?', 'Can you get somewhere safe, away from the driver?'],
+      field: ['What happened', ['Weapons', 'Tire iron (driver)', 'heard']],
+    },
+    transcript: [
+      ['Dispatcher', '00:02', 'Princeton Public Safety, where is your emergency?'],
+      ['Caller', '00:04', 'A car just hit a guy on a bike on Washington Road, right by Lewis Library.'],
+      ['Dispatcher', '00:11', 'Is he awake? Is he breathing?'],
+      ['Caller', '00:14', 'Yeah he is talking, but he says his leg hurts and he can’t stand up.'],
+      ['Dispatcher', '00:22', 'Is he still in the road?'],
+      ['Caller', '00:24', 'Half on the road. Cars are going around him. The driver stopped.'],
+    ],
+    questions: ['Can someone safely stand between him and traffic?', 'Is he bleeding anywhere?', 'Did he hit his head? Is he wearing a helmet?', 'What is the car’s plate and colour?', 'What is your name?'],
+    sheet: [
+      ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0187', 'ok'], ['Caller safe?', 'Yes, on the sidewalk', 'heard']]],
+      ['Location', [['Place', 'Washington Rd by Lewis Library', 'ok'], ['In the road?', 'Partly', 'heard']]],
+      ['What happened', [['Type', 'Car vs. bicycle', 'heard'], ['Driver', 'Stopped, still there', 'heard'], ['Traffic', 'Still moving around him', 'heard']]],
+      ['Injured person', [['How many hurt', '1', 'heard'], ['Awake?', 'Yes, talking', 'heard'], ['Injuries', 'Leg, cannot stand', 'heard'], ['Head injury?', '', 'missing']]],
+    ],
+  },
+  {
+    id: 'p3', label: 'Bike theft', prio: 3,
+    incident: { lat: 40.34961, lng: -74.65734, name: 'Firestone Library' },
+    urgency: ['Routine', 'Bike being stolen; thief not armed, no one in danger.'],
+    units: 1, unitsWhy: 'Property crime, no weapon, no one hurt: one officer.',
+    evidence: ['cutting the lock', 'He doesn’t have a weapon'],
+    support: null,
+    transcript: [
+      ['Dispatcher', '00:02', 'Princeton Public Safety, how can I help?'],
+      ['Caller', '00:05', 'Someone’s stealing a bike outside Firestone. He’s cutting the lock right now.'],
+      ['Dispatcher', '00:12', 'Is he still there? Do you see a weapon?'],
+      ['Caller', '00:15', 'Still there. He doesn’t have a weapon, just bolt cutters. Grey hoodie, backpack.'],
+      ['Dispatcher', '00:24', 'Please don’t approach him. Which way would he leave?'],
+      ['Caller', '00:28', 'Probably toward Nassau Street.'],
+    ],
+    questions: ['Which side of the library are the racks on?', 'What colour is the bike?', 'Is he alone?', 'What is your name?'],
+    sheet: [
+      ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0123', 'ok']]],
+      ['Location', [['Place', 'Firestone Library bike racks', 'ok'], ['Which side', '', 'missing']]],
+      ['What happened', [['Type', 'Theft in progress (bicycle)', 'heard'], ['Weapons', 'None, bolt cutters only', 'heard'], ['Bike', '', 'missing']]],
+      ['Suspect', [['Description', 'Grey hoodie, backpack', 'heard'], ['Still there?', 'Yes', 'heard'], ['Likely direction', 'Toward Nassau St', 'heard']]],
+    ],
+  },
+  {
+    id: 'p4', label: 'Locked out', prio: 4,
+    incident: { lat: 40.34396, lng: -74.65794, name: 'Whitman College' },
+    urgency: ['Low', 'Student locked out of their room; safe and indoors.'],
+    units: 1, unitsWhy: 'No danger: send the nearest free officer when they are clear, no lights or siren.',
+    evidence: ['locked myself out', 'I\u2019m in the hallway, I\u2019m fine'],
+    support: 'Offer Housing’s lockout line as an alternative.',
+    transcript: [
+      ['Dispatcher', '00:02', 'Princeton Public Safety, how can I help?'],
+      ['Caller', '00:04', 'Hi, I locked myself out of my room in Whitman and my ID is inside.'],
+      ['Dispatcher', '00:10', 'Are you safe? Are you inside the building?'],
+      ['Caller', '00:13', 'Yeah I’m in the hallway, I’m fine.'],
+    ],
+    questions: ['What is your room number?', 'What is your name and student ID number?'],
+    sheet: [
+      ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0164', 'ok'], ['Caller safe?', 'Yes, indoors', 'heard']]],
+      ['Location', [['Building', 'Whitman College', 'ok'], ['Room', '', 'missing']]],
+      ['What happened', [['Type', 'Lockout', 'heard'], ['Dangers', 'None', 'heard']]],
+    ],
+  },
 ];
 
-const QUESTIONS = [
-  'Is the person with the knife still there? Which way did they go?',
-  'Are you somewhere safe right now?',
-  'What does that person look like?',
-  'What is your name?',
-  'Which entrance is closest to you?',
-];
-
-// state: 'ok' = confirmed, 'heard' = heard but not confirmed, 'missing' = not asked yet
-const SHEET = [
-  ['Caller', [['Name', '', 'missing'], ['Callback number', '(609) 555-0142', 'ok'], ['Caller safe?', '', 'missing'], ['Language', 'English', 'ok']]],
-  ['Location', [['Building', 'Frist Campus Center', 'ok'], ['Floor / room', '2nd floor, study tables', 'heard'], ['Best entrance', '', 'missing']]],
-  ['What happened', [['Type', 'Fight, person injured', 'heard'], ['Details', 'One man on the ground, bleeding from his arm', 'heard'], ['Weapons', 'Knife', 'heard'], ['Other dangers', '', 'missing']]],
-  ['Injured person', [['How many hurt', '1', 'heard'], ['Awake?', 'Yes, talking', 'heard'], ['Breathing?', 'Yes', 'heard'], ['Injuries', 'Bleeding, arm', 'heard']]],
-  ['Person with knife', [['Description', '', 'missing'], ['Still there?', '', 'missing'], ['Went which way', '', 'missing']]],
-];
-
-const COLORS = { available: '#2E7D4F', dispatched: '#1F5FAD', onscene: '#5B3A8C', busy: '#9A5B00' };
 const LABELS = { available: 'Available', dispatched: 'Sent to this call', onscene: 'On scene', busy: 'Busy' };
 
 // ---------- Helpers ----------
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const routeMiles = (r) => {
-  let d = 0;
-  for (let i = 1; i < r.length; i++) d += Math.hypot(r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]);
-  return d * METERS_PER_UNIT / 1609;
-};
-OFFICERS.forEach((o) => { o.dist = routeMiles(o.route); });
-const distLabel = (o) => `${o.dist.toFixed(2)} mi ${o.mode === 'foot' ? 'on foot' : 'by car'}`;
+const css = (name) => getComputedStyle(document.body).getPropertyValue(name).trim();
+const COLOR = (st) => css({ available: '--available', dispatched: '--sent', onscene: '--onscene', busy: '--busy' }[st]);
+const ll = ([lat, lng]) => [lng, lat];
+const dist = (a, b) => new maplibregl.LngLat(...ll(a)).distanceTo(new maplibregl.LngLat(...ll(b)));
+const etaMin = (o) => Math.max(1, Math.round(o.dist / (o.mode === 'foot' ? 3 : 18) * 60));
+const distLabel = (o) => `${o.dist.toFixed(2)} mi ${o.mode === 'foot' ? 'on foot' : 'by car'} · ~${etaMin(o)} min`;
+
+let SC = structuredClone(SCENARIOS[0]);
+let INCIDENT = SC.incident, INC = [INCIDENT.lat, INCIDENT.lng];
+OFFICERS.forEach((o) => {
+  o.home = [o.lat, o.lng];
+  o.acc = o.mode === 'foot' ? 8 : 5; // simulated GPS accuracy, metres (phone GPS outdoors is ~3-10 m)
+});
+function straightRoutes() {
+  // Until the real route loads: straight line, distance padded ~30% for streets.
+  OFFICERS.forEach((o) => { o.route = [[o.lat, o.lng], INC]; o.dist = dist([o.lat, o.lng], INC) * 1.3 / 1609; });
+}
+
+// Real road / walkway routes from OpenStreetMap (FOSSGIS public router).
+const ROUTER = { car: 'https://routing.openstreetmap.de/routed-car', foot: 'https://routing.openstreetmap.de/routed-foot' };
+async function loadRoute(o, to) {
+  try {
+    const url = `${ROUTER[o.mode]}/route/v1/driving/${o.lng},${o.lat};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+    const best = (await (await fetch(url)).json()).routes?.[0];
+    if (!best || to !== INC) return; // scenario changed while loading
+    o.route = best.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+    o.dist = best.distance / 1609;
+  } catch { /* offline: keep the straight-line estimate */ }
+}
 
 const figureSvg = (color) => `
   <svg width="26" height="34" viewBox="0 0 30 38" aria-hidden="true">
@@ -313,170 +476,382 @@ const figureSvg = (color) => `
   </svg>`;
 
 // ---------- State ----------
-const state = { recIdx: 0, dispatched: false, onScene: false, s: 0.75, tx: 0, ty: 0 };
+const state = { declined: new Set(), dispatched: false, onScene: false, log: [] };
+let callStart = performance.now();
+
+// Every AI step and every dispatcher decision is logged: the agent's reasoning on screen + an audit trail.
+function log(who, html, alert = false) {
+  const t = fmt(Math.round((performance.now() - callStart) / 1000) + 41);
+  state.log.unshift({ t, who, html, alert });
+  $('log').innerHTML = state.log.map((e) => `<li class="${e.alert ? 'alert' : ''}"><time>${e.t}</time><span class="${e.who === 'AI' ? 'ai' : 'human'}">${e.who}</span><span>${e.html}</span></li>`).join('');
+}
+const q = (s) => `<q>${esc(s)}</q>`;
 
 function available() {
-  return OFFICERS.filter((o) => o.status === 'available').sort((a, b) => a.dist - b.dist);
+  // Rank by arrival time, not distance: a car 0.5 mi away beats a walker 0.4 mi away.
+  return OFFICERS.filter((o) => o.status === 'available' && !state.declined.has(o.id)).sort((a, b) => etaMin(a) - etaMin(b) || a.dist - b.dist);
 }
-function recommended() { return available()[state.recIdx] || null; }
+// The AI suggests as many officers as the call needs (SC.units), nearest first.
+function recommended() { return available().slice(0, SC.units); }
+const isRec = (o) => recommended().some((r) => r.id === o.id);
 function statusOf(o) {
-  const rec = recommended();
-  if (!rec || o.id !== rec.id || !state.dispatched) return o.status;
+  if (!state.dispatched || !isRec(o)) return o.status;
   return state.onScene ? 'onscene' : 'dispatched';
 }
 
-// ---------- Map view (pan / zoom, clamped to campus) ----------
-const mapEl = $('map');
-function clampView(s, tx, ty) {
-  const w = mapEl.clientWidth, h = mapEl.clientHeight;
-  const sMin = Math.max(w / WORLD.w, h / WORLD.h);
-  s = Math.min(2.5, Math.max(sMin, s));
-  tx = Math.min(0, Math.max(w - WORLD.w * s, tx));
-  ty = Math.min(0, Math.max(h - WORLD.h * s, ty));
-  return { s, tx, ty };
-}
-function setView(v) { Object.assign(state, clampView(v.s, v.tx, v.ty)); renderMap(); }
-function centerOn(pt, s) {
-  setView({ s, tx: mapEl.clientWidth / 2 - pt.x * s, ty: mapEl.clientHeight / 2 - pt.y * s });
-}
-function zoomAt(px, py, factor) {
-  const s1 = clampView(state.s * factor, 0, 0).s;
-  const k = s1 / state.s;
-  setView({ s: s1, tx: px - (px - state.tx) * k, ty: py - (py - state.ty) * k });
-}
-const toScreen = (x, y) => ({ x: x * state.s + state.tx, y: y * state.s + state.ty });
+// ---------- Map (MapLibre: light / dark vector map, satellite, 3D tilt) ----------
+const STYLE = { dark: 'https://tiles.openfreemap.org/styles/dark', light: 'https://tiles.openfreemap.org/styles/liberty' };
+const theme = () => document.body.dataset.theme;
+const map = new maplibregl.Map({
+  container: 'mapgl', style: STYLE[theme()],
+  center: ll(INC), zoom: 16.5, attributionControl: { compact: true },
+  canvasContextAttributes: { preserveDrawingBuffer: true }, // keeps the map visible in screen recordings / embedded browsers
+});
+const routeData = (routes) => ({ type: 'FeatureCollection', features: routes.map((r) => ({ type: 'Feature', properties: { foot: r.foot }, geometry: { type: 'LineString', coordinates: r.pts.map(ll) } })) });
+let baseLayer = 'street';
 
-const surface = $('surface');
-let drag = null;
-surface.addEventListener('pointerdown', (e) => {
-  drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty };
-  surface.setPointerCapture(e.pointerId);
-  surface.classList.add('dragging');
+// The stock dark style is too dim to dispatch from: lift roads, paths, buildings and labels; add names + 3D.
+function tuneDarkMap(firstLabel) {
+  const set = (id, prop, v) => map.getLayer(id) && map.setPaintProperty(id, prop, v);
+  set('building', 'fill-color', '#2A3646');
+  set('landuse_park', 'fill-color', '#16271F');
+  set('landcover_wood', 'fill-color', '#16271F');
+  set('water', 'fill-color', '#0E2236');
+  set('highway_path', 'line-color', '#6B7C92');
+  set('highway_minor', 'line-color', '#4A5A6E');
+  set('highway_major_inner', 'line-color', '#5D6E84');
+  set('highway_major_casing', 'line-color', '#2B3747');
+  ['highway_name_other', 'highway_name_motorway'].forEach((id) => { set(id, 'text-color', '#B9C4D2'); set(id, 'text-halo-color', '#121922'); });
+  map.addLayer({ id: 'building-3d', type: 'fill-extrusion', source: 'openmaptiles', 'source-layer': 'building', minzoom: 15,
+    paint: { 'fill-extrusion-color': '#2E3B4D', 'fill-extrusion-opacity': 0.92,
+      'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 8], 'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0] } }, firstLabel);
+  map.addLayer({ id: 'poi-names', type: 'symbol', source: 'openmaptiles', 'source-layer': 'poi', minzoom: 15.5,
+    layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-max-width': 8 },
+    paint: { 'text-color': '#AEBACB', 'text-halo-color': '#121922', 'text-halo-width': 1.4 } });
+}
+
+// Our layers on top of whichever base style is loaded (re-run after every light/dark switch).
+map.on('style.load', () => {
+  const firstLabel = map.getStyle().layers.find((l) => l.type === 'symbol')?.id;
+  if (theme() === 'dark') tuneDarkMap(firstLabel);
+  // tileSize 128 = fetch one zoom level deeper, so imagery is pixel-sharp on retina screens.
+  map.addSource('sat', { type: 'raster', tileSize: 128, maxzoom: 19, attribution: 'Imagery &copy; Esri / Vantor, Apr 2025',
+    tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'] });
+  map.addLayer({ id: 'sat', type: 'raster', source: 'sat', layout: { visibility: 'none' } }, firstLabel);
+  map.addSource('nj', { type: 'raster', tileSize: 128, maxzoom: 20, attribution: 'Imagery &copy; NJ Office of GIS 2020',
+    tiles: ['https://maps.nj.gov/arcgis/rest/services/Basemap/Orthos_Natural_2020_NJ_WM/MapServer/tile/{z}/{y}/{x}'] });
+  map.addLayer({ id: 'nj', type: 'raster', source: 'nj', layout: { visibility: 'none' } }, firstLabel);
+
+  map.addSource('zone', { type: 'geojson', data: { type: 'Feature', geometry: { type: 'Polygon', coordinates: [[...CONSTRUCTION, CONSTRUCTION[0]].map(ll)] } } });
+  map.addLayer({ id: 'zone-fill', type: 'fill', source: 'zone', paint: { 'fill-color': '#F4B860', 'fill-opacity': 0.45 } });
+  map.addLayer({ id: 'zone-line', type: 'line', source: 'zone', paint: { 'line-color': '#B26A28', 'line-width': 2, 'line-dasharray': [3, 2] } });
+
+  map.addSource('inc-bldg', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({ id: 'inc-bldg-fill', type: 'fill', source: 'inc-bldg', paint: { 'fill-color': css('--p1'), 'fill-opacity': 0.22 } }, firstLabel);
+  map.addLayer({ id: 'inc-bldg-line', type: 'line', source: 'inc-bldg', paint: { 'line-color': css('--p1'), 'line-width': 2.5 } }, firstLabel);
+
+  map.addSource('route', { type: 'geojson', data: routeData([]) });
+  map.addLayer({ id: 'route-casing', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': css('--casing'), 'line-width': 9 } });
+  map.addLayer({ id: 'route', type: 'line', source: 'route', filter: ['!', ['get', 'foot']], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-width': 5 } });
+  map.addLayer({ id: 'route-foot', type: 'line', source: 'route', filter: ['get', 'foot'], layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-width': 5, 'line-dasharray': [0.5, 2] } });
+  applyBaseLayer();
+  map.once('idle', highlightBuilding);
+  render();
 });
-surface.addEventListener('pointermove', (e) => {
-  if (!drag) return;
-  setView({ s: state.s, tx: drag.tx + e.clientX - drag.x, ty: drag.ty + e.clientY - drag.y });
+map.on('zoom', sizeHalos);
+
+// Outline the actual building the caller is in (footprint from the OpenStreetMap tiles).
+function highlightBuilding() {
+  const src = map.getSource('inc-bldg');
+  if (!src) return;
+  src.setData({ type: 'FeatureCollection', features: [] });
+  const layers = map.getStyle().layers.filter((l) => l['source-layer'] === 'building').map((l) => l.id);
+  const hit = map.queryRenderedFeatures(map.project(ll(INC)), { layers })[0];
+  if (!hit) return;
+  // Tiles merge many buildings into one MultiPolygon; keep only the one containing the caller.
+  const inside = (ring, [x, y]) => ring.reduce((c, [xi, yi], i) => {
+    const [xj, yj] = ring[(i || ring.length) - 1];
+    return ((yi > y) !== (yj > y)) && x < (xj - xi) * (y - yi) / (yj - yi) + xi ? !c : c;
+  }, false);
+  const polys = hit.geometry.type === 'Polygon' ? [hit.geometry.coordinates] : hit.geometry.coordinates;
+  const mine = polys.find((p) => inside(p[0], ll(INC)));
+  if (mine) src.setData({ type: 'Feature', geometry: { type: 'Polygon', coordinates: mine } });
+}
+
+const pin = (html, at, z = 1) => {
+  const el = document.createElement('div');
+  el.className = 'pin';
+  el.style.zIndex = z;
+  el.innerHTML = html;
+  return new maplibregl.Marker({ element: el }).setLngLat(ll(at)).addTo(map);
+};
+pin(`<div class="zone-label">Construction</div>`, [(CONSTRUCTION[0][0] + CONSTRUCTION[2][0]) / 2, (CONSTRUCTION[0][1] + CONSTRUCTION[2][1]) / 2]);
+pin(`<div class="station"><span title="Headquarters"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z" fill="#F2C230" stroke="#7A5A00" stroke-width="1"/></svg></span><b>HQ · ${esc(PSAFE.name)}</b></div>`, [PSAFE.lat, PSAFE.lng], 2);
+const incidentPin = pin('', INC, 3);
+const markers = Object.fromEntries(OFFICERS.map((o) => [o.id, pin('', [o.lat, o.lng], 4)]));
+
+function applyBaseLayer() {
+  if (!map.getLayer('sat')) return;
+  ['sat', 'nj'].forEach((id) => map.setLayoutProperty(id, 'visibility', baseLayer === id ? 'visible' : 'none'));
+  // 3D blocks would hide the rooftops in the photos, so show them only on the street map.
+  if (map.getLayer('building-3d')) map.setLayoutProperty('building-3d', 'visibility', baseLayer === 'street' ? 'visible' : 'none');
+}
+$('layers').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  baseLayer = b.dataset.layer;
+  applyBaseLayer();
+  [...$('layers').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
 });
-const endDrag = () => { drag = null; surface.classList.remove('dragging'); };
-surface.addEventListener('pointerup', endDrag);
-surface.addEventListener('pointercancel', endDrag);
-surface.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  const r = surface.getBoundingClientRect();
-  zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1 / 1.12);
-}, { passive: false });
-$('zoom-in').onclick = () => zoomAt(mapEl.clientWidth / 2, mapEl.clientHeight / 2, 1.25);
-$('zoom-out').onclick = () => zoomAt(mapEl.clientWidth / 2, mapEl.clientHeight / 2, 0.8);
-$('recenter').onclick = () => centerOn(INCIDENT, 0.9);
-window.addEventListener('resize', () => setView(state));
+
+function focusMap() {
+  const pts = [INC, ...(state.onScene ? [] : recommended().flatMap((o) => o.route))];
+  const b = new maplibregl.LngLatBounds(ll(pts[0]), ll(pts[0]));
+  pts.forEach((p) => b.extend(ll(p)));
+  map.resize(); // container can change size after first layout
+  map.fitBounds(b, { padding: { top: 80, left: 70, right: 80, bottom: 40 }, maxZoom: 17.5, pitch: map.getPitch(), duration: 600 });
+}
+$('zoom-in').onclick = () => map.zoomIn();
+$('zoom-out').onclick = () => map.zoomOut();
+$('recenter').onclick = focusMap;
+$('tilt').onclick = (e) => {
+  const flat = map.getPitch() > 0;
+  map.easeTo({ pitch: flat ? 0 : 55, bearing: flat ? 0 : -20 });
+  e.currentTarget.setAttribute('aria-pressed', String(!flat));
+};
+
+// GPS accuracy ring: real metres on the ground, resized with zoom.
+function sizeHalos() {
+  const mpp = 156543.034 * Math.cos(INCIDENT.lat * Math.PI / 180) / 2 ** map.getZoom();
+  document.querySelectorAll('.halo').forEach((h) => { h.style.width = h.style.height = `${2 * h.dataset.acc / mpp}px`; });
+}
+const MODE_ICON = {
+  car: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11v6a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H8v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1zm2.2-1h9.6l-1-3H8.2zM7.5 14a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5m9 0a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5"/></svg>',
+  foot: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M9.8 8.9L7 20h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 12v-2a5 5 0 0 1-4.3-2.4l-1-1.6a2 2 0 0 0-2.5-.8L6 7.3V12h2V8.6z"/></svg>',
+};
+
+// Dispatched officers drive/walk their real routes. ponytail: demo plays every trip in 12 s; ETAs shown are real estimates.
+let trip = null;
+function stopTrip() { if (trip) cancelAnimationFrame(trip.raf); trip = null; }
+function pointAlong(pts, cum, d) {
+  let i = cum.findIndex((c) => c >= d); if (i < 1) i = 1;
+  const f = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1);
+  return { at: [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f], i };
+}
+function startTrip(team) {
+  stopTrip();
+  const legs = team.map((o) => {
+    const cum = [0];
+    for (let i = 1; i < o.route.length; i++) cum.push(cum[i - 1] + dist(o.route[i - 1], o.route[i]));
+    return { o, pts: o.route, cum, total: cum.at(-1) || 1, etaSec: etaMin(o) * 60 };
+  });
+  const t0 = performance.now(), DUR = 12000;
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / DUR);
+    const left = [];
+    legs.forEach((g) => {
+      const { at, i } = pointAlong(g.pts, g.cum, k * g.total);
+      [g.o.lat, g.o.lng] = at;
+      markers[g.o.id].setLngLat(ll(at));
+      left.push({ pts: [at, ...g.pts.slice(i)], foot: g.o.mode === 'foot' });
+    });
+    map.getSource('route')?.setData(routeData(left));
+    const secs = Math.round((1 - k) * Math.max(...legs.map((g) => g.etaSec)));
+    $('bar-title').textContent = `${team.map((o) => o.short).join(' + ')} on the way · first unit ETA ${fmt(Math.round((1 - k) * Math.min(...legs.map((g) => g.etaSec))))} · all units ${fmt(secs)}`;
+    if (k < 1) trip.raf = requestAnimationFrame(step);
+    else { trip = null; state.onScene = true; log('AI', `${team.map((o) => o.short).join(' + ')} arrived (GPS)`); render(); }
+  };
+  trip = { raf: requestAnimationFrame(step) };
+}
+const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 // ---------- Rendering ----------
 function renderMap() {
-  $('world').style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.s})`;
-  const inc = toScreen(INCIDENT.x, INCIDENT.y);
-  Object.assign($('incident').style, { left: inc.x + 'px', top: inc.y + 'px' });
-
-  const rec = recommended();
-  $('officers').innerHTML = OFFICERS.map((o) => {
+  incidentPin.setLngLat(ll(INC)).getElement().innerHTML = `<div class="incident">
+    <span style="width:36px;height:36px;background:color-mix(in srgb, var(--p${SC.prio}) 22%, transparent);border:1px solid var(--p${SC.prio})"></span>
+    <span style="width:14px;height:14px;background:var(--p${SC.prio});border:2px solid var(--panel)"></span>
+    <b class="inc-label" style="border-color:var(--p${SC.prio})">P${SC.prio} · ${esc(INCIDENT.name)}</b></div>`;
+  const team = recommended();
+  OFFICERS.forEach((o, n) => {
     const st = statusOf(o);
-    const at = st === 'onscene' ? toScreen(INCIDENT.x + 34, INCIDENT.y + 8) : toScreen(o.x, o.y);
-    const color = COLORS[st];
-    const isRec = rec && rec.id === o.id && st !== 'onscene';
-    return `<div class="officer${isRec ? ' rec' : ''}" style="left:${at.x}px;top:${at.y}px;z-index:${isRec ? 3 : 2}">
-      <div class="fig" style="border-color:${color}">${figureSvg(color)}</div>
-      <span class="tag" style="border-color:${color}">${esc(o.short)} #${esc(o.badge)}</span>
-    </div>`;
-  }).join('');
+    const color = COLOR(st);
+    const rec = isRec(o) && st !== 'onscene';
+    const m = markers[o.id];
+    m.setLngLat(ll(st === 'onscene' ? [INCIDENT.lat - 0.00005, INCIDENT.lng + 0.00012 + n * 0.00012] : [o.lat, o.lng]));
+    m.getElement().style.zIndex = rec ? 5 : 4;
+    m.getElement().innerHTML = `<span class="halo" data-acc="${o.acc}" style="background:${color}22;border:1px solid ${color}88"></span>
+      <div class="officer${rec ? ' rec' : ''}">
+      <div class="fig" style="border-color:${color}">${figureSvg(color)}<i class="mode" title="${o.mode === 'foot' ? 'On foot' : 'Patrol car'}">${MODE_ICON[o.mode]}</i></div>
+      <span class="tag" style="border-color:${color}">${esc(o.short)} #${esc(o.badge)}</span></div>`;
+  });
+  sizeHalos();
 
-  const show = rec && !state.onScene;
-  const pts = show ? rec.route.map(([x, y]) => { const p = toScreen(x, y); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(' ') : '';
-  $('route-casing').setAttribute('points', pts);
-  const route = $('route');
-  route.setAttribute('points', pts);
-  route.setAttribute('stroke', state.dispatched ? COLORS.dispatched : COLORS.available);
-  route.setAttribute('stroke-dasharray', show && rec.mode === 'foot' ? '2 7' : 'none');
+  const src = map.getSource('route');
+  if (!src) return; // style still loading; 'style.load' calls render() again
+  src.setData(routeData(state.onScene || trip ? [] : team.map((o) => ({ pts: o.route, foot: o.mode === 'foot' }))));
+  const c = state.dispatched ? COLOR('dispatched') : COLOR('available');
+  map.setPaintProperty('route', 'line-color', c);
+  map.setPaintProperty('route-foot', 'line-color', c);
 }
 
 function renderBar() {
-  const rec = recommended();
-  const avail = available();
-  let kicker, title, bg = '#FFFFFF', actions = '';
-  if (!rec) {
-    kicker = 'Suggested officer'; title = 'No other available officers right now.';
+  const team = recommended();
+  const bar = $('bar');
+  let kicker, title, actions = '', mode = '';
+  const names = team.map((o) => `${o.name} (#${o.badge}) · ${distLabel(o)}`).join('  +  ');
+  if (team.length < SC.units && !state.dispatched) {
+    kicker = `Need ${SC.units} officers · only ${team.length} free`;
+    title = team.length ? names : 'No other available officers right now. Request mutual aid from Princeton PD.';
     actions = `<button type="button" class="btn btn-lg" data-act="reset">Start over</button>`;
   } else if (state.onScene) {
-    kicker = 'On scene'; bg = '#F4F0F9';
-    title = `${rec.name} (#${rec.badge}) has arrived at ${INCIDENT.name}.`;
+    kicker = 'On scene'; mode = 'onscene';
+    title = `${team.map((o) => o.name).join(' and ')} arrived at ${INCIDENT.name}.`;
     actions = `<button type="button" class="btn btn-lg" data-act="reset">Start over</button>`;
   } else if (state.dispatched) {
-    kicker = 'Sent'; bg = '#EEF3FA';
-    title = `${rec.name} (#${rec.badge}) is on the way. Call details sent to their phone.`;
-    actions = `<button type="button" class="btn btn-lg" style="border-color:#5B3A8C;color:#5B3A8C;font-weight:600" data-act="arrive">Mark on scene</button>
+    kicker = 'Sent'; mode = 'sent';
+    title = `${team.map((o) => o.short).join(' + ')} on the way. Call details sent to their phones.`;
+    actions = `<button type="button" class="btn btn-lg btn-onscene" data-act="arrive">Mark on scene</button>
                <button type="button" class="btn btn-lg" data-act="reset">Undo</button>`;
   } else {
-    kicker = `Suggested officer · option ${state.recIdx + 1} of ${avail.length}`;
-    title = `${rec.name} (#${rec.badge}) · Available · ${distLabel(rec)}`;
+    kicker = `AI suggests ${SC.units === 1 ? '1 officer' : `${SC.units} officers`} · ${SC.unitsWhy}`;
+    title = names;
     actions = `<span style="font-weight:600">Send?</span>
-               <button type="button" class="btn btn-lg btn-primary" data-act="yes">Yes, send</button>
-               <button type="button" class="btn btn-lg" data-act="no">No, next option</button>`;
+               <button type="button" class="btn btn-lg btn-primary" data-act="yes">Yes, send <kbd>Y</kbd></button>
+               <button type="button" class="btn btn-lg" data-act="no">${SC.units > 1 ? 'Swap last' : 'Next option'} <kbd>N</kbd></button>`;
   }
-  $('bar').style.background = bg;
+  bar.dataset.mode = mode;
   $('bar-kicker').textContent = kicker;
   $('bar-title').textContent = title;
   $('bar-actions').innerHTML = actions;
 }
 
 function renderRoster() {
-  const rec = recommended();
-  $('roster').innerHTML = OFFICERS.slice().sort((a, b) => a.dist - b.dist).map((o) => {
+  $('roster').innerHTML = OFFICERS.slice().sort((a, b) => etaMin(a) - etaMin(b) || a.dist - b.dist).map((o) => {
     const st = statusOf(o);
-    const color = COLORS[st];
-    return `<div class="row${rec && rec.id === o.id ? ' rec' : ''}" role="row">
+    const color = COLOR(st);
+    return `<div class="row${isRec(o) ? ' rec' : ''}" role="row">
       <span role="cell" style="font-weight:500">${esc(o.name)}</span>
       <span role="cell">${esc(o.badge)}</span>
       <span role="cell" class="status" style="color:${color}"><i class="sq" style="background:${color}"></i>${LABELS[st]}</span>
-      <span role="cell" style="color:var(--muted)">${esc(st === 'onscene' ? INCIDENT.name : o.where)}</span>
+      <span role="cell" style="color:var(--muted)">${esc(st === 'onscene' ? INCIDENT.name : st === 'available' && state.declined.has(o.id) ? `${o.where} (skipped)` : o.where)}</span>
       <span role="cell">${st === 'onscene' ? '—' : distLabel(o)}</span>
     </div>`;
   }).join('');
 }
 
+function setPriority(p, byDispatcher = false) {
+  if (byDispatcher && p !== +document.body.dataset.prio) log('Dispatcher', `Changed priority P${document.body.dataset.prio} → P${p} (AI suggested P${SC.prio})`);
+  [...$('prio').children].forEach((x) => x.setAttribute('aria-pressed', String(+x.textContent.trim() === p)));
+  document.body.dataset.prio = p;
+}
+
 function renderStatic() {
-  $('transcript').innerHTML = TRANSCRIPT.map(([who, t, text]) => `
-    <div><div class="who" style="color:${who === 'Caller' ? '#7A4413' : '#1F5FAD'}">${who}<time>${t}</time></div><p>${esc(text)}</p></div>`
-  ).join('') + `<p style="color:var(--faint);font-style:italic;margin:0">Listening…</p>`;
-
-  $('questions').innerHTML = QUESTIONS.map((q) => `<li>${esc(q)}</li>`).join('');
-
-  $('fields').innerHTML = SHEET.map(([title, fields]) => `
+  $('transcript').innerHTML = SC.transcript.map(([who, t, text]) => `
+    <div><div class="who ${who === 'Caller' ? 'caller' : 'dispatcher'}">${who}<time>${t}</time></div><p>${esc(text)}</p></div>`
+  ).join('') + `<p style="color:var(--faint);font-style:italic;margin:0">Listening…</p>`
+    + (SC.escalate ? '<button type="button" class="btn play" id="escalate">Play next caller line</button>' : '');
+  $('transcript').scrollTop = $('transcript').scrollHeight; // newest line in view
+  $('questions').innerHTML = SC.questions.map((q) => `<li>${esc(q)}</li>`).join('');
+  $('urgency').innerHTML = `<strong style="color:var(--prio)">${esc(SC.urgency[0])}.</strong> ${esc(SC.urgency[1])}`;
+  $('response').innerHTML = `<strong>${SC.units === 1 ? '1 officer' : `${SC.units} officers`}.</strong> ${esc(SC.unitsWhy)}${SC.support ? `<br><span style="color:var(--muted)">${esc(SC.support)}</span>` : ''}`;
+  $('fields').innerHTML = SC.sheet.map(([title, fields]) => `
     <h3>${esc(title)}</h3>
     ${fields.map(([k, v, s]) => `
       <div class="field"><span class="k">${esc(k)}</span>
         <span>${s === 'missing' ? '<span class="missing">Not asked yet</span>' : esc(v)}${s === 'heard' ? '<span class="confirm">confirm</span>' : ''}</span>
       </div>`).join('')}
   `).join('') + `<p class="note">Filled in automatically from the call. Items marked <span class="confirm" style="margin:0">confirm</span> were heard but not yet confirmed with the caller.</p>`;
-
-  $('prio').addEventListener('click', (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    [...$('prio').children].forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  });
+  $('incident-no').textContent = `Incident ${String(SCENARIOS.findIndex((x) => x.id === SC.id) + 1).padStart(4, '0')} · ${SC.label}`;
+  [...$('scenarios').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === SC.id)));
+  setPriority(SC.prio);
 }
 
 function render() { renderBar(); renderRoster(); renderMap(); }
 
-$('bar-actions').addEventListener('click', (e) => {
-  const act = e.target.closest('button')?.dataset.act;
-  if (act === 'yes') state.dispatched = true;
-  if (act === 'no') { state.recIdx += 1; state.dispatched = false; }
-  if (act === 'arrive') state.onScene = true;
-  if (act === 'reset') Object.assign(state, { recIdx: 0, dispatched: false, onScene: false });
+function resetDispatch() {
+  stopTrip();
+  OFFICERS.forEach((o) => { [o.lat, o.lng] = o.home; });
+  Object.assign(state, { dispatched: false, onScene: false });
+  state.declined.clear();
+}
+
+function loadScenario(id) {
+  SC = structuredClone(SCENARIOS.find((s) => s.id === id) || SCENARIOS[0]);
+  callStart = performance.now(); state.log = [];
+  INCIDENT = SC.incident; INC = [INCIDENT.lat, INCIDENT.lng];
+  resetDispatch();
+  straightRoutes();
+  renderStatic(); render(); focusMap();
+  map.once('idle', highlightBuilding);
+  const to = INC;
+  log('AI', `Heard ${q(SC.evidence[0])} → ${esc(SC.sheet.find(([t]) => t === 'What happened')[1][0][1])}`);
+  log('AI', `Priority P${SC.prio} (${SC.urgency[0].toLowerCase()}): heard ${q(SC.evidence[1])}`);
+  log('AI', `Plan: ${SC.units === 1 ? '1 officer' : `${SC.units} officers`}. ${esc(SC.unitsWhy)}`);
+  Promise.all(OFFICERS.map((o) => loadRoute(o, to))).then(() => {
+    if (to !== INC) return;
+    render(); focusMap(); proposeLog();
+  });
+}
+function proposeLog() {
+  const free = available();
+  log('AI', `Checked ${free.length} free officers, routed each by real roads and footpaths`);
+  log('AI', `Proposed ${recommended().map((o) => `${o.short} (~${etaMin(o)} min)`).join(' + ')}. Waiting for dispatcher.`);
+}
+
+// The caller adds new information mid-call: the AI re-grades and re-plans on screen.
+document.addEventListener('click', (e) => {
+  if (e.target.id !== 'escalate' || !SC.escalate) return;
+  const x = SC.escalate; SC.escalate = null;
+  const was = SC.prio;
+  SC.transcript.push(x.line);
+  Object.assign(SC, { prio: x.prio, units: x.units, urgency: x.urgency, unitsWhy: x.unitsWhy });
+  SC.questions.unshift(...x.questions);
+  SC.sheet.find(([t]) => t === x.field[0])[1].push(x.field[1]);
+  resetDispatch();
+  renderStatic(); render(); focusMap();
+  log('AI', `Upgraded P${was} → P${x.prio}: heard ${q(x.quote)}. Now ${x.units} officers.`, true);
+  proposeLog();
+  const h = document.querySelector('header'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash');
+});
+
+// ---------- Controls ----------
+$('prio').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) setPriority(+b.textContent.trim(), true); });
+$('scenarios').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) loadScenario(b.dataset.id); });
+$('theme').addEventListener('click', () => {
+  const next = theme() === 'dark' ? 'light' : 'dark';
+  document.body.dataset.theme = next;
+  $('theme').textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+  document.querySelector('meta[name="theme-color"]').content = css('--bg');
+  try { localStorage.setItem('dispatch-theme', next); } catch { /* storage blocked: theme just won't be remembered */ }
+  map.setStyle(STYLE[next], { diff: false }); // full reload fires 'style.load', which re-adds our layers
   render();
 });
 
-renderStatic();
-render();
-centerOn(INCIDENT, 0.75);
+$('bar-actions').addEventListener('click', (e) => {
+  const act = e.target.closest('button')?.dataset.act;
+  if (!act) return;
+  const team = recommended();
+  if (act === 'yes') { state.dispatched = true; log('Dispatcher', `Approved: sent ${team.map((o) => o.short).join(' + ')}`); }
+  if (act === 'no') { state.declined.add(team.at(-1).id); log('Dispatcher', `Skipped ${team.at(-1).short}`); } // skip the lowest-ranked suggestion
+  if (act === 'arrive') { stopTrip(); state.onScene = true; log('Dispatcher', 'Marked units on scene'); }
+  if (act === 'reset') { resetDispatch(); log('Dispatcher', 'Started over'); }
+  render();
+  if (act === 'yes') startTrip(team);
+  if (act === 'no' || act === 'reset') focusMap();
+});
+
+// Dispatch keyboard shortcuts: Y send, N next/swap, 1-4 set priority.
+document.addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey || e.target.closest?.('input, textarea, select')) return;
+  const k = e.key.toLowerCase();
+  if (k === 'y' || k === 'n') $('bar-actions').querySelector(`[data-act="${k === 'y' ? 'yes' : 'no'}"]`)?.click();
+  if ('1234'.includes(k) && k) setPriority(+k, true);
+  if (k === 'e') $('escalate')?.click(); // demo: caller adds new info
+});
+$('end-call').onclick = () => { if (confirm('End this call? The incident stays in the log.')) $('timer').closest('.live').textContent = 'Call ended'; };
+
+$('theme').textContent = theme() === 'dark' ? 'Light mode' : 'Dark mode';
+loadScenario('p1');
 </script>
 </body>
 </html>

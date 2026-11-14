@@ -78,3 +78,10 @@
   .ot.dispatched .ot-panel { display: flex; }
   .ot-mapwrap, .ot.dispatched .ot-mapwrap { position: static; height: 60vh; }
 }
+
+/* Dispatcher-approved update waiting for the officer */
+.ot-update { margin: 14px 0 4px; padding: 12px; border: 2px solid var(--warn); border-radius: 3px; background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.ot-update h2 { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); }
+.ot-update ul { margin: 0 0 10px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 15px; line-height: 1.35; }
+.ot-update s { margin-left: 6px; font-size: 12px; color: var(--faint); }
+.ot .ot-update-ack { width: 100%; justify-content: center; background: var(--warn); border-color: var(--warn); color: var(--bg); font-weight: 700; }

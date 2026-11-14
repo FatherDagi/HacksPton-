@@ -163,11 +163,26 @@ export function Terminal({ fontClass }: { fontClass: string }) {
               </div>
               <div className="ot-scroll">
                 <h1 className="ot-title">{inc.title}</h1>
-                <p className="ot-where">{[inc.fields.building.value, inc.fields.floor.value && `floor ${inc.fields.floor.value}`, inc.fields.room.value].filter(Boolean).join(", ") || "Location being confirmed"}</p>
+                <p className="ot-where">{[inc.fields.building.value, inc.fields.floor.value && (/floor/i.test(inc.fields.floor.value) ? inc.fields.floor.value : `floor ${inc.fields.floor.value}`), inc.fields.room.value].filter(Boolean).join(", ") || "Location being confirmed"}</p>
 
                 <Actions me={me} acknowledged={!!asg.acknowledgedAt} etaLeft={etaLeft}
                   onAck={() => act({ type: "ACK_ASSIGNMENT", at: stamp(), assignmentId: asg.id })}
                   onClear={() => act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "available" })} />
+
+                {/* Dispatcher-approved updates since dispatch; the officer confirms each one. */}
+                {(state.officerUpdates ?? []).filter((u) => u.assignmentId === asg.id && u.status === "sent").map((u) => (
+                  <section key={u.id} className="ot-update" role="alert">
+                    <h2>Update from dispatch · {fmtTime(u.sentAt)}</h2>
+                    <ul>
+                      {u.changes.map((c) => (
+                        <li key={c.key}><b>{c.label}:</b> {c.to}{c.from && <s>{c.from}</s>}</li>
+                      ))}
+                    </ul>
+                    <button type="button" className="dc-btn lg ot-update-ack" onClick={() => act({ type: "ACK_OFFICER_UPDATE", at: stamp(), updateId: u.id })}>
+                      Acknowledge update
+                    </button>
+                  </section>
+                ))}
 
                 <section className="ot-sec">
                   <h2>P{priority} · {URGENCY_LABEL[assessment.urgency]}</h2>

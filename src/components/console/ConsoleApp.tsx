@@ -16,8 +16,18 @@ import { formatEta, formatMiles } from "@/lib/recommend";
 import { scenarioById } from "@/lib/scenarios";
 import { act, newId, serverToLocal, stamp, useAppState, useTerminals } from "@/lib/store";
 import type { FieldKey, Incident, IncidentEvent, LatLng, Officer, Priority } from "@/lib/types";
+import { History, ListTodo, MessageSquareText, X } from "lucide-react";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
+import { OfficerUpdates } from "./OfficerUpdates";
+
+/** Pull-out tabs on the far left of the map. */
+type DrawerTab = "transcript" | "questions" | "log";
+const DRAWER_TABS: { id: DrawerTab; label: string; title: string; Icon: typeof History }[] = [
+  { id: "transcript", label: "Transcript", title: "Live transcript", Icon: MessageSquareText },
+  { id: "questions", label: "Questions", title: "AI questions", Icon: ListTodo },
+  { id: "log", label: "Activity", title: "AI and dispatcher log", Icon: History },
+];
 
 const ConsoleMap = dynamic(() => import("./ConsoleMap"), { ssr: false, loading: () => <div className="dc-map"><p className="dc-empty">Loading map…</p></div> });
 
@@ -64,6 +74,10 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const [flash, setFlash] = useState(0);
   const seqRef = useRef(0);
   const appliedSeqRef = useRef(0);
+
+  // Pull-out drawers over the map: all closed by default; badges count what arrived since last viewed.
+  const [drawer, setDrawer] = useState<DrawerTab | null>(null);
+  const [seen, setSeen] = useState({ transcript: 0, log: 0 });
 
   // ---------- setup: theme, clock, AI availability ----------
   useEffect(() => {
@@ -272,7 +286,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       const t = e.target as HTMLElement | null;
       if (e.metaKey || e.ctrlKey || e.altKey || t?.closest?.("input, textarea, select")) return;
       const k = e.key.toLowerCase();
-      if (k === "y") approveTeam();
+      if (k === "escape" && drawer) closeDrawer();
+      else if (k === "y") approveTeam();
       else if (k === "n") swapLast();
       else if (k === "e" && live) revealNext();
       else if (k === "t") toggleTheme();
@@ -292,6 +307,18 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     ? live && now ? fmtClock(now - incident.callStartedAt) : incident.callEndedAt ? fmtClock(incident.callEndedAt - incident.callStartedAt) : "--:--"
     : "--:--";
   const aiChip = geminiReady === null ? "Checking AI…" : mode === "gemini" ? (aiBusy ? "Gemini listening…" : "AI: Gemini") : "AI: prerecorded demo";
+
+  const transcriptCount = incident?.transcript.length ?? 0;
+  const logCount = events.filter((e) => e.type !== "transcript").length;
+  const openQuestions = open ? open.questions.filter((q) => q.state === "open" && open.fields[q.fieldKey].status === "unknown").length : 0;
+  const markSeen = () => setSeen({ transcript: transcriptCount, log: logCount });
+  const toggleDrawer = (t: DrawerTab) => { markSeen(); setDrawer((cur) => (cur === t ? null : t)); };
+  function closeDrawer() { markSeen(); setDrawer(null); }
+  const badges: Record<DrawerTab, number> = {
+    transcript: drawer === "transcript" ? 0 : Math.max(0, transcriptCount - seen.transcript),
+    questions: openQuestions,
+    log: drawer === "log" ? 0 : Math.max(0, logCount - seen.log),
+  };
 
   return (
     <div className={`dc ${fontClass}`} data-theme={theme} data-prio={shownPriority ?? ""}>
@@ -325,23 +352,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       </header>
 
       <div className="dc-cols">
-        {/* LEFT: the call */}
-        <section className="dc-col dc-left" aria-label="Call">
-          <div className="dc-col" style={{ flex: "3 1 0", minHeight: 0 }}>
-            <h2 className="dc-strip">Live transcript {live && <small>Listening…</small>}</h2>
-            <Transcript incident={incident} />
-          </div>
-          <div className="dc-col" style={{ flex: "2 1 0", minHeight: 0, borderTop: "1px solid var(--line)" }}>
-            <h2 className="dc-strip">Ask next <small>{mode === "gemini" ? "checklist + Gemini" : "checklist"}</small></h2>
-            <AskNext incident={open} geminiQuestions={mode === "gemini" ? geminiQuestions : []} />
-          </div>
-          <div className="dc-col" style={{ flex: "2 1 0", minHeight: 0, borderTop: "1px solid var(--line)" }}>
-            <h2 className="dc-strip">AI and dispatcher log <small>audit trail</small></h2>
-            <Log events={events} />
-          </div>
-        </section>
-
-        {/* CENTER: what to do next */}
+        {/* CENTER: what to do next, with the map as the main workspace */}
         <section className="dc-col dc-center" aria-label="Recommendation and map">
           <div className="dc-bar" data-mode={allOnScene ? "onscene" : dispatched ? "sent" : ""}>
             <div className="dc-bar-text">
@@ -401,7 +412,38 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
               <b>{o.callsign} terminal lost signal</b> {now ? fmtClock(Math.max(0, now - since)) : ""} ago. Last known position and route trail are on the map. Check on the unit.
             </div>
           ))}
-          <ConsoleMap officers={state.officers} incident={open} priority={shownPriority} routes={routes} teamIds={teamIds} theme={theme} fitKey={fitKey} lostIds={lost.map((x) => x.o.id)} />
+          <div className="dc-maprow">
+            <nav className="dc-rail" aria-label="Call tools">
+              {DRAWER_TABS.map(({ id, label, Icon }) => (
+                <button key={id} type="button" aria-pressed={drawer === id} aria-controls="dc-drawer" onClick={() => toggleDrawer(id)}>
+                  <Icon aria-hidden />
+                  {label}
+                  {badges[id] > 0 && <span className="dc-railbadge">{badges[id]}</span>}
+                </button>
+              ))}
+            </nav>
+            <div className="dc-mapwrap">
+              {/* The map never resizes or remounts when a drawer opens. */}
+              <ConsoleMap officers={state.officers} incident={open} priority={shownPriority} routes={routes} teamIds={teamIds} theme={theme} fitKey={fitKey} lostIds={lost.map((x) => x.o.id)} />
+              <aside id="dc-drawer" className={`dc-drawer${drawer ? " open" : ""}`} aria-hidden={!drawer} inert={!drawer}
+                aria-label={DRAWER_TABS.find((t) => t.id === drawer)?.title ?? "Drawer"}>
+                <h2 className="dc-strip">
+                  <span>{DRAWER_TABS.find((t) => t.id === drawer)?.title}{" "}
+                    {drawer === "transcript" && live && <small>Listening…</small>}
+                    {drawer === "questions" && <small>{mode === "gemini" ? "checklist + Gemini" : "checklist"}</small>}
+                    {drawer === "log" && <small>audit trail</small>}
+                  </span>
+                  <button type="button" className="dc-btn sm ghost" aria-label="Close drawer" onClick={closeDrawer}><X size={15} aria-hidden /></button>
+                </h2>
+                {/* Every pane stays mounted so live updates never pause; only the selected one shows. */}
+                <div className="dc-drawer-body">
+                  <div className={`dc-drawer-pane${drawer === "transcript" ? " on" : ""}`}><Transcript incident={incident} /></div>
+                  <div className={`dc-drawer-pane${drawer === "questions" ? " on" : ""}`}><AskNext incident={open} geminiQuestions={mode === "gemini" ? geminiQuestions : []} /></div>
+                  <div className={`dc-drawer-pane${drawer === "log" ? " on" : ""}`}><Log events={events} /></div>
+                </div>
+              </aside>
+            </div>
+          </div>
 
           <div className="dc-units">
             <h2 className="dc-strip">
@@ -426,6 +468,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
             <>
               <PriorityBlock incident={open} proposed={assessment.proposed} urgency={URGENCY_LABEL[assessment.urgency]} reasons={assessment.reasons}
                 override={override} setOverride={setOverride} />
+              {dispatched && <OfficerUpdates incident={open} assigned={assigned} updates={state.officerUpdates ?? []} />}
               <Fields incident={open} />
             </>
           ) : (
@@ -439,12 +482,14 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
 
 // ---------------- pieces ----------------
 function Transcript({ incident }: { incident: Incident | null }) {
+  // Scroll only this list (not the page) so it keeps following the call while its drawer is hidden.
+  const list = useRef<HTMLOListElement>(null);
   const end = useRef<HTMLLIElement>(null);
   const n = incident?.transcript.length ?? 0;
-  useEffect(() => { end.current?.scrollIntoView({ block: "end" }); }, [n]);
+  useEffect(() => { if (list.current) list.current.scrollTop = list.current.scrollHeight; }, [n]);
   if (!incident) return <p className="dc-empty">Choose a demo call to start.</p>;
   return (
-    <ol className="dc-transcript dc-scroll" aria-live="polite">
+    <ol ref={list} className="dc-transcript dc-scroll" aria-live="polite">
       {incident.transcript.map((s) => {
         const parts = s.highlight && s.text.includes(s.highlight) ? s.text.split(s.highlight) : null;
         return (

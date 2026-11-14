@@ -222,9 +222,15 @@ export default function ConsoleMap({
       el.style.zIndex = rec ? "6" : "4";
       el.classList.toggle("lost", lostIds.includes(o.id));
       const acc = o.mode === "foot" ? 8 : 5; // simulated GPS accuracy (m); vehicle GPS is ~3-10 m
-      el.innerHTML = `<span class="dc-halo" data-acc="${acc}" style="background:${color}22;border:1px solid ${color}88"></span>
+      const html = `<span class="dc-halo" data-acc="${acc}" style="background:${color}22;border:1px solid ${color}88"></span>
         <div class="dc-officer${rec ? " rec" : ""}"><div class="fig" style="border-color:${color}">${figure(color)}<i class="mode" title="${o.mode === "foot" ? "On foot" : "Vehicle"}">${ICON[o.mode]}</i></div>
         <span class="tag" style="border-color:${color}">${esc(o.callsign)}${TYPE_TAG[o.type]}</span></div>`;
+      // Rewrite the marker only when it actually changed: this effect runs on every console render
+      // (clock, sync, desk poll), and replacing innerHTML each time makes the figures flicker.
+      if (pinHtml.get(el) !== html) {
+        el.innerHTML = html;
+        pinHtml.set(el, html);
+      }
     });
     markers.current.forEach((m, id) => { if (!seen.has(id)) { m.remove(); markers.current.delete(id); } });
     sizeHalos(map);
@@ -321,10 +327,14 @@ function tuneDark(map: maplibregl.Map, firstLabel?: string) {
     paint: { "text-color": "#AEBACB", "text-halo-color": "#121922", "text-halo-width": 1.4 } });
 }
 
+/** Last HTML written into each unit marker, so unchanged markers are left alone. */
+const pinHtml = new WeakMap<HTMLElement, string>();
+
 function sizeHalos(map: maplibregl.Map) {
   const mpp = (156543.034 * Math.cos((map.getCenter().lat * Math.PI) / 180)) / 2 ** map.getZoom();
   map.getContainer().parentElement?.querySelectorAll<HTMLElement>(".dc-halo").forEach((h) => {
-    h.style.width = h.style.height = `${(2 * Number(h.dataset.acc)) / mpp}px`;
+    const px = `${(2 * Number(h.dataset.acc)) / mpp}px`;
+    if (h.style.width !== px) h.style.width = h.style.height = px;
   });
 }
 

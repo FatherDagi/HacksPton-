@@ -170,9 +170,11 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     const poll = async () => {
       try {
         const j = (await (await fetch("/api/desk", { cache: "no-store" })).json()) as { ok: boolean; calls?: DeskCall[] };
-        if (alive) setDesk({ ok: j.ok, calls: j.calls ?? [] });
+        const next = { ok: j.ok, calls: j.calls ?? [] };
+        // Keep the same object when nothing changed so polling doesn't re-render the console every second.
+        if (alive) setDesk((prev) => (prev && JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
       } catch {
-        if (alive) setDesk({ ok: false, calls: [] });
+        if (alive) setDesk((prev) => (prev && !prev.ok && prev.calls.length === 0 ? prev : { ok: false, calls: [] }));
       }
       if (alive) t = setTimeout(poll, 1000);
     };

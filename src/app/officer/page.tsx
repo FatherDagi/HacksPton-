@@ -1,12 +1,16 @@
+import { IBM_Plex_Sans, IBM_Plex_Sans_Condensed } from "next/font/google";
 import { Suspense } from "react";
-import { OfficerView } from "@/components/officer/OfficerView";
+import { Terminal } from "@/components/officer/Terminal";
 
-export const metadata = { title: "Officer · Emergency Dispatch Copilot (Simulation)" };
+const plex = IBM_Plex_Sans({ variable: "--font-plex", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const cond = IBM_Plex_Sans_Condensed({ variable: "--font-cond", subsets: ["latin"], weight: ["600", "700"] });
+
+export const metadata = { title: "Patrol terminal · Dispatch Copilot (Simulation)" };
 
 export default function OfficerPage() {
   return (
-    <Suspense fallback={<p className="p-4 text-sm text-faint">Loading…</p>}>
-      <OfficerView />
+    <Suspense>
+      <Terminal fontClass={`${plex.variable} ${cond.variable}`} />
     </Suspense>
   );
 }

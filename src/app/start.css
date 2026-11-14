@@ -1,0 +1,71 @@
+/* Start screen (/). Same night-shift palette as /console so the hand-off feels like one product. */
+.st {
+  --bg: #121922; --panel: #18212c; --raised: #1d2d44; --line: #2c394a;
+  --text: #d8e0ea; --muted: #9aa8b9; --faint: #7f8da0; --signal: #5ea8ff; --warn: #f0a43a;
+  --p1: #ff5d57; --p2: #f5a524; --p3: #4fa3ff; --p4: #9aa5b4;
+  min-height: 100vh; background: var(--bg); color: var(--text);
+  font: 16px/1.5 var(--font-plex), system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+}
+.st *, .st *::before, .st *::after { box-sizing: border-box; }
+
+/* Priority band: P1 to P4, the same colors the console stripes its header with. */
+.st-band { display: grid; grid-template-columns: 4fr 3fr 2fr 1fr; height: 5px; }
+.st-band i:nth-child(1) { background: var(--p1); }
+.st-band i:nth-child(2) { background: var(--p2); }
+.st-band i:nth-child(3) { background: var(--p3); }
+.st-band i:nth-child(4) { background: var(--p4); }
+
+.st-wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+@media (min-width: 720px) { .st-wrap { padding: 40px 40px 64px; } }
+
+.st-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px; font-size: 14px; }
+.st-org { margin: 0; color: var(--muted); }
+.st-sim { margin: 0; color: var(--warn); }
+
+.st-title {
+  margin: 56px 0 0; font: 700 clamp(44px, 8vw, 84px)/0.95 var(--font-cond), sans-serif;
+  letter-spacing: -0.01em;
+}
+.st-lede { margin: 14px 0 0; font-size: 19px; color: var(--muted); max-width: 40ch; }
+
+.st-roles { margin-top: 40px; display: grid; gap: 16px; }
+@media (min-width: 760px) { .st-roles { grid-template-columns: 1fr 1fr; gap: 20px; } }
+
+.st-role {
+  display: flex; flex-direction: column; gap: 10px; padding: 18px 18px 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  color: inherit; text-decoration: none;
+}
+a.st-role { border-left: 4px solid var(--signal); }
+a.st-role:hover { background: var(--raised); border-color: var(--signal); }
+a.st-role:focus-visible { outline: 3px solid #ffd166; outline-offset: 3px; }
+.st-role.off { cursor: default; }
+.st-role.off .st-sketch, .st-role.off .st-name { opacity: 0.6; }
+
+.st-name { margin-top: 6px; font: 700 34px/1 var(--font-cond), sans-serif; }
+.st-what { color: var(--muted); max-width: 52ch; }
+.st-foot { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; }
+.st-where { color: var(--faint); }
+.st-go { font-weight: 600; color: var(--bg); background: var(--signal); padding: 7px 14px; border-radius: 4px; }
+.st-soon { color: var(--faint); border: 1px solid var(--line); padding: 6px 12px; border-radius: 4px; }
+
+.st-rule { margin: 40px 0 0; color: var(--faint); font-size: 14px; }
+
+/* Screen sketches */
+.st-sketch { width: 100%; height: auto; display: block; }
+.st-sketch .frame { fill: var(--bg); stroke: var(--line); }
+.st-sketch .p1 { fill: var(--p1); }
+.st-sketch .ink rect { fill: var(--line); }
+.st-sketch .map { fill: #1a2633; stroke: var(--line); }
+.st-sketch .card { fill: var(--panel); stroke: var(--line); }
+.st-sketch .route { fill: none; stroke: var(--signal); stroke-width: 2.5; stroke-dasharray: 5 4; stroke-linecap: round; }
+.st-sketch .unit { fill: #3fd18a; }
+.st-sketch .inc { fill: var(--p1); }
+.st-sketch .btn { fill: var(--panel); stroke: var(--line); }
+.st-sketch .btn.a { fill: #3fd18a33; stroke: #3fd18a; }
+
+/* One moment of motion: the route on the dispatcher sketch draws toward the incident. */
+@media (prefers-reduced-motion: no-preference) {
+  a.st-role .route { animation: st-run 1.6s linear infinite; }
+  @keyframes st-run { to { stroke-dashoffset: -18; } }
+}

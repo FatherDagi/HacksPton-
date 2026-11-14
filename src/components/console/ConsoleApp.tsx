@@ -7,14 +7,14 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { assessConsole } from "@/lib/console/assess";
-import { along, estimate, fetchRoute, type RoutePlan } from "@/lib/console/routing";
+import { along, estimate, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
 import { pickTeam, teamNeeds, type Candidate } from "@/lib/console/team";
 import type { ExtractError, ExtractResponse } from "@/lib/extraction";
 import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
 import { URGENCY_LABEL } from "@/lib/priority";
 import { formatEta, formatMiles } from "@/lib/recommend";
 import { scenarioById } from "@/lib/scenarios";
-import { act, newId, stamp, useAppState } from "@/lib/store";
+import { act, newId, serverToLocal, stamp, useAppState, useTerminals } from "@/lib/store";
 import type { FieldKey, Incident, IncidentEvent, LatLng, Officer, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
@@ -47,6 +47,7 @@ function applyPrerecorded(inc: Incident, from: number, to: number) {
 
 export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const state = useAppState();
+  const terminals = useTerminals();
   const incident = state.incidents.find((i) => i.id === state.activeIncidentId) ?? null;
   const open = incident && incident.status !== "closed" ? incident : null;
   const scenario = incident ? scenarioById(incident.scenarioId) : null;
@@ -60,6 +61,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const [geminiQuestions, setGeminiQuestions] = useState<string[]>([]);
   const [plans, setPlans] = useState<Record<string, RoutePlan>>({});
   const [trips, setTrips] = useState<Record<string, Trip>>({});
+  const [dispatchRoutes, setDispatchRoutes] = useState<Record<string, LatLng[]>>({});
   const [flash, setFlash] = useState(0);
   const seqRef = useRef(0);
   const appliedSeqRef = useRef(0);
@@ -182,12 +184,16 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     if (dispatched) {
       return assigned.filter((x) => x.o.status === "responding").map(({ o }) => {
         const tr = trips[o.id];
-        const pts = tr ? [o.location, ...tr.route.slice(tr.next)] : [o.location, open.location];
+        const planned = dispatchRoutes[o.id];
+        const pts = tr ? [o.location, ...tr.route.slice(tr.next)] : planned ? remaining(planned, o.location) : [o.location, open.location];
         return { id: o.id, points: pts, foot: o.mode === "foot", kind: "assigned" as const };
       });
     }
     return team.map((c) => ({ id: c.officer.id, points: c.plan.route, foot: c.officer.mode === "foot", kind: "proposed" as const }));
   })();
+  // Terminals poll 4x a second; one silent for 5 s while on a call has lost signal (crash, ambush, dead battery).
+  const terminalOnline = (id: string) => !!terminals[id] && (now ?? 0) - serverToLocal(terminals[id]) < 5000;
+  const lost = assigned.filter(({ o }) => terminals[o.id] && !terminalOnline(o.id)).map(({ o }) => ({ o, since: serverToLocal(terminals[o.id]) }));
   const fitKey = open ? `${open.id}|${dispatched ? "sent" : team.map((c) => c.officer.id + (c.plan.real ? "r" : "e")).join(",")}` : "";
 
   // ---------- trips: officers travel their routes; positions sync to the officer page ----------
@@ -217,10 +223,12 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     const at = stamp();
     const started: Record<string, Trip> = {};
     for (const c of team) {
-      act({ type: "APPROVE_ASSIGNMENT", at, incidentId: open.id, officerId: c.officer.id, assignmentId: newId("asg"), etaSeconds: c.plan.etaSeconds });
-      started[c.officer.id] = { route: c.plan.route, t0: at, eta: c.plan.etaSeconds, k: 0, next: 1, incidentId: open.id };
+      act({ type: "APPROVE_ASSIGNMENT", at, incidentId: open.id, officerId: c.officer.id, assignmentId: newId("asg"), etaSeconds: c.plan.etaSeconds, route: c.plan.route });
+      // A unit signed in on a patrol terminal drives itself once the officer acknowledges; others are simulated here.
+      if (!terminalOnline(c.officer.id)) started[c.officer.id] = { route: c.plan.route, t0: at, eta: c.plan.etaSeconds, k: 0, next: 1, incidentId: open.id };
     }
     setTrips((p) => ({ ...p, ...started }));
+    setDispatchRoutes((p) => ({ ...p, ...Object.fromEntries(team.map((c) => [c.officer.id, c.plan.route])) }));
   };
   const swapLast = () => {
     if (!open || !team.length || dispatched) return;
@@ -289,7 +297,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   return (
     <div className={`dc ${fontClass}`} data-theme={theme} data-prio={shownPriority ?? ""}>
       <header className={`dc-head${flash ? " flash" : ""}`} key={`h${flash}`}>
-        <span className="dc-brand">Dispatch Copilot · Princeton Public Safety</span>
+        <Link href="/" className="dc-brand" title="Back to the start screen">Dispatch Copilot <small>Princeton Public Safety</small></Link>
         <span className="dc-sim">Simulation only</span>
         <span className={`dc-live${live ? " on" : ""}`}><span className="dc-dot" />{live ? "Call in progress" : incident ? "Call ended" : "No call"} · {callClock}</span>
         {incident && <span style={{ color: "var(--muted)" }}>{incident.number}</span>}
@@ -313,7 +321,6 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
         <button type="button" className="dc-btn ghost" onClick={() => { if (confirm("Reset the demo? All simulated incidents and unit positions go back to the start.")) { setTrips({}); act({ type: "RESET" }); } }}>Reset demo</button>
         <nav className="dc-nav" aria-label="Pages">
           <Link href="/dispatch">Classic view</Link>
-          <Link href="/officer" target="_blank">Officer</Link>
           <Link href="/incidents">Incidents</Link>
         </nav>
       </header>
@@ -346,7 +353,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                 </>
               ) : dispatched ? (
                 <>
-                  <span className="dc-kicker" aria-live="polite">{allOnScene ? "On scene" : "Sent · details on officer phones"}</span>
+                  <span className="dc-kicker" aria-live="polite">{allOnScene ? "On scene" : "Sent to patrol terminals"}</span>
                   <span className="dc-team">
                     {assigned.map(({ o, a }) => {
                       const tr = trips[o.id];
@@ -354,7 +361,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                       return (
                         <span key={o.id}>
                           <span style={{ color: STATUS_VAR[o.status] }}>●</span>{o.callsign}
-                          <small>{o.status === "on_scene" ? "on scene" : tr ? `ETA ${fmtClock(left * 1000)}` : STATUS_LABEL[o.status]}{a.acknowledgedAt ? " · acknowledged" : ""}</small>
+                          <small>{o.status === "on_scene" ? "on scene" : tr ? `ETA ${fmtClock(left * 1000)}` : a.acknowledgedAt ? "en route" : "waiting for officer to acknowledge"}{tr && a.acknowledgedAt ? " · acknowledged" : ""}</small>
                         </span>
                       );
                     })}
@@ -390,7 +397,12 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
             </div>
           </div>
 
-          <ConsoleMap officers={state.officers} incident={open} priority={shownPriority} routes={routes} teamIds={teamIds} theme={theme} fitKey={fitKey} />
+          {lost.map(({ o, since }) => (
+            <div key={o.id} className="dc-lost" role="alert">
+              <b>{o.callsign} terminal lost signal</b> {now ? fmtClock(Math.max(0, now - since)) : ""} ago. Last known position and route trail are on the map. Check on the unit.
+            </div>
+          ))}
+          <ConsoleMap officers={state.officers} incident={open} priority={shownPriority} routes={routes} teamIds={teamIds} theme={theme} fitKey={fitKey} lostIds={lost.map((x) => x.o.id)} />
 
           <div className="dc-units">
             <h2 className="dc-strip">

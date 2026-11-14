@@ -31,7 +31,7 @@ const ICON = {
   foot: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M9.8 8.9L7 20h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 12v-2a5 5 0 0 1-4.3-2.4l-1-1.6a2 2 0 0 0-2.5-.8L6 7.3V12h2V8.6z"/></svg>',
 };
 const TYPE_TAG = { police: "", ems: " EMS", fire: " FIRE" };
-// Position updates arrive every ~300-500 ms (trip ticks, phone GPS). Glide linearly to each new point,
+// Position updates arrive every ~300-500 ms (trip ticks, patrol car GPS). Glide linearly to each new point,
 // taking as long as the gap since the previous update, so units move at a steady pace with no pauses.
 // A new target mid-glide starts from where the marker is.
 const glides = new WeakMap<maplibregl.Marker, { raf: number; target: string; last: number }>();
@@ -58,7 +58,7 @@ function glide(m: maplibregl.Marker, to: [number, number]) {
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 export default function ConsoleMap({
-  officers, incident, priority, routes, teamIds, theme, fitKey,
+  officers, incident, priority, routes, teamIds, theme, fitKey, lostIds = [],
 }: {
   officers: Officer[];
   incident: Incident | null;
@@ -67,7 +67,10 @@ export default function ConsoleMap({
   teamIds: string[];
   theme: "dark" | "light";
   fitKey: string;
+  /** Units whose terminal stopped reporting: drawn with a warning ring. */
+  lostIds?: string[];
 }) {
+  const trails = useRef(new Map<string, LatLng[]>());
   const box = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markers = useRef(new Map<string, maplibregl.Marker>());
@@ -138,6 +141,9 @@ export default function ConsoleMap({
       map.addLayer({ id: "inc-bldg-fill", type: "fill", source: "inc-bldg", paint: { "fill-color": cssVar("--p1"), "fill-opacity": 0.2 } }, firstLabel);
       map.addLayer({ id: "inc-bldg-line", type: "line", source: "inc-bldg", paint: { "line-color": cssVar("--p1"), "line-width": 2.5 } }, firstLabel);
 
+      map.addSource("trails", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+      map.addLayer({ id: "trails", type: "line", source: "trails", layout: { "line-join": "round", "line-cap": "round" },
+        paint: { "line-color": cssVar("--onscene"), "line-width": 3, "line-opacity": 0.85, "line-dasharray": [1, 1.5] } });
       map.addSource("routes", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
       const color = ["match", ["get", "kind"], "assigned", cssVar("--sent"), cssVar("--available")] as unknown as string;
       map.addLayer({ id: "routes-casing", type: "line", source: "routes", layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": cssVar("--casing"), "line-width": 9 } });
@@ -147,8 +153,14 @@ export default function ConsoleMap({
       setReady((r) => r + 1);
     });
     map.on("zoom", () => sizeHalos(map));
+    // Panels sliding in/out change the map's size: resize, then refit the call once the size settles.
+    let refit = 0;
+    const ro = new ResizeObserver(() => { map.resize(); clearTimeout(refit); refit = window.setTimeout(() => fitTo(map, latest.current.incident, latest.current.routes), 200); });
+    ro.observe(box.current!);
 
     return () => {
+      ro.disconnect();
+      clearTimeout(refit);
       markerMap.forEach((m) => m.remove());
       markerMap.clear();
       map.remove();
@@ -189,6 +201,12 @@ export default function ConsoleMap({
     const seen = new Set<string>();
     officers.forEach((o, n) => {
       seen.add(o.id);
+      // Breadcrumb trail of every unit on a call: dispatch keeps the last known path even if the signal drops.
+      if (o.status === "responding" || o.status === "on_scene") {
+        const tr = trails.current.get(o.id) ?? [];
+        const last = tr[tr.length - 1];
+        if (!last || Math.abs(last[0] - o.location[0]) + Math.abs(last[1] - o.location[1]) > 0.00003) trails.current.set(o.id, [...tr, o.location].slice(-400));
+      } else trails.current.delete(o.id);
       let m = markers.current.get(o.id);
       if (!m) {
         const el = document.createElement("div");
@@ -202,14 +220,19 @@ export default function ConsoleMap({
       glide(m, ll(at));
       const el = m.getElement();
       el.style.zIndex = rec ? "6" : "4";
-      const acc = o.mode === "foot" ? 8 : 5; // simulated GPS accuracy (m); phone GPS outdoors is ~3-10 m
+      el.classList.toggle("lost", lostIds.includes(o.id));
+      const acc = o.mode === "foot" ? 8 : 5; // simulated GPS accuracy (m); vehicle GPS is ~3-10 m
       el.innerHTML = `<span class="dc-halo" data-acc="${acc}" style="background:${color}22;border:1px solid ${color}88"></span>
         <div class="dc-officer${rec ? " rec" : ""}"><div class="fig" style="border-color:${color}">${figure(color)}<i class="mode" title="${o.mode === "foot" ? "On foot" : "Vehicle"}">${ICON[o.mode]}</i></div>
         <span class="tag" style="border-color:${color}">${esc(o.callsign)}${TYPE_TAG[o.type]}</span></div>`;
     });
     markers.current.forEach((m, id) => { if (!seen.has(id)) { m.remove(); markers.current.delete(id); } });
     sizeHalos(map);
-  }, [officers, teamIds, theme, ready]);
+    (map.getSource("trails") as maplibregl.GeoJSONSource | undefined)?.setData({
+      type: "FeatureCollection",
+      features: [...trails.current.values()].filter((tr) => tr.length > 1).map((tr) => ({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: tr.map(ll) } })),
+    });
+  }, [officers, teamIds, theme, ready, lostIds]);
 
   // ---- incident pin + building outline ----
   useEffect(() => {
@@ -235,16 +258,7 @@ export default function ConsoleMap({
   }, [incident, priority, ready]);
 
   // ---- fit to incident + routes when the plan changes ----
-  const fit = () => {
-    const map = mapRef.current;
-    const { incident: inc, routes: rs } = latest.current;
-    if (!map || !inc) return;
-    const pts: LatLng[] = [inc.location, ...rs.flatMap((r) => r.points)];
-    const b = new maplibregl.LngLatBounds(ll(pts[0]), ll(pts[0]));
-    pts.forEach((p) => b.extend(ll(p)));
-    map.resize();
-    map.fitBounds(b, { padding: { top: 70, left: 60, right: 70, bottom: 40 }, maxZoom: 17.4, pitch: map.getPitch(), duration: 600 });
-  };
+  const fit = () => fitTo(mapRef.current, latest.current.incident, latest.current.routes);
   useEffect(() => {
     if (fitKey) fit(); // refit only when the plan identity changes
   }, [fitKey, ready]);
@@ -272,6 +286,15 @@ export default function ConsoleMap({
 }
 
 // ---- helpers ----
+function fitTo(map: maplibregl.Map | null, inc: Incident | null, rs: ConsoleRoute[]) {
+  if (!map || !inc) return;
+  const pts: LatLng[] = [inc.location, ...rs.flatMap((r) => r.points)];
+  const b = new maplibregl.LngLatBounds(ll(pts[0]), ll(pts[0]));
+  pts.forEach((p) => b.extend(ll(p)));
+  map.resize();
+  map.fitBounds(b, { padding: { top: 70, left: 60, right: 110, bottom: 60 }, maxZoom: 17.4, pitch: map.getPitch(), duration: 600 });
+}
+
 function applyBase(map: maplibregl.Map, base: Base) {
   (["sat", "nj"] as const).forEach((id) => map.getLayer(id) && map.setLayoutProperty(id, "visibility", base === id ? "visible" : "none"));
   // 3D blocks would hide rooftops in the photos, so they only show on the street map.

@@ -156,6 +156,8 @@ export interface DispatchAssignment {
   approvedAt: number;
   acknowledgedAt: number | null;
   clearedAt: number | null;
+  /** Route the dispatcher approved (sent to the unit's terminal). */
+  route?: LatLng[];
 }
 
 export type EventActor = "system" | "demo" | "ai" | "dispatcher" | "officer";

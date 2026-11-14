@@ -77,3 +77,11 @@ export function along(route: LatLng[], k: number): { at: LatLng; next: number } 
   const f = (d - cum[i - 1]) / (cum[i] - cum[i - 1] || 1);
   return { at: [route[i - 1][0] + (route[i][0] - route[i - 1][0]) * f, route[i - 1][1] + (route[i][1] - route[i - 1][1]) * f], next: i };
 }
+
+/** The part of a planned route still ahead of a unit at `at` (nearest vertex onward). */
+export function remaining(route: LatLng[], at: LatLng): LatLng[] {
+  let best = 0, bd = Infinity;
+  route.forEach(([la, ln], i) => { const d = (la - at[0]) ** 2 + (ln - at[1]) ** 2; if (d < bd) { bd = d; best = i; } });
+  const rest = route.slice(best + 1);
+  return [at, ...(rest.length ? rest : route.slice(-1))]; // always keep the destination
+}

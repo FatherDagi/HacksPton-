@@ -1,6 +1,4 @@
 "use client";
-import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { formatEta, formatMiles, planRoute } from "@/lib/recommend";
 import { act, newId } from "@/lib/store";
@@ -41,11 +39,8 @@ export function UnitsPanel({
             </p>
             <div className="mt-1 flex items-center gap-3 text-[12.5px]">
               <OfficerStatusBadge status={assignedOfficer.status} />
-              <span className="text-sub">{assignment.acknowledgedAt ? "Acknowledged on officer page" : "Waiting for officer to acknowledge"}</span>
+              <span className="text-sub">{assignment.acknowledgedAt ? "Acknowledged on patrol terminal" : "Sent to patrol terminal"}</span>
             </div>
-            <Link href={`/officer?unit=${assignedOfficer.id}`} target="_blank" className="mt-1.5 inline-flex items-center gap-1 text-[12.5px] text-[#8fb6f5] hover:underline">
-              Open {assignedOfficer.callsign} officer page <ExternalLink size={12} />
-            </Link>
           </div>
         ) : top ? (
           <div>

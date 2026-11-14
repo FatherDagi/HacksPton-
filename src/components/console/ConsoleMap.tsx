@@ -31,6 +31,30 @@ const ICON = {
   foot: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="13" cy="4" r="2"/><path d="M9.8 8.9L7 20h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3A7.3 7.3 0 0 0 19 12v-2a5 5 0 0 1-4.3-2.4l-1-1.6a2 2 0 0 0-2.5-.8L6 7.3V12h2V8.6z"/></svg>',
 };
 const TYPE_TAG = { police: "", ems: " EMS", fire: " FIRE" };
+// Position updates arrive every ~300-500 ms (trip ticks, phone GPS). Glide linearly to each new point,
+// taking as long as the gap since the previous update, so units move at a steady pace with no pauses.
+// A new target mid-glide starts from where the marker is.
+const glides = new WeakMap<maplibregl.Marker, { raf: number; target: string; last: number }>();
+function glide(m: maplibregl.Marker, to: [number, number]) {
+  const g = glides.get(m);
+  const key = to.join();
+  if (g?.target === key) return; // same point re-rendered: let the current glide finish
+  if (g) cancelAnimationFrame(g.raf);
+  const now = performance.now();
+  const from = m.getLngLat();
+  const dx = to[0] - from.lng, dy = to[1] - from.lat;
+  if (!g || Math.abs(dx) + Math.abs(dy) > 0.02) { m.setLngLat(to); glides.set(m, { raf: 0, target: key, last: now }); return; } // first fix, or a teleport (reset)
+  const gap = now - g.last;
+  const ms = gap > 1000 ? 400 : Math.max(150, gap); // first move after a rest: assume the usual tick
+  const state = { raf: 0, target: key, last: now };
+  glides.set(m, state);
+  const step = (t: number) => {
+    const k = Math.min(1, (t - now) / ms);
+    m.setLngLat([from.lng + dx * k, from.lat + dy * k]);
+    if (k < 1) state.raf = requestAnimationFrame(step);
+  };
+  state.raf = requestAnimationFrame(step);
+}
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
 export default function ConsoleMap({
@@ -169,13 +193,13 @@ export default function ConsoleMap({
       if (!m) {
         const el = document.createElement("div");
         el.className = "dc-pin";
-        m = new maplibregl.Marker({ element: el }).setLngLat(ll(o.location)).addTo(map);
+        m = new maplibregl.Marker({ element: el, subpixelPositioning: true }).setLngLat(ll(o.location)).addTo(map);
         markers.current.set(o.id, m);
       }
       const color = cssVar(STATUS_VAR[o.status]);
       const rec = teamIds.includes(o.id) && o.status !== "on_scene";
       const at: LatLng = o.status === "on_scene" ? [o.location[0], o.location[1] + n * 0.00011] : o.location;
-      m.setLngLat(ll(at));
+      glide(m, ll(at));
       const el = m.getElement();
       el.style.zIndex = rec ? "6" : "4";
       const acc = o.mode === "foot" ? 8 : 5; // simulated GPS accuracy (m); phone GPS outdoors is ~3-10 m

@@ -210,29 +210,35 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const deskCalls = useMemo(() => desk?.calls ?? [], [desk]);
   const deskLiveCalls = deskCalls.filter((c) => c.status === "live");
   useEffect(() => { lastLive.current = deskLiveCalls.length > 0; }, [deskLiveCalls.length]);
-  const ringing = deskLiveCalls.filter((c) => !deskAnswered(c));
   const bridgedCall = open?.deskCallId ? deskCalls.find((c) => c.id === open.deskCallId) ?? null : null;
 
   // Auto-take: when the dispatcher answers (or a desk practice call starts), open the call as an
   // incident and switch this screen to its tab. The id is the same on every screen, so it opens once.
   const [connected, setConnected] = useState<Record<string, number>>({});
+  const [opened, setOpened] = useState<Set<string>>(() => new Set());
   const switchedTo = useRef<Set<string>>(new Set());
+  /** Open a desk call as its incident (if it isn't yet) and show its tab on this screen, right now. */
+  const openDeskCall = useCallback((c: DeskCall, showConnected: boolean) => {
+    switchedTo.current.add(c.id);
+    const at = Date.now();
+    const incidentId = deskIncidentId(c.id);
+    if (!state.incidents.some((i) => i.id === incidentId)) {
+      act({ type: "START_LIVE_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, deskCallId: c.id, callerLanguage: c.callerLanguage });
+    }
+    setMode(geminiReady ? "gemini" : "prerecorded");
+    setViewId(incidentId);
+    setOpened((p) => new Set(p).add(c.id));
+    if (showConnected) setConnected((p) => ({ ...p, [c.id]: at }));
+  }, [state.incidents, geminiReady]);
   useEffect(() => {
     for (const c of deskLiveCalls) {
       if (!deskAnswered(c) || switchedTo.current.has(c.id)) continue;
       switchedTo.current.add(c.id);
-      const at = Date.now();
-      const incidentId = deskIncidentId(c.id);
-      if (!state.incidents.some((i) => i.id === incidentId)) {
-        act({ type: "START_LIVE_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, deskCallId: c.id, callerLanguage: c.callerLanguage });
-      }
-      setTimeout(() => {
-        setMode(geminiReady ? "gemini" : "prerecorded");
-        setViewId(incidentId);
-        setConnected((p) => ({ ...p, [c.id]: at }));
-      }, 0);
+      setTimeout(() => openDeskCall(c, true), 0);
     }
-  }, [deskLiveCalls, state.incidents, geminiReady]);
+  }, [deskLiveCalls, openDeskCall]);
+  // Ringing = live phone call nobody has answered and the dispatcher hasn't opened by clicking the alert.
+  const ringing = deskLiveCalls.filter((c) => !deskAnswered(c) && !opened.has(c.id));
 
   // Mirror every live desk call's transcript into its incident (not only the tab on screen); run Gemini
   // once the caller has paused; end the console call when the desk call ends.
@@ -282,7 +288,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   }, [openIncidents, deskCalls]);
 
   // Banner over the map: ringing calls, then "Connected" for a few seconds after auto-take.
-  const recentlyConnected = deskLiveCalls.filter((c) => connected[c.id] && now !== null && now - connected[c.id] < 5000);
+  const recentlyConnected = deskLiveCalls.filter((c) => connected[c.id] && now !== null && now - connected[c.id] < 1500);
 
   // ---------- priority (AI proposal; dispatcher confirms or overrides) ----------
   const assessment = open ? assessConsole(open.category, open.fields) : null;
@@ -574,23 +580,24 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
               {(ringing.length > 0 || recentlyConnected.length > 0) && (
                 <div className="dc-callbanners" role="alert" aria-live="assertive">
                   {ringing.map((c) => (
-                    <div key={c.id} className="dc-callbanner ringing">
+                    // Clicking opens the call's incident tab immediately (no waiting for the answer).
+                    <button key={c.id} type="button" className="dc-callbanner ringing" onClick={() => openDeskCall(c, false)}>
                       <span className="dc-callbanner-icon" aria-hidden>☎</span>
-                      <div>
+                      <span className="dc-callbanner-main">
                         <b>Incoming emergency call</b>
                         <span>{c.from ?? "Unknown number"}{c.callerLanguage && !/^english$/i.test(c.callerLanguage) ? ` · ${c.callerLanguage}` : ""}</span>
-                      </div>
+                      </span>
                       <span className="dc-callbanner-time">Ringing {now ? fmtClock(Math.max(0, now - c.startedAt)) : ""}</span>
-                      <span className="dc-callbanner-hint">Opens here when the dispatcher answers</span>
-                    </div>
+                      <span className="dc-callbanner-hint">Click to open this call now · opens on its own when answered</span>
+                    </button>
                   ))}
                   {recentlyConnected.map((c) => (
                     <div key={c.id} className="dc-callbanner connected">
                       <span className="dc-callbanner-icon" aria-hidden>✓</span>
-                      <div>
+                      <span className="dc-callbanner-main">
                         <b>Call connected</b>
-                        <span>{c.from ?? (c.source === "mic" ? "Desk practice call" : "Unknown number")} · transcript and incident sheet are live</span>
-                      </div>
+                        <span>{c.from ?? (c.source === "mic" ? "Desk practice call" : "Unknown number")}</span>
+                      </span>
                     </div>
                   ))}
                 </div>

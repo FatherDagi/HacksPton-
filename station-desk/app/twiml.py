@@ -70,12 +70,17 @@ def voice_twiml(from_number, public_base_url, desk_number):
     )
 
     if desk:
+        # Twilio calls /twilio/answered the moment the station phone picks up, so the console can
+        # open the call immediately instead of waiting for the dispatcher's first words.
+        answered = public_base_url.strip().rstrip("/") + "/twilio/answered"
         body = (
             "<Say>This call is recorded and transcribed for dispatch. Connecting you to the station.</Say>"
             "<Start>{stream}</Start>"
-            '<Dial answerOnBridge="true" timeout="25">{desk}</Dial>'
+            '<Dial answerOnBridge="true" timeout="25">'
+            '<Number statusCallbackEvent="answered" statusCallback="{answered}" statusCallbackMethod="POST">{desk}</Number>'
+            "</Dial>"
             "<Say>The station did not answer. Please call back.</Say>"
-        ).format(stream=stream, desk=xml_escape(desk))
+        ).format(stream=stream, desk=xml_escape(desk), answered=xml_escape(answered))
     else:
         body = (
             "<Say>You have reached station dispatch. This call is recorded and transcribed. "

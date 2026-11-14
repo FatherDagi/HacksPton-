@@ -224,6 +224,26 @@ class DeskApiTests(unittest.TestCase):
         removed = self.client.delete("/api/officers/{}".format(officer["id"]))
         self.assertEqual(removed.status_code, 200)
 
+    def test_station_answer_callback_marks_the_call_answered(self):
+        import app.main as desk_main
+
+        call = desk_main.store.open_call("phone", "+15550002", "CA-answer-test")
+        os.environ["PUBLIC_BASE_URL"] = "https://desk.example.com"
+        os.environ["TWILIO_AUTH_TOKEN"] = "secret"
+        form = {"ParentCallSid": "CA-answer-test", "CallSid": "CA-child", "CallStatus": "in-progress"}
+        try:
+            unsigned = self.client.post("/twilio/answered", data=form)
+            self.assertEqual(unsigned.status_code, 403)
+            signed = self.client.post("/twilio/answered", data=form, headers={"X-Twilio-Signature": twilio_signature(
+                "https://desk.example.com/twilio/answered", form, "secret")})
+            self.assertEqual(signed.status_code, 200)
+        finally:
+            os.environ["TWILIO_AUTH_TOKEN"] = ""
+            os.environ["PUBLIC_BASE_URL"] = ""
+        snapshot = self.client.get("/api/snapshot").json()
+        found = next(c for c in snapshot["calls"] if c["id"] == call["id"])
+        self.assertTrue(found["answered"])
+
     def test_console_snapshot_and_phone_stream(self):
         with self.client.websocket_connect("/ws/console") as socket:
             message = socket.receive_json()

@@ -45,8 +45,9 @@ class Pipeline(object):
         self.reply_buffer = {}
         # Line breaks come from the audio: a speaker's "utterance" ends after LINE_PAUSE_S of silence.
         self.voice = {}  # (call_id, speaker) -> {"last": t of last voiced audio, "uid": n, "starts": [(t, uid)]}
-        self.line_speaker = {}  # call_id -> speaker of the open line
-        self.line_uid = {}  # call_id -> utterance id of the open line
+        # Each speaker keeps their own open line, so the other person talking over them (or phone bleed)
+        # does not chop it up: (call_id, speaker) -> {"uid": utterance id, "index": transcript line index}
+        self.open_line = {}
 
     async def add_phone_audio(self, call_id, track, payload):
         speaker = "Call-taker" if track == "outbound" else "Caller"
@@ -118,10 +119,9 @@ class Pipeline(object):
         self.failed = set(key for key in self.failed if key[0] != call_id)
         self.reply_buffer.pop(call_id, None)
         self.caller_language.pop(call_id, None)
-        for book in (self.line_speaker, self.line_uid):
-            book.pop(call_id, None)
-        for key in [k for k in self.voice if k[0] == call_id]:
-            self.voice.pop(key, None)
+        for book in (self.voice, self.open_line):
+            for key in [k for k in book if k[0] == call_id]:
+                book.pop(key, None)
 
     async def _send_session(self, call_id, speaker, pcm, target, text_from):
         key = (call_id, speaker, target, text_from)
@@ -200,10 +200,12 @@ class Pipeline(object):
         if not samples:
             return
         level = sum(abs(s) for s in samples[::4]) / len(samples[::4])
-        if level < VOICE_LEVEL:
+        v = self.voice.setdefault((call_id, speaker), {"last": None, "uid": 0, "starts": [], "floor": None})
+        # Adapt to each line's background noise: speech must be well above the quietest recent level.
+        v["floor"] = level if v["floor"] is None else min(level, v["floor"] + 3)
+        if level < max(VOICE_LEVEL, v["floor"] * 3):
             return
         now = time.monotonic()
-        v = self.voice.setdefault((call_id, speaker), {"last": None, "uid": 0, "starts": []})
         if v["last"] is None or now - v["last"] >= LINE_PAUSE_S:
             v["uid"] += 1
             v["starts"].append((now, v["uid"]))
@@ -235,19 +237,28 @@ class Pipeline(object):
             return
         if commit:
             uid = self._utterance_for_text(call_id, speaker)
-            same_line = self.line_speaker.get(call_id) == speaker and self.line_uid.get(call_id) == uid
-            last_line = (call or {}).get("transcript") or []
-            restated = (
-                same_line and last_line and last_line[-1]["speaker"] == speaker
-                and _norm(text).startswith(_norm(last_line[-1]["text"]))
+            lines = (call or {}).get("transcript") or []
+            ol = self.open_line.get((call_id, speaker))
+            # Keep adding to this speaker's line while they haven't paused for LINE_PAUSE_S, even if the
+            # other person said something in between (only a few lines back, so order stays readable).
+            same = (
+                ol is not None and ol["uid"] == uid and ol["index"] < len(lines)
+                and lines[ol["index"]]["speaker"] == speaker and len(lines) - 1 - ol["index"] <= 3
             )
-            if restated:
-                # The model re-sent the whole line with more words: replace it instead of repeating it.
-                self.store.replace_last_line(call_id, speaker, " ".join(text.split()))
+            if same:
+                current = lines[ol["index"]]["text"]
+                if _norm(text).startswith(_norm(current)):
+                    # The model re-sent the whole line with more words: replace it instead of repeating it.
+                    self.store.update_line(call_id, ol["index"], speaker, " ".join(text.split()))
+                else:
+                    extra = strip_overlap(current, text)
+                    if extra:
+                        self.store.update_line(call_id, ol["index"], speaker, current + " " + extra)
+                index = ol["index"]
             else:
-                self.store.append_line(call_id, speaker, fresh, continue_line=same_line)
-            self.line_speaker[call_id] = speaker
-            self.line_uid[call_id] = uid
+                written = self.store.append_line(call_id, speaker, text)
+                index = len((written or {}).get("transcript") or lines) - 1
+            self.open_line[(call_id, speaker)] = {"uid": uid, "index": index}
             asyncio.create_task(self._refine_keywords(call_id))
         else:
             self.store.set_partial(call_id, speaker, fresh)

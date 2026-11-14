@@ -92,12 +92,16 @@ phone_legs = {}
 rooms = {}
 
 
+answered_sids = set()  # Twilio CallSids of calls whose station phone has picked up
+
+
 def annotated_snapshot():
     snap = store.snapshot()
     for call in snap["calls"]:
         code = pipeline.caller_language.get(call["id"])
         if code:
             call["caller_language"] = language_name(code)
+        call["answered"] = bool(call.get("call_sid")) and call["call_sid"] in answered_sids
     return snap
 
 
@@ -208,7 +212,24 @@ def index():
 
 @app.get("/api/snapshot")
 def snapshot():
-    return store.snapshot()
+    return annotated_snapshot()
+
+
+@app.post("/twilio/answered")
+async def twilio_answered(request: Request):
+    """Twilio status callback: the station phone answered (event 'answered' on the dialed number)."""
+    form = await request.form()
+    params = {key: str(form.get(key)) for key in form.keys()}
+    token = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
+    signed_url = public_voice_url(request.url.path, request.url.query)
+    if token and not valid_twilio_request(signed_url, params, request.headers.get("X-Twilio-Signature", ""), token):
+        raise HTTPException(403, "Twilio signature did not match.")
+    parent = params.get("ParentCallSid", "").strip()
+    if parent and params.get("CallStatus", "in-progress") in ("in-progress", "answered"):
+        answered_sids.add(parent)
+        log.info("station phone answered for %s", redact(parent))
+        await publish()
+    return Response(content="<Response/>", media_type="application/xml")
 
 
 @app.post("/api/officers")

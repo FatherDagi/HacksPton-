@@ -200,15 +200,22 @@ class DeskStore(object):
 
     def replace_last_line(self, call_id, speaker, text):
         """Replace the last line's words (the model re-sent the same line with more words)."""
+        call = self.get_call(call_id)
+        if not call or not call["transcript"]:
+            return None
+        return self.update_line(call_id, len(call["transcript"]) - 1, speaker, text)
+
+    def update_line(self, call_id, index, speaker, text):
+        """Set the words of one transcript line (a speaker's line that is still open)."""
         text = " ".join(str(text or "").split())
         with self.lock:
             row = self.conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()
             if row is None:
                 return None
             transcript = json.loads(row["transcript_json"])
-            if not text or not transcript or transcript[-1]["speaker"] != speaker:
+            if not text or not (0 <= index < len(transcript)) or transcript[index]["speaker"] != speaker:
                 return None
-            transcript[-1]["text"] = text
+            transcript[index]["text"] = text
             self.partials.pop(call_id, None)
             keywords = find_keywords([line["text"] for line in transcript])
             self.conn.execute(

@@ -13,6 +13,7 @@ interface DeskCall {
   ended_at: string | number | null;
   source: string;
   from_number?: string | null;
+  answered?: boolean;
   transcript: DeskLine[];
   partial: { speaker: string; text: string } | null;
   caller_language?: string;
@@ -35,6 +36,7 @@ export async function GET() {
       endedAt: ms(c.ended_at),
       source: String(c.source ?? ""),
       from: c.from_number ? String(c.from_number).slice(0, 40) : null,
+      answered: c.answered === true,
       callerLanguage: c.caller_language ?? null,
       transcript: (c.transcript ?? []).slice(-200).map((l) => ({ t: ms(l.t) ?? 0, speaker: String(l.speaker), text: String(l.text).slice(0, 2000) })),
       partial: c.partial?.text ? { speaker: String(c.partial.speaker), text: String(c.partial.text).slice(0, 2000) } : null,

@@ -10,6 +10,8 @@ export interface DeskCall {
   endedAt: number | null;
   source: string;
   from: string | null;
+  /** Twilio reported that the station phone picked up. */
+  answered: boolean;
   callerLanguage: string | null;
   transcript: DeskLine[];
   partial: { speaker: string; text: string } | null;
@@ -72,9 +74,13 @@ export function deskSegments(call: DeskCall): TranscriptSegment[] {
   }));
 }
 
-/** A phone call counts as answered once the call-taker is heard; a desk practice call (mic) at once. */
+/**
+ * A phone call counts as answered as soon as Twilio says the station phone picked up (instant), or,
+ * as a fallback, once the call-taker is heard. A desk practice call (mic) counts at once.
+ */
 export function deskAnswered(call: DeskCall): boolean {
   if (call.source !== "phone") return true;
+  if (call.answered) return true;
   return call.transcript.some((l) => deskSpeaker(l.speaker) === "dispatcher") || (!!call.partial && deskSpeaker(call.partial.speaker) === "dispatcher");
 }
 

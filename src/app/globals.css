@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0b1220;
+  --color-panel: #0f1829;
+  --color-panel2: #142037;
+  --color-line: #1f2b42;
+  --color-line2: #2a3a57;
+  --color-ink: #e3e8f0;
+  --color-sub: #a3aec0;
+  --color-faint: #8592a7;
+  --color-accent: #4a8cf0;
+  --color-accent-strong: #2f6fd6;
+  --color-alert: #ef5b52;
+  --color-warn: #e8913f;
+  --color-ok: #43b57f;
+  --color-busy: #8e98aa;
+
+  --color-st-available: #43b57f;
+  --color-st-busy: #8e98aa;
+  --color-st-responding: #4a8cf0;
+  --color-st-on_scene: #e8913f;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Thin, quiet scrollbars inside panels */
+.panel-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line2) transparent;
+  overscroll-behavior: contain;
+}
+
+/* Darken OpenStreetMap tiles to sit inside the dark console */
+.dark-tiles .leaflet-tile-pane {
+  filter: brightness(0.82) invert(1) contrast(0.88) hue-rotate(200deg) saturate(0.35);
+}
+.leaflet-container {
+  background: #0d1526;
+  font-family: var(--font-sans);
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip,
+.leaflet-tooltip {
+  background: #142037;
+  color: #e3e8f0;
+  border: 1px solid #2a3a57;
+  border-radius: 3px;
+  box-shadow: none;
+}
+.leaflet-tooltip-top:before { border-top-color: #2a3a57; }
+.leaflet-popup-content { margin: 10px 12px; font-size: 13px; line-height: 1.45; }
+.leaflet-control-attribution {
+  background: rgba(11, 18, 32, 0.8) !important;
+  color: #a3aec0 !important;
+}
+.leaflet-control-attribution a { color: #8fb6f5 !important; }
+.leaflet-bar a {
+  background: #142037 !important;
+  color: #e3e8f0 !important;
+  border-color: #2a3a57 !important;
+}
+.unit-marker, .incident-marker { background: none; border: none; }
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+.wave-bar { animation: wave 1s ease-in-out infinite; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .wave-bar { animation: none; }
+}

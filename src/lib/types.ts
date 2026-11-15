@@ -57,6 +57,9 @@ export interface TranscriptSegment {
   text: string;
   /** Substring of `text` to highlight as important. */
   highlight?: string;
+  /** Translated line: the caller's own words, and their language code (e.g. "es"). */
+  original?: string;
+  language?: string;
 }
 
 export interface FieldUpdate {

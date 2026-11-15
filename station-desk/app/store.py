@@ -229,6 +229,25 @@ class DeskStore(object):
         write_transcript(self.transcripts_dir, written)
         return written
 
+    def add_line_source(self, call_id, index, original, language):
+        """Attach the caller's original (untranslated) words and their language to a translated line."""
+        original = " ".join(str(original or "").split())
+        if not original:
+            return None
+        with self.lock:
+            row = self.conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()
+            if row is None:
+                return None
+            transcript = json.loads(row["transcript_json"])
+            if not (0 <= index < len(transcript)):
+                return None
+            line = transcript[index]
+            line["original"] = (line.get("original", "") + " " + original).strip()
+            line["language"] = language
+            self.conn.execute("UPDATE calls SET transcript_json = ? WHERE id = ?", (json.dumps(transcript), call_id))
+            self.conn.commit()
+        return True
+
     def set_keywords(self, call_id, keywords):
         with self.lock:
             row = self.conn.execute("SELECT * FROM calls WHERE id = ?", (call_id,)).fetchone()

@@ -35,12 +35,15 @@ def translation_setups(target_language):
 
 
 def fast_setups():
-    """Plain English transcription: words stream as they are spoken, no translation round-trip."""
-    return [transcribe_setup(LIVE_MODEL), translate_setup(TRANSLATE_MODEL, "en")]
+    """Plain transcription of whatever language is spoken: words stream as they're said, and a caller
+    speaking another language shows up within a few words (so the desk can switch them to translation)."""
+    return [transcribe_setup(LIVE_MODEL, english_only=False), translate_setup(TRANSLATE_MODEL, "en")]
 
 
 def transcribe_setup(model, english_only=True):
-    transcription = {"mode": "SMART"}
+    # No "SMART" mode: it tidied wording and filled in words the caller never said. Plain mode gives
+    # what was actually spoken.
+    transcription = {}
     if english_only:
         transcription["languageCodes"] = ["en-US"]
     return {
@@ -305,7 +308,7 @@ class LiveSession(object):
                 await self.on_audio(chunk.get("pcm") or b"", chunk.get("rate") or 24000)
         source = parsed.get("final") or parsed.get("interim")
         if source and self.on_source:
-            await self.on_source(source)
+            await self.on_source(source, bool(parsed.get("final")))
         if self.text_from == "source":
             final = parsed.get("final")
             interim = parsed.get("interim")

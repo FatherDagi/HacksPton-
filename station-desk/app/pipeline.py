@@ -20,6 +20,7 @@ LIVE_RATE = 16000
 KEYWORD_EVERY_S = 15.0  # Gemini keyword cleanup at most this often per call (local keywords run always)
 KEYWORD_BACKOFF_S = 60.0  # wait this long after a Gemini error such as an exhausted quota
 STALL_S = 6.0  # reconnect a live session after this much speech with no text back from Gemini
+STALL_TRANSLATE_S = 15.0  # same for the live translator, which answers per phrase, not per word
 REOPEN_GAP_S = 1.0  # wait at least this long between reconnects of one session
 MAX_REOPENS = 40  # give up on a speaker after this many sessions in one call
 
@@ -58,6 +59,8 @@ class Pipeline(object):
         # Each speaker keeps their own open line, so the other person talking over them (or phone bleed)
         # does not chop it up: (call_id, speaker) -> {"uid": utterance id, "index": transcript line index}
         self.open_line = {}
+        # Caller's original words (non-English calls) waiting for the English line they belong to.
+        self.source_pending = {}
 
     async def add_phone_audio(self, call_id, track, payload):
         speaker = "Call-taker" if track == "outbound" else "Caller"
@@ -142,6 +145,10 @@ class Pipeline(object):
         self.queues.pop(call_id, None)
         self.failed = set(key for key in self.failed if key[0] != call_id)
         self.reopens = {key: v for key, v in self.reopens.items() if key[0] != call_id}
+        ol = self.open_line.get((call_id, "Caller"))
+        if ol is not None:
+            self._attach_source(call_id, "Caller", ol["index"])  # words heard after the last English line
+        self.source_pending.pop(call_id, None)
         self.reply_buffer.pop(call_id, None)
         self.caller_language.pop(call_id, None)
         for book in (self.voice, self.open_line):
@@ -159,7 +166,8 @@ class Pipeline(object):
             voice = self.voice.get((call_id, speaker))
             if voice and voice.get("last") is not None and now - voice["last"] < 0.05:
                 session.voiced_without_text += len(pcm) / (LIVE_RATE * 2)
-            if session.voiced_without_text > STALL_S:
+            # The translator only answers after a whole phrase, so give it longer before calling it stalled.
+            if session.voiced_without_text > (STALL_TRANSLATE_S if text_from == "english" else STALL_S):
                 log.info("live transcription stalled for %s %s; reconnecting", call_id, speaker)
                 self.sessions.pop(key, None)
                 asyncio.create_task(session.finish())
@@ -240,10 +248,16 @@ class Pipeline(object):
             if player and pcm:
                 await player(call_id, pcm, rate)
 
-        async def on_source(text, call_id=call_id, speaker=speaker):
-            # Only the translator hears the real language; the fast transcriber is locked to English.
-            if speaker == "Caller" and text_from != "fast":
+        async def on_source(text, final=False, call_id=call_id, speaker=speaker):
+            # Both the fast transcriber and the translator hear the caller's real language; whichever
+            # recognises it first decides (the fast one usually does, within the first few words).
+            if speaker == "Caller":
                 await self._note_language(call_id, text)
+            if speaker == "Caller" and text_from != "fast":
+                # Keep the caller's own words so each translated line can show what was actually said.
+                lang = self.caller_language.get(call_id)
+                if final and lang and lang != "en" and not interpreter_on():
+                    self.source_pending.setdefault(call_id, []).append(text)
 
         session = LiveSession(
             on_interim,
@@ -339,10 +353,20 @@ class Pipeline(object):
                 written = self.store.append_line(call_id, speaker, correct_places(text))
                 index = len((written or {}).get("transcript") or lines) - 1
             self.open_line[(call_id, speaker)] = {"uid": uid, "index": index}
+            self._attach_source(call_id, speaker, index)
             asyncio.create_task(self._refine_keywords(call_id))
         else:
             self.store.set_partial(call_id, speaker, correct_places(fresh))
         await self._publish()
+
+    def _attach_source(self, call_id, speaker, index):
+        """Put the caller's original words (heard before this English line) onto that line."""
+        pending = self.source_pending.get(call_id)
+        lang = self.caller_language.get(call_id)
+        if speaker != "Caller" or not pending or not lang or lang == "en":
+            return
+        self.source_pending[call_id] = []
+        self.store.add_line_source(call_id, index, " ".join(pending), lang)
 
     def _keep_partial(self, call_id):
         call = self.store.get_call(call_id)

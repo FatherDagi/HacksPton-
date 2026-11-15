@@ -834,6 +834,10 @@
 .dc-crit-clery[data-geo="noncampus"] b { color: var(--busy); }
 .dc-crit-clery[data-geo="outside"] b { color: var(--panel-muted); }
 
+/* Translated caller lines: English first, then the caller's own words underneath. */
+.dc-translated { font-style: normal; font-size: .82em; color: var(--accent); white-space: nowrap; }
+.dc-original { margin: 2px 0 0; font-size: .85em; line-height: 1.35; color: var(--panel-faint); font-style: italic; }
+
 /* Critical notes: every standard field, filled or "Not available". */
 .dc-crit-sec { margin: 0 0 12px; }
 .dc-crit-sec h4 {

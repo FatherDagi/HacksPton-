@@ -18,7 +18,7 @@ function deskHeaders(): HeadersInit {
   return token ? { "x-desk-token": token } : {};
 }
 
-interface DeskLine { t: string | number; speaker: string; text: string }
+interface DeskLine { t: string | number; speaker: string; text: string; original?: string; language?: string }
 interface DeskCall {
   id: string;
   status: string;
@@ -55,7 +55,10 @@ export async function GET() {
       from: c.from_number ? String(c.from_number).slice(0, 40) : null,
       answered: c.answered === true,
       callerLanguage: c.caller_language ?? null,
-      transcript: (c.transcript ?? []).slice(-200).map((l) => ({ t: ms(l.t) ?? 0, speaker: String(l.speaker), text: String(l.text).slice(0, 2000) })),
+      transcript: (c.transcript ?? []).slice(-200).map((l) => ({
+        t: ms(l.t) ?? 0, speaker: String(l.speaker), text: String(l.text).slice(0, 2000),
+        ...(l.original ? { original: String(l.original).slice(0, 2000), language: String(l.language ?? "").slice(0, 12) } : {}),
+      })),
       partial: c.partial?.text ? { speaker: String(c.partial.speaker), text: String(c.partial.text).slice(0, 2000) } : null,
       location: c.card?.location ?? null,
       callType: c.card?.call_type ?? null,

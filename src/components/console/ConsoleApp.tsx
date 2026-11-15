@@ -1369,12 +1369,26 @@ function Transcript({ incident }: { incident: Incident | null }) {
       {incident.transcript.map((s) => (
         <li key={s.id}>
           <div className={`dc-who ${s.speaker}`}>{s.speaker === "caller" ? "Caller" : "Dispatcher"}<time>00:{String(s.t).padStart(2, "0")}</time></div>
-          <p>{s.text}</p>
+          <p>
+            {s.text}
+            {s.original && <em className="dc-translated"> (translated from {languageName(s.language)})</em>}
+          </p>
+          {s.original && <p className="dc-original" lang={s.language}>{s.original}</p>}
         </li>
       ))}
       <li ref={end} />
     </ol>
   );
+}
+
+/** "es" -> "Spanish". Falls back to the code, or "another language" when unknown. */
+function languageName(code?: string): string {
+  if (!code) return "another language";
+  try {
+    return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
 }
 
 function AskNext({ incident, geminiQuestions }: { incident: Incident | null; geminiQuestions: string[] }) {

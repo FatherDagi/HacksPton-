@@ -2,7 +2,7 @@
 import { BUILDINGS } from "./campus";
 import type { IncidentCategory, TranscriptSegment } from "./types";
 
-export interface DeskLine { t: number; speaker: string; text: string }
+export interface DeskLine { t: number; speaker: string; text: string; original?: string; language?: string }
 export interface DeskCall {
   id: string;
   status: string;
@@ -71,6 +71,7 @@ export function deskSegments(call: DeskCall): TranscriptSegment[] {
     t: Math.max(0, Math.round((l.t - call.startedAt) / 1000)),
     speaker: deskSpeaker(l.speaker),
     text: l.text,
+    ...(l.original ? { original: l.original, language: l.language } : {}),
   }));
 }
 

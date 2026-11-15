@@ -355,7 +355,9 @@ export function Terminal({ fontClass }: { fontClass: string }) {
               compact={!sheetOpen && !wide}
               onAck={() => act({ type: "ACK_ASSIGNMENT", at: stamp(), assignmentId: asg.id })}
               onArrive={() => act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "on_scene" })}
-              onClear={() => act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "available" })}
+              onClear={() => (inc
+                ? act({ type: "CLEAR_SCENE", at: stamp(), incidentId: inc.id, officerId: me.id })
+                : act({ type: "OFFICER_STATUS", at: stamp(), officerId: me.id, status: "available" }))}
               onBackup={requestBackup}
             />
           </div>
@@ -384,7 +386,9 @@ function Actions({ me, acknowledged, arrived, etaLeft, backup, compact, onAck, o
     return (
       <div className="ot-actions">
         {!compact && <button type="button" className="ot-btn danger" onClick={onBackup} disabled={backupBusy}>{backupLabel}</button>}
-        <button type="button" className="ot-btn" onClick={onClear}>Clear · available</button>
+        <button type="button" className="ot-btn primary" onClick={onClear} title="Resolves the case at HQ and frees every officer on it">
+          Scene clear · resolve case
+        </button>
       </div>
     );
   }

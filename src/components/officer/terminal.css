@@ -301,7 +301,7 @@
     height: auto;
     max-height: min(70vh, 520px);
   }
-  .ot-sheet:not(.open) { max-height: 120px; }
+  .ot-sheet:not(.open) { max-height: none; } /* collapsed card still shows its action buttons in full */
   .ot-sheet.open { max-height: min(70vh, 520px); display: flex; }
   .ot-sheet-body { display: block; flex: 0 1 auto; }
   .ot-sheet.open .ot-sheet-body { display: block; }

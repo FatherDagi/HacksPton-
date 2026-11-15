@@ -42,6 +42,8 @@ export type Action =
   | { type: "SIGN_CLERY"; at: number; incidentId: string; reportable: boolean; category: string; geographyLabel: string; nibrs: string; dailyLog: boolean; timelyWarning: boolean; note: string | null; location: string; title: string; incidentNumber: string; eventAt: number }
   | { type: "SEND_MESSAGE"; at: number; messageId: string; from: "dispatcher" | "officer"; officerId: string; incidentId: string | null; text: string }
   | { type: "CLOSE_INCIDENT"; at: number; incidentId: string }
+  /** The officer on scene declares it clear: the case is resolved and everyone on it is freed. */
+  | { type: "CLEAR_SCENE"; at: number; incidentId: string; officerId: string }
   | { type: "LOG"; at: number; incidentId: string; actor: EventActor; eventType: string; message: string }
   | { type: "PREP_DEMO"; at: number }
   | { type: "RESET" };
@@ -749,6 +751,18 @@ function reduceInner(s: AppState, a: Action): AppState {
       };
       for (const o of freed) next = promoteQueued(next, o.id, a.at);
       return next;
+    }
+
+    case "CLEAR_SCENE": {
+      const inc = s.incidents.find((i) => i.id === a.incidentId);
+      if (!inc || inc.status === "closed") return s;
+      const off = s.officers.find((o) => o.id === a.officerId);
+      const closed = reduceInner(s, { type: "CLOSE_INCIDENT", at: a.at, incidentId: a.incidentId });
+      return {
+        ...closed,
+        events: [...closed.events, evt(a.incidentId, a.at, "officer", "scene_clear",
+          `${off?.callsign ?? a.officerId} reported the scene clear. Case resolved.`)],
+      };
     }
 
     case "LOG":

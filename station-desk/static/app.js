@@ -9,6 +9,12 @@ let captureNode = null;
 let captureHolder = null;
 let silentGain = null;
 let toastTimer = null;
+// On Vercel the desk is public under /desk; locally and via bindings it is at /.
+const DESK_BASE = (location.pathname === "/desk" || location.pathname.indexOf("/desk/") === 0) ? "/desk" : "";
+function deskPath(path) {
+  if (!path) return DESK_BASE || "/";
+  return DESK_BASE + (path.charAt(0) === "/" ? path : "/" + path);
+}
 
 function el(tag, attrs, children) {
   const node = document.createElement(tag);
@@ -35,7 +41,7 @@ function toast(message) {
 }
 
 async function api(path, options) {
-  const response = await fetch(path, Object.assign({
+  const response = await fetch(deskPath(path), Object.assign({
     headers: { "Content-Type": "application/json" },
   }, options || {}));
   const data = await response.json().catch(function () { return {}; });
@@ -65,7 +71,7 @@ function callById(id) {
 
 function connect() {
   const protocol = location.protocol === "https:" ? "wss" : "ws";
-  const socket = new WebSocket(protocol + "://" + location.host + "/ws/console");
+  const socket = new WebSocket(protocol + "://" + location.host + deskPath("/ws/console"));
   socket.onmessage = function (event) {
     const message = JSON.parse(event.data);
     if (message.type === "play") playTranslation(message);
@@ -250,7 +256,7 @@ function transcriptBlock(call) {
 }
 
 async function saveTranscript(callId) {
-  const response = await fetch("/api/calls/" + callId + "/transcript.txt");
+  const response = await fetch(deskPath("/api/calls/" + callId + "/transcript.txt"));
   if (!response.ok) {
     toast("The text file could not be saved.");
     return;
@@ -310,7 +316,7 @@ async function startReply() {
   const call = callById(selectedId);
   if (!call || call.source !== "phone" || practiceId) return;
   const protocol = location.protocol === "https:" ? "wss" : "ws";
-  replyWs = new WebSocket(protocol + "://" + location.host + "/ws/reply/" + call.id);
+  replyWs = new WebSocket(protocol + "://" + location.host + deskPath("/ws/reply/" + call.id));
   replyWs.binaryType = "arraybuffer";
   try {
     await new Promise(function (resolve, reject) {
@@ -365,7 +371,7 @@ document.getElementById("file").addEventListener("change", async function (event
   const body = new FormData();
   body.append("file", file);
   try {
-    const response = await fetch("/api/calls/upload", { method: "POST", body: body });
+    const response = await fetch(deskPath("/api/calls/upload"), { method: "POST", body: body });
     const data = await response.json().catch(function () { return {}; });
     if (!response.ok) throw new Error(typeof data.detail === "string" ? data.detail : "Upload failed");
     selectedId = data.id;
@@ -390,7 +396,7 @@ async function startPractice() {
   } catch (error) {
     practiceId = null;
     updatePracticeButton();
-    await fetch("/api/calls/" + call.id + "/end", { method: "POST" }).catch(function () {});
+    await fetch(deskPath("/api/calls/" + call.id + "/end"), { method: "POST" }).catch(function () {});
     toast(error.message || "Microphone permission is required for a practice call.");
   }
 }
@@ -409,7 +415,7 @@ async function endPractice() {
   practiceId = null;
   updatePracticeButton();
   if (id) {
-    await fetch("/api/calls/" + id + "/end", { method: "POST" }).catch(function () {});
+    await fetch(deskPath("/api/calls/" + id + "/end"), { method: "POST" }).catch(function () {});
   }
 }
 
@@ -418,7 +424,7 @@ async function startMic(callId) {
     audio: { echoCancellation: true, noiseSuppression: true },
   });
   const protocol = location.protocol === "https:" ? "wss" : "ws";
-  audioWs = new WebSocket(protocol + "://" + location.host + "/ws/audio/" + callId);
+  audioWs = new WebSocket(protocol + "://" + location.host + deskPath("/ws/audio/" + callId));
   audioWs.binaryType = "arraybuffer";
   await new Promise(function (resolve, reject) {
     audioWs.onopen = resolve;

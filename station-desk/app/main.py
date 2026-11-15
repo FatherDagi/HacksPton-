@@ -500,3 +500,26 @@ def _audio_mime(name, content_type):
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+
+
+# Public Vercel rewrite mounts this service at /desk/* while internal bindings and
+# local uvicorn still hit /api/*, /twilio/*, /ws/* at the service root. Strip the
+# public prefix (if present) so the same routes work in both cases.
+class _StripDeskPrefixMiddleware:
+    PREFIX = "/desk"
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            path = scope.get("path") or ""
+            if path == self.PREFIX or path.startswith(self.PREFIX + "/"):
+                scope = dict(scope)
+                scope["path"] = path[len(self.PREFIX):] or "/"
+                root = scope.get("root_path") or ""
+                scope["root_path"] = (root + self.PREFIX).rstrip("/") or self.PREFIX
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(_StripDeskPrefixMiddleware)

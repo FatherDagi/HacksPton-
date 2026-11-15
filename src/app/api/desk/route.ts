@@ -1,9 +1,13 @@
-// Read-only proxy to the station desk (station-desk/, a separate Python server).
-// The browser can't call it directly (different origin, maybe a different laptop), so the
-// Next server fetches its snapshot and returns just the call data the console needs.
+// Read-only proxy to the station desk (station-desk/, a separate Python service).
+// On Vercel, STATION_DESK_URL is injected by the service binding (internal URL).
+// Locally, fall back to the uvicorn desk on :8787.
 import { NextResponse } from "next/server";
 
-const DESK_URL = (process.env.STATION_DESK_URL || "http://127.0.0.1:8787").replace(/\/+$/, "");
+function deskBase(): string {
+  // Binding is runtime-only — never bake a build-time URL.
+  const raw = process.env.STATION_DESK_URL || "http://127.0.0.1:8787";
+  return raw.replace(/\/+$/, "");
+}
 
 interface DeskLine { t: string | number; speaker: string; text: string }
 interface DeskCall {
@@ -26,7 +30,10 @@ const ms = (v: string | number | null | undefined) => (v == null ? null : typeof
 
 export async function GET() {
   try {
-    const res = await fetch(`${DESK_URL}/api/snapshot`, { cache: "no-store", signal: AbortSignal.timeout(1500) });
+    const res = await fetch(new URL("/api/snapshot", `${deskBase()}/`), {
+      cache: "no-store",
+      signal: AbortSignal.timeout(1500),
+    });
     if (!res.ok) return NextResponse.json({ ok: false, reason: `desk returned ${res.status}` });
     const snap = (await res.json()) as { calls?: DeskCall[] };
     const calls = (snap.calls ?? []).slice(0, 10).map((c) => ({

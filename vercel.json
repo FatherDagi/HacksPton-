@@ -1,0 +1,36 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "nextjs",
+      "bindings": [
+        {
+          "type": "service",
+          "service": "station-desk",
+          "format": "url",
+          "env": "STATION_DESK_URL"
+        }
+      ]
+    },
+    "station-desk": {
+      "root": "station-desk",
+      "framework": "fastapi",
+      "entrypoint": "app.main:app"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/desk",
+      "destination": { "service": "station-desk", "path": "/" }
+    },
+    {
+      "source": "/desk/(.*)",
+      "destination": { "service": "station-desk", "path": "/$1" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "app" }
+    }
+  ]
+}

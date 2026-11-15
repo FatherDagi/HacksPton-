@@ -37,6 +37,17 @@ Open http://localhost:3000 and pick **Dispatcher** (`/console`) or **Patrol offi
 
 Proxy: `/api/desk` → `STATION_DESK_URL` (default `http://127.0.0.1:8787`). Scripted demos still work when the desk is offline.
 
+## Vercel (multi-service)
+
+Root `vercel.json` deploys two services in one project:
+
+| Service | Public path | Notes |
+| --- | --- | --- |
+| `app` (Next.js) | `/` | HQ console, patrol, Next `/api/*` |
+| `station-desk` (FastAPI) | `/desk` | Desk UI, Twilio webhooks, websockets |
+
+`app` binds to `station-desk` as `STATION_DESK_URL` (do not set that env yourself on Vercel). For Twilio, set `PUBLIC_BASE_URL` to `https://<deployment>.vercel.app/desk`.
+
 ## Status
 
 | Feature | State |

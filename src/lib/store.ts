@@ -46,6 +46,7 @@ async function poll() {
     const q = new URLSearchParams({ since: String(confirmedSeq) });
     if (terminalUnit) q.set("unit", terminalUnit);
     const res = await fetch(`/api/sync?${q}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`sync ${res.status}`);
     const j = (await res.json()) as SyncResponse;
     if (j.snapshot) {
       confirmed = {
@@ -89,6 +90,7 @@ export function act(action: Action) {
   pending.push({ cid, action });
   rebuild();
   fetch("/api/sync", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ client: clientId, cid, action }) })
+    .then((res) => { if (!res.ok) throw new Error(`sync ${res.status}`); })
     .catch(() => {
       // Server unreachable: keep the change locally so this screen still works on its own.
       confirmed = reduce(confirmed, action);

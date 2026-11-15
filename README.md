@@ -58,13 +58,28 @@ Root `vercel.json` deploys two services in one project:
 | Transparent P1–P4 demo rules, confirm or override with reason | Working |
 | Deterministic unit ranking, simulated ETAs, closure-aware routes, approve / decline with confirmation | Working |
 | Leaflet + OpenStreetMap campus map with unit markers, closures, routes | Working |
-| Officer page synced in real time | Working across tabs in one browser; cross-device needs Supabase |
+| Officer page synced in real time (assignments, updates, dispatcher ↔ officer messages) | Working; across devices on Vercel via Supabase (see below) |
 | Gemini extraction (`/api/extract`, Zod-validated, falls back to prerecorded) | Implemented; needs `GEMINI_API_KEY` |
-| Supabase database + realtime | Pending |
+| Supabase shared sync log (`supabase/migrations`, `src/lib/syncHub.ts`) | Working when `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are set; in-memory otherwise |
 | Google Sheets export | Stub, returns "not configured" |
 | Matterport / Vexcel / CoStar | Placeholders |
 
 When Gemini is not configured or fails, the UI says **"Prerecorded demo extraction (not AI)"** so it never implies AI output.
+
+## Shared sync on Vercel (Supabase)
+
+Every screen's actions (assignments, acknowledgements, officer updates, dispatcher ↔ officer messages)
+go through one ordered log at `/api/sync`. Locally that log lives in the dev server's memory. On Vercel
+each request can hit a different server instance, so the log must live in Postgres, or screens see
+different states and officers jump around the map.
+
+1. Create a Supabase project (free tier is fine).
+2. Supabase → SQL Editor → paste `supabase/migrations/20261115000000_sync_hub.sql` → Run.
+3. Vercel → Project → Settings → Environment Variables: add `SUPABASE_URL` (Project URL) and
+   `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API → service_role). Redeploy.
+
+The browser never talks to Supabase directly; only the server route uses the service key, and the
+tables have row-level security on with no policies, so the public anon key can't read or write them.
 
 ## Architecture
 

@@ -224,24 +224,32 @@
 .ot-backup.acknowledged { border-top-color: var(--ot-ok); color: var(--ot-ok); }
 
 /* —— Picker —— */
-.ot-pick-screen { background: var(--ot-bg); }
+.ot-pick-screen { background: var(--ot-bg); overflow-y: auto; }
 .ot-pick {
   position: relative; z-index: 1;
   padding: max(56px, calc(env(safe-area-inset-top) + 40px)) 16px 28px;
-  max-width: 400px; margin: 0 auto;
+  max-width: 880px; margin: 0 auto; box-sizing: border-box;
 }
 .ot-pick h1 {
   margin: 0; font: 800 22px/1.1 var(--font-cond), sans-serif; letter-spacing: .02em;
 }
 .ot-pick > p { margin: 6px 0 14px; color: var(--ot-muted); font-size: 13px; }
-.ot-pick ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+/* Officer cards in a grid: 4 across on a laptop (11 officers = 4 · 4 · 3), 3 on a tablet, 2 on a phone. */
+.ot-pick ul {
+  list-style: none; margin: 0; padding: 0; display: grid; gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 760px) { .ot-pick ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ot-pick ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } }
+.ot-pick li { min-width: 0; }
 .ot-pick-btn {
   display: grid; gap: 2px; width: 100%; padding: 12px 14px; border-radius: 12px;
   background: var(--ot-glass); backdrop-filter: var(--ot-blur);
   border: 1px solid var(--ot-line); text-align: left; color: inherit; cursor: pointer;
   box-shadow: 0 6px 18px #0005; font: inherit; text-decoration: none;
-  box-sizing: border-box;
+  box-sizing: border-box; height: 100%; min-width: 0;
 }
+.ot-pick-btn span, .ot-pick-btn small { overflow-wrap: anywhere; }
 .ot-pick-btn:active { transform: scale(.98); }
 .ot-pick-btn:hover { border-color: color-mix(in srgb, var(--ot-accent) 55%, var(--ot-line)); }
 .ot-pick-btn b { font: 700 15px/1.2 var(--font-cond), sans-serif; letter-spacing: .03em; }

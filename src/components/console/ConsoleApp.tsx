@@ -3,7 +3,7 @@
 import "./console.css";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { cleryGeography, draftClery } from "@/lib/clery";
 import { assessConsole } from "@/lib/console/assess";
 import { DEFAULT_PANELS, loadPanels, PANEL_LABEL, savePanels, type PanelId, type PanelState } from "@/lib/console/panels";
@@ -21,19 +21,15 @@ import { act, newId, serverToLocal, stamp, useAppState, useOnline, useTerminals 
 import type { FieldKey, Incident, LatLng, Officer, OfficerAvatar, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
-import { OfficerUpdates } from "./OfficerUpdates";
 
-/** Busy (amber) units: slow but visible road legs, then dwell, then next task. Green stays put. */
-const PATROL_LEG_MS = 95_000;
-const PATROL_STOP_MS = 35_000;
-const PATROL_TICK_MS = 1_800;
+/** Busy (amber) units: one slow start→end task (~5–7 min), then stay. Green stays put. */
+const PATROL_TICK_MS = 2_000;
 interface PatrolTrip {
   route: LatLng[];
   t0: number;
-  leg: number;
   label: string;
-  phase: "moving" | "stopped";
-  stopUntil: number;
+  phase: "moving" | "done";
+  durationMs: number;
 }
 
 const CRITICAL_SECTIONS: { title: string; keys: FieldKey[] }[] = [
@@ -105,6 +101,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const [trips, setTrips] = useState<Record<string, Trip>>({});
   const [dispatchRoutes, setDispatchRoutes] = useState<Record<string, LatLng[]>>({});
   const [patrols, setPatrols] = useState<Record<string, PatrolTrip>>({});
+  const startedPatrol = useRef<Set<string>>(new Set());
   const [selectedOfficerId, setSelectedOfficerId] = useState<string | null>(null);
   const [panels, setPanels] = useState<PanelState>(DEFAULT_PANELS);
   const [panelMenu, setPanelMenu] = useState(false);
@@ -424,12 +421,13 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     if (o.status !== "busy" || o.currentIncidentId) return Number.POSITIVE_INFINITY;
     if (o.busyUntil) return Math.max(0, Math.round((o.busyUntil - ts) / 1000));
     const p = patrols[o.id];
-    if (p?.phase === "stopped") return Math.max(0, Math.round((p.stopUntil - ts) / 1000));
+    if (p?.phase === "done") return 0;
     if (p?.phase === "moving") {
-      const left = Math.max(0, 1 - (ts - p.t0) / PATROL_LEG_MS);
-      return Math.round(left * PATROL_LEG_MS / 1000) + Math.round(PATROL_STOP_MS / 1000);
+      const left = Math.max(0, 1 - (ts - p.t0) / p.durationMs);
+      return Math.round(left * p.durationMs / 1000);
     }
-    return 180;
+    const beat = PATROL_BEATS[o.id];
+    return Math.round((beat?.durationMs ?? 360_000) / 1000);
   }, [ts, patrols]);
 
   /** Free now, wrapping up a post, or already on a call (queued for after they clear). */
@@ -522,7 +520,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       }
       // No dotted “proposed” paths for free (green) units — paths only appear once a unit is sent.
     }
-    // Busy (amber) only: show the road leg they're currently driving/walking. Never draw paths for free (green) units.
+    // Busy (amber) only: yellow task line while still moving to the post. Gone once they arrive.
     for (const o of state.officers) {
       if (o.status !== "busy" || trips[o.id]) continue;
       const p = patrols[o.id];
@@ -555,7 +553,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     return () => clearTimeout(t);
   }, [trips]);
 
-  // Ambient motion for busy (amber) units only — slow road start→end, then long dwell. Green units never move.
+  // Ambient motion for busy (amber) units: one slow start→end road/path trip, then stay. Reload restarts.
   useEffect(() => {
     if (!hydrated) return;
     let alive = true;
@@ -566,26 +564,37 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       if (o.status !== "busy" || assignedIds.has(o.id)) continue;
       const beat = PATROL_BEATS[o.id];
       if (!beat || beat.points.length < 2) continue;
-      if (patrols[o.id]) continue;
-      // Stagger slightly so legs don't sync, but start moving as soon as the map loads.
-      const delay = (o.id.charCodeAt(1) % 5) * 400;
-      const from = o.location;
-      const to = beat.points[1] ?? beat.points[0];
+      if (patrols[o.id] || startedPatrol.current.has(o.id)) continue;
+      startedPatrol.current.add(o.id);
+      const delay = (o.id.charCodeAt(1) % 5) * 500;
+      const from = beat.points[0];
+      const to = beat.points[1];
+      // Snap back to the seed start so every page load can demo the walk/drive.
+      act({ type: "OFFICER_LOCATION", at: stamp(), officerId: o.id, location: from, label: beat.label });
       window.setTimeout(() => {
         if (!alive) return;
         fetchRoute(from, to, beat.mode).then((plan) => {
-          if (!alive || plan.route.length < 2) return;
+          if (!alive || plan.route.length < 2) {
+            startedPatrol.current.delete(o.id);
+            return;
+          }
           setPatrols((prev) => prev[o.id] ? prev : {
             ...prev,
-            [o.id]: { route: plan.route, t0: Date.now(), leg: 0, label: beat.label, phase: "moving", stopUntil: 0 },
+            [o.id]: {
+              route: plan.route,
+              t0: Date.now(),
+              label: beat.label,
+              phase: "moving",
+              durationMs: beat.durationMs,
+            },
           });
         });
       }, delay);
     }
-    // Drop any leftover patrol trips for units that are no longer busy.
-    for (const id of Object.keys(patrols)) {
+    for (const id of [...startedPatrol.current, ...Object.keys(patrols)]) {
       const o = state.officers.find((x) => x.id === id);
       if (!o || o.status !== "busy" || assignedIds.has(id)) {
+        startedPatrol.current.delete(id);
         setPatrols((prev) => {
           if (!prev[id]) return prev;
           const next = { ...prev };
@@ -603,7 +612,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       state.assignments.filter((a) => a.status === "active").map((a) => a.officerId),
     );
     const t = setTimeout(() => {
-      const ts = Date.now();
+      const nowTs = Date.now();
       const next: Record<string, PatrolTrip> = { ...patrols };
       for (const [id, p] of Object.entries(patrols)) {
         const o = state.officers.find((x) => x.id === id);
@@ -611,32 +620,16 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
           delete next[id];
           continue;
         }
-        if (p.phase === "stopped") {
-          if (ts < p.stopUntil) continue;
-          const beat = PATROL_BEATS[id];
-          if (!beat || beat.points.length < 2) { delete next[id]; continue; }
-          const leg = (p.leg + 1) % beat.points.length;
-          const from = beat.points[leg];
-          const to = beat.points[(leg + 1) % beat.points.length];
-          delete next[id];
-          fetchRoute(from, to, beat.mode).then((plan) => {
-            if (plan.route.length < 2) return;
-            setPatrols((prev) => ({
-              ...prev,
-              [id]: { route: plan.route, t0: Date.now(), leg, label: beat.label, phase: "moving", stopUntil: 0 },
-            }));
-          });
-          continue;
-        }
-        const k = Math.min(1, (ts - p.t0) / PATROL_LEG_MS);
+        if (p.phase === "done") continue;
+        const k = Math.min(1, (nowTs - p.t0) / p.durationMs);
         const { at } = along(p.route, k);
         if (k < 1) {
-          act({ type: "OFFICER_LOCATION", at: ts, officerId: id, location: at, label: p.label });
+          act({ type: "OFFICER_LOCATION", at: nowTs, officerId: id, location: at, label: p.label });
           continue;
         }
         const end = p.route[p.route.length - 1] ?? at;
-        act({ type: "OFFICER_LOCATION", at: ts, officerId: id, location: end, label: `${p.label} · on post` });
-        next[id] = { ...p, phase: "stopped", stopUntil: ts + PATROL_STOP_MS, route: [end, end] };
+        act({ type: "OFFICER_LOCATION", at: nowTs, officerId: id, location: end, label: `${p.label} · on post` });
+        next[id] = { ...p, phase: "done", route: [end] };
       }
       setPatrols(next);
     }, PATROL_TICK_MS);
@@ -1079,10 +1072,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                   ) : (
                     <div className="dc-notes-inline">
                       <div className="dc-sev-label">Critical notes</div>
-                      <CriticalNotes
-                        incident={open}
-                        updates={dispatched ? <OfficerUpdates assigned={assigned} updates={state.officerUpdates ?? []} /> : null}
-                      />
+                      <CriticalNotes incident={open} />
                     </div>
                   )}
                 </div>
@@ -1179,7 +1169,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                 ))}
             </ul>
             <p className="dc-roster-group" style={{ marginTop: 14 }}>
-              {atHq.length > 0 ? `Free at HQ · ${atHq.length}` : "HQ"}
+              {atHq.length} free at HQ
             </p>
             <ul className="dc-roster">
               {atHq
@@ -1309,7 +1299,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
 
 /** Critical notes: the standard call-taking checklist (location first, then nature, caller, injuries,
  *  threats, access). Filled from the call as it happens; anything not heard yet reads "Not available". */
-function CriticalNotes({ incident, updates }: { incident: Incident; updates: ReactNode }) {
+function CriticalNotes({ incident }: { incident: Incident }) {
   const clery = cleryGeography(incident);
   return (
     <div className="dc-notes-rail">
@@ -1334,7 +1324,6 @@ function CriticalNotes({ incident, updates }: { incident: Incident; updates: Rea
           </dl>
         </section>
       ))}
-      {updates}
     </div>
   );
 }

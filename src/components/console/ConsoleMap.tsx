@@ -24,8 +24,6 @@ type Base = "street" | "sat" | "aerial";
 const nearHq = (at: LatLng) => Math.abs(at[0] - PSAFE_HQ[0]) + Math.abs(at[1] - PSAFE_HQ[1]) < 0.0022;
 const nudgeCall = (at: LatLng): LatLng =>
   nearHq(at) ? [at[0] + 0.00055, at[1] - 0.00045] : at;
-/** Free-unit count badge — offset clear of the HQ building pin/label. */
-const HQ_CLUSTER: LatLng = [PSAFE_HQ[0] - 0.00105, PSAFE_HQ[1] + 0.00085];
 const STYLE = { dark: "https://tiles.openfreemap.org/styles/dark", light: "https://tiles.openfreemap.org/styles/liberty" };
 /** Full campus frame — Nassau → Stadium → Whitman → EQuad. Always top-down overview. */
 export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [
@@ -156,8 +154,6 @@ export default function ConsoleMap({
       el.innerHTML = html;
       return new maplibregl.Marker({ element: el }).setLngLat(ll(at)).addTo(map);
     };
-    const mark = '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" fill="#E77500"/><rect x="9" y="9" width="6" height="6" fill="#140F0A"/></svg>';
-    pin(`<div class="dc-station"><span title="Headquarters">${mark}</span><b>HQ</b></div>`, PSAFE_HQ, 2);
     incidentMarker.current = pin("", [40.3465, -74.6555], 3);
     incidentMarker.current.getElement().style.display = "none";
 
@@ -198,7 +194,9 @@ export default function ConsoleMap({
       map.addLayer({ id: "routes-car", type: "line", source: "routes", filter: ["all", ["!", ["get", "foot"]], ["in", ["get", "kind"], ["literal", ["proposed", "assigned"]]]], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2.5, "line-opacity": 0.9 } });
       map.addLayer({ id: "routes-foot", type: "line", source: "routes", filter: ["all", ["get", "foot"], ["in", ["get", "kind"], ["literal", ["proposed", "assigned"]]]], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2.5, "line-opacity": 0.9, "line-dasharray": [0.6, 1.6] } });
       map.addLayer({ id: "routes-history", type: "line", source: "routes", filter: ["==", ["get", "kind"], "history"], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2.5, "line-opacity": 0.7, "line-dasharray": [2, 1.2] } });
-      map.addLayer({ id: "routes-dest", type: "line", source: "routes", filter: ["==", ["get", "kind"], "dest"], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2, "line-opacity": 0.85, "line-dasharray": [0.4, 1.4] } });
+      // Amber task lines: cars = dotted, foot = longer dashes (paths, not road chords).
+      map.addLayer({ id: "routes-dest-car", type: "line", source: "routes", filter: ["all", ["==", ["get", "kind"], "dest"], ["!", ["get", "foot"]]], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2.25, "line-opacity": 0.9, "line-dasharray": [0.25, 1.35] } });
+      map.addLayer({ id: "routes-dest-foot", type: "line", source: "routes", filter: ["all", ["==", ["get", "kind"], "dest"], ["get", "foot"]], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": 2.25, "line-opacity": 0.9, "line-dasharray": [1.6, 1.1] } });
       map.addLayer({ id: "routes-patrol", type: "line", source: "routes", filter: ["==", ["get", "kind"], "patrol"], layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": "#7a8494", "line-width": 1.5, "line-opacity": 0.35, "line-dasharray": [1.2, 1.6] } });
       applyBase(map, baseRef.current);
       setReady((r) => r + 1);
@@ -258,8 +256,8 @@ export default function ConsoleMap({
     const hqStandby = officers.filter(isHqStandby);
     const field = officers.filter((o) => !isHqStandby(o));
 
-    // Single HQ cluster: show how many free units are at desk.
-    if (hqStandby.length > 0) {
+    // One HQ marker: building label + free count (including 0). No separate HQ pin.
+    {
       const id = "hq-cluster";
       seen.add(id);
       let m = markers.current.get(id);
@@ -269,20 +267,23 @@ export default function ConsoleMap({
         m = new maplibregl.Marker({ element: el, subpixelPositioning: true }).setLngLat(ll(PSAFE_HQ)).addTo(map);
         markers.current.set(id, m);
       }
-      glide(m, ll(HQ_CLUSTER));
+      glide(m, ll(PSAFE_HQ));
       const el = m.getElement();
-      const color = cssVar("--available");
+      const n = hqStandby.length;
+      const color = n > 0 ? cssVar("--available") : cssVar("--panel-muted");
       const names = hqStandby.map((o) => o.callsign).join(", ");
+      const mark = '<svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" fill="#E77500"/><rect x="9" y="9" width="6" height="6" fill="#140F0A"/></svg>';
       el.style.zIndex = "5";
       el.style.opacity = "1";
-      el.style.cursor = "pointer";
-      el.title = `HQ · ${hqStandby.length} available · ${names}`;
+      el.style.cursor = n > 0 ? "pointer" : "default";
+      el.title = n > 0 ? `HQ · ${n} free · ${names}` : "HQ · 0 free";
       el.onclick = (ev) => {
         ev.stopPropagation();
-        latest.current.onSelectOfficer?.(hqStandby[0].id);
+        if (hqStandby[0]) latest.current.onSelectOfficer?.(hqStandby[0].id);
       };
       el.innerHTML = `<div class="dc-hq-cluster" style="border-color:${color}">
-          <b>${hqStandby.length}</b>
+          <span class="dc-hq-mark">${mark}</span>
+          <b>${n}</b>
           <span>free at HQ</span>
         </div>`;
     }

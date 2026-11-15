@@ -24,8 +24,8 @@ export default function Home() {
         </div>
 
         <div className="st-roles">
-          <Link href="/console" className="st-role">
-            <span className="st-name">HQ desk</span>
+          <Link href="/console" className="st-role st-role-hq">
+            <span className="st-name">HQ</span>
             <span className="st-what">Transcript, priority, Clery draft, campus map, and unit recommendations.</span>
             <span className="st-foot">
               <span className="st-where">Dispatcher</span>
@@ -33,7 +33,7 @@ export default function Home() {
             </span>
           </Link>
 
-          <Link href="/officer" className="st-role">
+          <Link href="/officer" className="st-role st-role-patrol">
             <span className="st-name">Patrol</span>
             <span className="st-what">Car terminal: assignment, route, backup, and live link to HQ.</span>
             <span className="st-foot">

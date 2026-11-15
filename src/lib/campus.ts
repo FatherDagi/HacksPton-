@@ -75,30 +75,33 @@ export const CAMPUS_WAYS: LatLng[][] = [
 ];
 
 /**
- * Slow demo legs for busy (amber) units only. Available (green) units stay put — no paths.
- * Cars use road routing from these waypoints; foot units walk short campus legs.
+ * One-shot demo tasks for busy (amber) units. Start → end over ~5–7 min, then stay put.
+ * Cars use road routing; foot units walk campus paths. Reload restarts from points[0].
  */
-/** Amber units keep moving: finish a post → next post on real roads. */
-export const PATROL_BEATS: Record<string, { label: string; mode: "car" | "foot"; points: LatLng[] }> = {
+export const PATROL_BEATS: Record<string, { label: string; mode: "car" | "foot"; points: LatLng[]; durationMs: number }> = {
+  U1: {
+    label: "Nassau check",
+    mode: "car",
+    points: [CAMPUS_ROADS.nassauW, CAMPUS_ROADS.firestone],
+    durationMs: 320_000,
+  },
   U2: {
     label: "Stadium check",
     mode: "car",
-    points: [CAMPUS_ROADS.stadium, CAMPUS_ROADS.jadwin, CAMPUS_ROADS.equad, CAMPUS_ROADS.stadium],
+    points: [CAMPUS_ROADS.stadium, CAMPUS_ROADS.jadwin],
+    durationMs: 390_000,
   },
   U6: {
     label: "Building check",
     mode: "car",
-    points: [CAMPUS_ROADS.equad, CAMPUS_ROADS.lewis, CAMPUS_ROADS.frist, CAMPUS_ROADS.equad],
-  },
-  U1: {
-    label: "Nassau check",
-    mode: "car",
-    points: [CAMPUS_ROADS.nassauW, CAMPUS_ROADS.nassauE, CAMPUS_ROADS.firestone, CAMPUS_ROADS.nassauW],
+    points: [CAMPUS_ROADS.equad, CAMPUS_ROADS.frist],
+    durationMs: 420_000,
   },
   U8: {
     label: "Dillon foot post",
     mode: "foot",
-    points: [CAMPUS_ROADS.dillon, CAMPUS_ROADS.prospect, CAMPUS_ROADS.whitman, CAMPUS_ROADS.dillon],
+    points: [CAMPUS_ROADS.dillon, CAMPUS_ROADS.whitman],
+    durationMs: 300_000,
   },
 };
 

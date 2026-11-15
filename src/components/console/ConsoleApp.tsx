@@ -97,6 +97,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const [geminiReady, setGeminiReady] = useState<boolean | null>(null);
   const [mode, setMode] = useState<Mode>("prerecorded");
   const [aiBusy, setAiBusy] = useState(false);
+  /** Cases whose notes couldn't reach Gemini on the last try (cleared when a request succeeds). */
+  const [notesPaused, setNotesPaused] = useState<Record<string, string>>({});
   const [geminiQuestions, setGeminiQuestions] = useState<string[]>([]);
   const [plans, setPlans] = useState<Record<string, RoutePlan>>({});
   const [trips, setTrips] = useState<Record<string, Trip>>({});
@@ -151,6 +153,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     });
   };
 
+  /** Re-run the notes extraction for a live call a little later (set up below, next to the throttle). */
+  const retryExtract = useRef<(incidentId: string) => void>(() => {});
   const runGemini = useCallback(async (inc: Incident, transcript: Incident["transcript"]) => {
     const seq = ++seqRef.current;
     setAiBusy(true);
@@ -165,13 +169,24 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       if (!j.ok) throw new Error(j.message);
       if (seq < appliedSeqRef.current) return;
       appliedSeqRef.current = seq;
+      setNotesPaused((p) => { if (!p[inc.id]) return p; const n = { ...p }; delete n[inc.id]; return n; });
       if (j.updates.length) act({ type: "APPLY_AI_UPDATES", at: Date.now(), incidentId: inc.id, updates: j.updates, source: "ai" });
       setGeminiQuestions(j.suggestedQuestions);
     } catch (err) {
       act({ type: "LOG", at: Date.now(), incidentId: inc.id, actor: "system", eventType: "ai_fallback", message: `Gemini unavailable (${err instanceof Error ? err.message : "error"}).` });
-      setMode("prerecorded");
-      setGeminiQuestions([]);
-      applyPrerecorded(inc, 0, transcript.length);
+      if (inc.deskCallId) {
+        const why = err instanceof Error ? err.message : "";
+        setNotesPaused((p) => ({ ...p, [inc.id]: /not set|not_configured/i.test(why) ? "no-key" : "busy" }));
+        // Real phone call: there is no prerecorded script to fall back on. Stay on Gemini and let the
+        // next update retry with the latest transcript (a single failed request used to switch the
+        // whole console to "prerecorded" mode, and the notes stopped filling for good).
+        delete extractedText.current[inc.id];
+        retryExtract.current(inc.id);
+      } else {
+        setMode("prerecorded");
+        setGeminiQuestions([]);
+        applyPrerecorded(inc, 0, transcript.length);
+      }
     } finally {
       if (seq === seqRef.current) setAiBusy(false);
     }
@@ -357,6 +372,19 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   const extractTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const lastExtractAt = useRef<Record<string, number>>({});
   const latestExtract = useRef<Record<string, { inc: Incident; segments: Incident["transcript"]; text: string }>>({});
+  useEffect(() => {
+    retryExtract.current = (id: string) => {
+      if (extractTimers.current[id]) return; // an update is already on its way
+      extractTimers.current[id] = setTimeout(() => {
+        delete extractTimers.current[id];
+        const job = latestExtract.current[id];
+        if (!job) return;
+        extractedText.current[id] = job.text;
+        lastExtractAt.current[id] = Date.now();
+        runGemini(job.inc, job.segments);
+      }, EXTRACT_EVERY_MS);
+    };
+  }, [runGemini]);
   const extractedText = useRef<Record<string, string>>({});
   useEffect(() => {
     for (const inc of openIncidents) {
@@ -368,7 +396,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
         act({ type: "SET_DESK_TRANSCRIPT", at: Date.now(), incidentId: inc.id, transcript: segments });
       }
       const callerText = segments.filter((x) => x.speaker === "caller").map((x) => x.text).join(" ");
-      if (mode === "gemini" && callerText && callerText !== extractedText.current[inc.id]) {
+      if ((mode === "gemini" || inc.deskCallId) && callerText && callerText !== extractedText.current[inc.id]) {
         // Throttle, don't debounce: a caller who keeps talking must still update the notes. Fill the
         // notes soon after new words, then at most every EXTRACT_EVERY_MS (Gemini quota is per minute),
         // always with the latest transcript.
@@ -1094,6 +1122,13 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                   ) : (
                     <div className="dc-notes-inline">
                       <div className="dc-sev-label">Critical notes</div>
+                      {notesPaused[open.id] && (
+                        <p className="dc-notes-paused" role="status">
+                          {notesPaused[open.id] === "no-key"
+                            ? "Notes off: the website has no Gemini key (GEMINI_API_KEY)."
+                            : "Notes paused: Gemini is busy or out of quota. Retrying…"}
+                        </p>
+                      )}
                       <CriticalNotes incident={open} />
                     </div>
                   )}

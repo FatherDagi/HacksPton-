@@ -1,0 +1,108 @@
+// Server-side Gemini extraction. The API key never leaves the server.
+import { GoogleGenAI } from "@google/genai";
+import { FIELD_LABELS } from "@/lib/fields";
+import { ExtractRequest, GeminiExtraction, GEMINI_RESPONSE_SCHEMA, type ExtractError, type ExtractResponse } from "@/lib/extraction";
+
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Tried in order when the preferred model is overloaded or unavailable.
+// Lite models are much less congested during busy periods and fast enough for extraction.
+const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"];
+const PRIMARY_TIMEOUT_MS = 8_000;
+const FALLBACK_TIMEOUT_MS = 12_000;
+
+const SYSTEM = `You help a campus emergency dispatcher by extracting facts from a SIMULATED emergency call transcript.
+Rules:
+- Only extract information the caller or dispatcher actually said. Never guess, infer diagnoses, or invent details.
+- If something is not stated, do not include that field; list it in missingFields instead.
+- Keep values short (a few words), in plain language.
+- evidenceSegmentId must be the id of the transcript segment that supports the value.
+- Do not contradict values listed as already confirmed by the dispatcher; do not repeat them.
+- suggestedQuestions: up to 4 short follow-up questions, most important first, for information still missing.
+Field keys and meanings:
+${Object.entries(FIELD_LABELS).map(([k, v]) => `- ${k}: ${v}`).join("\n")}`;
+
+function json(body: ExtractResponse | ExtractError, status = 200) {
+  return Response.json(body, { status });
+}
+
+export async function POST(req: Request) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return json({ ok: false, error: "not_configured", message: "GEMINI_API_KEY is not set on the server." }, 503);
+  }
+
+  let body: ExtractRequest;
+  try {
+    body = ExtractRequest.parse(await req.json());
+  } catch {
+    return json({ ok: false, error: "bad_request", message: "Invalid request body." }, 400);
+  }
+
+  const transcriptText = body.transcript.map((s) => `[${s.id}] ${s.speaker.toUpperCase()}: ${s.text}`).join("\n");
+  const confirmedText = Object.entries(body.confirmed).map(([k, v]) => `- ${k}: ${v}`).join("\n") || "(none)";
+  const input = `Incident category: ${body.category}
+Already confirmed by dispatcher:
+${confirmedText}
+
+Transcript so far:
+${transcriptText}`;
+
+  let raw: string | undefined;
+  let usedModel = MODEL;
+  const ai = new GoogleGenAI({ apiKey });
+  const models = [MODEL, ...FALLBACK_MODELS.filter((m) => m !== MODEL)];
+  for (const model of models) {
+    try {
+      const interaction = await ai.interactions.create(
+        {
+          model,
+          system_instruction: SYSTEM,
+          input,
+          response_format: { type: "text", mime_type: "application/json", schema: GEMINI_RESPONSE_SCHEMA },
+          store: false,
+        },
+        // Fail fast instead of the SDK's long default retry loop; we fall back to the next model.
+        { timeout: model === MODEL ? PRIMARY_TIMEOUT_MS : FALLBACK_TIMEOUT_MS, maxRetries: 0 },
+      );
+      raw = (interaction as { output_text?: string }).output_text;
+      usedModel = model;
+      break;
+    } catch (err) {
+      // Log without echoing secrets.
+      console.error(`[extract] ${model} failed:`, err instanceof Error ? err.message.replace(/AQ\.[\w-]+|AIza[\w-]+/g, "[key]").slice(0, 200) : "unknown error");
+    }
+  }
+  if (raw === undefined) {
+    return json({ ok: false, error: "upstream_error", message: "Gemini is unavailable right now." }, 502);
+  }
+
+  let parsed: GeminiExtraction;
+  try {
+    parsed = GeminiExtraction.parse(JSON.parse(raw ?? ""));
+  } catch {
+    console.error("[extract] Gemini returned output that failed validation.");
+    return json({ ok: false, error: "invalid_output", message: "Gemini output failed validation." }, 502);
+  }
+
+  const segIds = new Set(body.transcript.map((s) => s.id));
+  const updates = parsed.fields
+    .filter((f) => !(f.key in body.confirmed))
+    .map((f) => ({
+      key: f.key,
+      value: f.value.trim(),
+      status: "unverified" as const, // only the dispatcher can confirm
+      evidenceSegmentId: segIds.has(f.evidenceSegmentId) ? f.evidenceSegmentId : null,
+    }));
+
+  return json({
+    ok: true,
+    model: usedModel,
+    updates,
+    missingFields: parsed.missingFields,
+    suggestedQuestions: parsed.suggestedQuestions,
+  });
+}
+
+export async function GET() {
+  return Response.json({ geminiConfigured: !!process.env.GEMINI_API_KEY, model: MODEL });
+}

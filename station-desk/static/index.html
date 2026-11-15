@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Station Desk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=3" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <p class="eyebrow">Dispatch console</p>
+      <h1>Station Desk</h1>
+    </div>
+    <div class="chips">
+      <span id="chip-gemini" class="chip">Checking Gemini</span>
+      <span id="chip-phone" class="chip">Checking phone line</span>
+      <time id="clock"></time>
+    </div>
+  </header>
+  <div id="banner" hidden></div>
+  <div class="workspace">
+    <section class="col" aria-label="Calls">
+      <div class="col-head">
+        <h2>Incoming</h2>
+        <button id="practice" class="primary" type="button">Take a practice call</button>
+        <button id="talk" type="button" hidden>Talk to caller</button>
+        <label class="file-btn">
+          Upload a recording
+          <input id="file" type="file" accept="audio/*,.wav,.mp3,.m4a,.ogg,.webm,.flac" hidden />
+        </label>
+        <div class="meter" id="meter-wrap" hidden><span id="meter"></span></div>
+      </div>
+      <div id="call-list"></div>
+    </section>
+    <section class="col detail" id="detail"></section>
+  </div>
+  <div id="toast" role="status"></div>
+  <script src="/static/app.js?v=6"></script>
+</body>
+</html>

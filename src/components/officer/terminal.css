@@ -1,0 +1,327 @@
+/* Patrol terminal — map-first on phone; laptop side card. */
+.ot {
+  --ot-bg: #0a0e14;
+  --ot-ink: #e8ecf2;
+  --ot-muted: #9aa3b2;
+  --ot-faint: #6b7382;
+  --ot-line: color-mix(in srgb, #fff 12%, transparent);
+  --ot-glass: color-mix(in srgb, #1a1f28 90%, transparent);
+  --ot-accent: #e77500;
+  --ot-ok: #3ecf8e;
+  --ot-busy: #e0b34a;
+  --ot-bad: #e5484d;
+  --ot-blur: blur(14px) saturate(1.15);
+
+  position: relative;
+  height: 100dvh;
+  min-height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ot-bg);
+  color: var(--ot-ink);
+  display: flex;
+  flex-direction: column;
+  font: 12px/1.3 var(--font-plex), system-ui, sans-serif;
+}
+
+.ot-stage { position: absolute; inset: 0; }
+.ot-stage .dc-map { position: absolute; inset: 0; height: 100% !important; min-height: 0; }
+.ot .dc-layers {
+  top: auto;
+  bottom: max(112px, calc(env(safe-area-inset-bottom) + 100px));
+  left: 10px; right: auto; transform: none;
+}
+.ot .dc-layers button { height: 24px; padding: 0 7px; font-size: 9px; }
+.ot .dc-zoom { display: none; }
+.ot.tasked .dc-layers {
+  bottom: max(128px, calc(env(safe-area-inset-bottom) + 116px));
+}
+.ot.tasked.sheet-open .dc-layers {
+  bottom: max(268px, calc(env(safe-area-inset-bottom) + 252px));
+}
+
+/* —— Top bar —— */
+.ot-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+  display: flex; align-items: center; gap: 6px;
+  padding: max(6px, env(safe-area-inset-top)) 10px 6px;
+  background: linear-gradient(180deg, #0a0e14f0 50%, #0a0e1400);
+  pointer-events: none;
+}
+.ot-top > * { pointer-events: auto; }
+
+.ot-brand {
+  display: flex; flex-direction: column; text-decoration: none; color: var(--ot-ink); line-height: 1;
+  flex: 0 0 auto;
+}
+.ot-brand span { font: 800 14px/1 var(--font-cond), sans-serif; letter-spacing: .04em; }
+.ot-brand small {
+  font: 700 8px/1.2 var(--font-cond), sans-serif; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ot-accent); margin-top: 1px;
+}
+
+.ot-me {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  padding-left: 7px; margin-left: 1px;
+  border-left: 1px solid var(--ot-line);
+}
+.ot-me b { font: 700 13px/1.1 var(--font-cond), sans-serif; letter-spacing: .03em; }
+.ot-status {
+  font: 700 8px/1 var(--font-cond), sans-serif; letter-spacing: .08em; text-transform: uppercase;
+}
+.ot-status[data-s="available"] { color: var(--ot-ok); }
+.ot-status[data-s="busy"] { color: var(--ot-busy); }
+.ot-status[data-s="responding"],
+.ot-status[data-s="on_scene"] { color: var(--ot-bad); }
+
+.ot-meta-row {
+  margin-left: auto; display: flex; align-items: center; gap: 4px;
+}
+.ot-pill {
+  height: 22px; padding: 0 6px; border-radius: 6px;
+  border: 1px solid var(--ot-line);
+  background: color-mix(in srgb, #000 35%, transparent);
+  font: 700 8px/22px var(--font-cond), sans-serif; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ot-faint); text-decoration: none;
+}
+.ot-pill.on { color: var(--ot-ok); border-color: color-mix(in srgb, var(--ot-ok) 40%, var(--ot-line)); }
+
+/* —— Idle status (phone: slim bottom bar) —— */
+.ot-idle {
+  position: absolute; left: 10px; right: 10px;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 5; padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--ot-glass); backdrop-filter: var(--ot-blur);
+  border: 1px solid var(--ot-line); box-shadow: 0 8px 24px #0007;
+}
+.ot-idle-main { display: flex; flex-direction: column; gap: 6px; }
+.ot-idle-where {
+  margin: 0; font-size: 11px; font-weight: 600; color: var(--ot-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ot-idle-acts { display: flex; gap: 6px; }
+.ot-chip {
+  flex: 1; height: 36px; border: 1.5px solid var(--ot-line); border-radius: 9px;
+  background: color-mix(in srgb, #fff 5%, transparent);
+  font: 700 11px/1 var(--font-cond), sans-serif; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--ot-muted); cursor: pointer;
+}
+.ot-chip.on.green { background: var(--ot-ok); border-color: var(--ot-ok); color: #0a0e14; }
+.ot-chip.on.amber { background: var(--ot-busy); border-color: var(--ot-busy); color: #0a0e14; }
+
+/* —— Assignment sheet: peek = summary + primary CTA; open adds details —— */
+.ot-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 6;
+  max-height: 118px;
+  display: flex; flex-direction: column;
+  background: var(--ot-glass); backdrop-filter: var(--ot-blur);
+  border-radius: 14px 14px 0 0;
+  border: 1px solid var(--ot-line); border-bottom: none;
+  box-shadow: 0 -6px 24px #0008;
+  transition: max-height 220ms cubic-bezier(.2, .8, .2, 1);
+  overflow: hidden;
+}
+.ot-sheet.open { max-height: min(38vh, 300px); }
+@media (prefers-reduced-motion: reduce) { .ot-sheet { transition: none; } }
+
+.ot-sheet-handle {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 12px 2px; border: none; background: transparent; cursor: pointer;
+  color: var(--ot-faint); width: 100%; text-align: left;
+}
+.ot-sheet-handle i { width: 32px; height: 3px; border-radius: 999px; background: #5a6270; }
+.ot-sheet-summary {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 6px; width: 100%;
+  font: inherit; color: var(--ot-ink);
+}
+.ot-sheet-summary b {
+  font: 800 11px/1 var(--font-cond), sans-serif; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ot-accent);
+}
+.ot-sheet-summary em {
+  font-style: normal; font-weight: 600; font-size: 11px;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ot-sheet-summary small {
+  font: 700 9px/1.2 var(--font-cond), sans-serif; color: var(--ot-muted);
+  text-transform: uppercase; letter-spacing: .03em;
+  max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  justify-self: end;
+}
+
+.ot-sheet-body {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 0 12px 4px;
+  display: none;
+}
+.ot-sheet.open .ot-sheet-body { display: block; }
+
+.ot-sheet-foot {
+  flex: 0 0 auto;
+  padding: 4px 12px max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid transparent;
+}
+.ot-sheet.open .ot-sheet-foot { border-top-color: var(--ot-line); padding-top: 8px; }
+.ot-sheet-foot .ot-actions { margin-top: 0; }
+.ot-sheet:not(.open) .ot-sheet-foot .ot-btn { height: 36px; }
+
+.ot-alert {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin: 0 -12px 8px; padding: 6px 12px;
+  background: var(--prio, var(--ot-bad)); color: #fff;
+}
+.ot-word { font: 800 13px/1 var(--font-cond), sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.ot-live {
+  display: flex; align-items: center; gap: 4px;
+  font: 700 8px/1 var(--font-cond), sans-serif; letter-spacing: .08em; text-transform: uppercase;
+}
+.ot-live i { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: ot-pulse 1.4s ease-in-out infinite; }
+@keyframes ot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+.ot-glance h1 {
+  margin: 0; font: 700 14px/1.2 var(--font-plex), system-ui, sans-serif;
+}
+.ot-where { margin: 3px 0 0; font-size: 11px; color: var(--ot-muted); }
+.ot-meta {
+  display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 6px;
+  font: 700 9px/1 var(--font-cond), sans-serif; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--ot-muted);
+}
+.ot-meta .mute { color: var(--ot-faint); }
+
+.ot-hits { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.ot-hits li {
+  padding-top: 4px; border-top: 1px solid var(--ot-line);
+  font-size: 11px; color: var(--ot-ink);
+}
+.ot-hits b {
+  display: block; font: 700 8px/1 var(--font-cond), sans-serif;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--ot-faint); margin-bottom: 1px;
+}
+.ot-hits li.danger { color: #ff8a8a; font-weight: 600; }
+
+.ot-actions { display: grid; gap: 6px; margin-top: 10px; }
+.ot-step { margin: 0; font-size: 11px; color: var(--ot-muted); }
+.ot-btn {
+  height: 38px; border-radius: 9px; border: 1.5px solid var(--ot-line);
+  background: color-mix(in srgb, #fff 7%, transparent);
+  font: 700 11px/1 var(--font-cond), sans-serif; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--ot-ink); cursor: pointer;
+}
+.ot-btn.primary { background: var(--ot-accent); border-color: var(--ot-accent); color: #fff; }
+.ot-btn.danger { background: transparent; border-color: var(--ot-bad); color: #ff8a8a; }
+.ot-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.ot-queue {
+  margin: 8px 0 0; padding: 8px 0 0; border-top: 1px dashed color-mix(in srgb, #fff 18%, transparent);
+  font-size: 12px; color: var(--panel-muted); line-height: 1.35;
+}
+.ot-backup {
+  margin: 8px 0 0; padding: 6px 0 0; border-top: 1.5px solid var(--ot-bad);
+  font-size: 11px; font-weight: 600; color: #ff8a8a;
+}
+.ot-backup.acknowledged { border-top-color: var(--ot-ok); color: var(--ot-ok); }
+
+/* —— Picker —— */
+.ot-pick-screen { background: var(--ot-bg); }
+.ot-pick {
+  position: relative; z-index: 1;
+  padding: max(56px, calc(env(safe-area-inset-top) + 40px)) 16px 28px;
+  max-width: 400px; margin: 0 auto;
+}
+.ot-pick h1 {
+  margin: 0; font: 800 22px/1.1 var(--font-cond), sans-serif; letter-spacing: .02em;
+}
+.ot-pick > p { margin: 6px 0 14px; color: var(--ot-muted); font-size: 13px; }
+.ot-pick ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ot-pick-btn {
+  display: grid; gap: 2px; width: 100%; padding: 12px 14px; border-radius: 12px;
+  background: var(--ot-glass); backdrop-filter: var(--ot-blur);
+  border: 1px solid var(--ot-line); text-align: left; color: inherit; cursor: pointer;
+  box-shadow: 0 6px 18px #0005; font: inherit; text-decoration: none;
+  box-sizing: border-box;
+}
+.ot-pick-btn:active { transform: scale(.98); }
+.ot-pick-btn:hover { border-color: color-mix(in srgb, var(--ot-accent) 55%, var(--ot-line)); }
+.ot-pick-btn b { font: 700 15px/1.2 var(--font-cond), sans-serif; letter-spacing: .03em; }
+.ot-pick-btn span { font-size: 12px; color: var(--ot-muted); }
+.ot-pick-btn small { font-size: 11px; color: var(--ot-faint); }
+
+.ot .dc-officer .fig { transform: scale(0.82); transform-origin: bottom center; }
+.ot .dc-officer .tag { font-size: 9px !important; }
+
+/* —— Laptop / tablet: map dominates; assignment is a left side card —— */
+@media (min-width: 720px) {
+  .ot { font-size: 13px; }
+  .ot .dc-zoom {
+    display: flex; top: auto; right: 14px;
+    bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .ot.tasked .dc-zoom { bottom: 20px; }
+  .ot .dc-layers {
+    bottom: auto; top: 58px; left: 50%; transform: translateX(-50%);
+  }
+  .ot.tasked .dc-layers,
+  .ot.tasked.sheet-open .dc-layers { bottom: auto; top: 58px; }
+
+  .ot-top { padding: 10px 16px; gap: 10px; }
+  .ot-brand span { font-size: 16px; }
+  .ot-brand small { font-size: 9px; }
+  .ot-me b { font-size: 14px; }
+  .ot-status { font-size: 9px; }
+  .ot-pill { height: 24px; line-height: 24px; font-size: 9px; padding: 0 8px; }
+
+  .ot-idle {
+    left: 16px; right: auto; width: min(320px, 32vw);
+    bottom: 16px; padding: 10px 12px;
+  }
+  .ot-idle-where { font-size: 12px; }
+  .ot-chip { height: 38px; font-size: 12px; }
+
+  .ot-sheet,
+  .ot-sheet.open {
+    left: 16px; right: auto; width: min(340px, 32vw);
+    bottom: 16px; top: auto;
+    border-radius: 14px; border-bottom: 1px solid var(--ot-line);
+    height: auto;
+    max-height: min(70vh, 520px);
+  }
+  .ot-sheet:not(.open) { max-height: 120px; }
+  .ot-sheet.open { max-height: min(70vh, 520px); display: flex; }
+  .ot-sheet-body { display: block; flex: 0 1 auto; }
+  .ot-sheet.open .ot-sheet-body { display: block; }
+  .ot-sheet.open .ot-sheet-handle { display: none; }
+  .ot-sheet.open .ot-sheet-body { padding-top: 0; }
+  .ot-sheet.open .ot-alert { margin-top: 0; border-radius: 13px 13px 0 0; }
+  .ot-sheet-summary {
+    grid-template-columns: auto 1fr;
+  }
+  .ot-sheet-summary small {
+    grid-column: 1 / -1; max-width: none; justify-self: start;
+    margin-top: 2px;
+  }
+
+  .ot-word { font-size: 15px; }
+  .ot-glance h1 { font-size: 16px; }
+  .ot-where { font-size: 12px; }
+  .ot-hits li { font-size: 12px; }
+  .ot-btn { height: 40px; font-size: 12px; }
+  .ot-sheet-summary b,
+  .ot-sheet-summary em { font-size: 12px; }
+}
+
+@media (min-width: 1100px) {
+  .ot-sheet,
+  .ot-sheet.open { width: 360px; }
+  .ot-idle { width: 340px; }
+}
+
+.ot-update { margin: 10px 0 4px; padding: 10px; border: 2px solid var(--warn); border-radius: 8px; background: color-mix(in srgb, var(--warn) 12%, transparent); }
+.ot-update h2 { margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); }
+.ot-update ul { margin: 0 0 10px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 1.35; }
+.ot-update s { margin-left: 6px; font-size: 11px; color: var(--faint); }
+.ot .ot-update-ack { width: 100%; justify-content: center; background: var(--warn); border-color: var(--warn); color: var(--bg, #0a0e14); font-weight: 700; }
+.ot-sec { margin-top: 10px; }
+.ot-sec h2 { margin: 0 0 4px; font: 700 9px/1 var(--font-cond), sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--ot-faint); }
+.ot-sec p { margin: 0; font-size: 12px; color: var(--ot-ink); }

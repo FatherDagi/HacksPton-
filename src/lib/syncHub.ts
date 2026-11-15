@@ -115,7 +115,21 @@ function memHub(): MemHub {
 
 // ---------------------------------------------------------------- Supabase hub (many instances)
 
-const SB_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").replace(/\/$/, "");
+/** Accept the project URL in any form people paste: https://<id>.supabase.co, …/rest/v1, or the
+ *  dashboard link (supabase.com/dashboard/project/<id>). Returns https://<id>.supabase.co. */
+function supabaseBase(raw: string): string {
+  const s = raw.trim();
+  if (!s) return "";
+  const dash = s.match(/supabase\.com\/dashboard\/project\/([a-z0-9]+)/i);
+  if (dash) return `https://${dash[1]}.supabase.co`;
+  try {
+    return new URL(s.includes("://") ? s : `https://${s}`).origin;
+  } catch {
+    return s.replace(/\/+$/, "");
+  }
+}
+
+const SB_URL = supabaseBase(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "");
 const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 export const sharedHub = Boolean(SB_URL && SB_KEY);
 

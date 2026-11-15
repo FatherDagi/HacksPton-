@@ -34,15 +34,20 @@ def translation_setups(target_language):
     return [translate_setup(TRANSLATE_MODEL, target), transcribe_setup(LIVE_MODEL)]
 
 
-def transcribe_setup(model):
+def fast_setups():
+    """Plain English transcription: words stream as they are spoken, no translation round-trip."""
+    return [transcribe_setup(LIVE_MODEL), translate_setup(TRANSLATE_MODEL, "en")]
+
+
+def transcribe_setup(model, english_only=True):
+    transcription = {"mode": "SMART"}
+    if english_only:
+        transcription["languageCodes"] = ["en-US"]
     return {
         "setup": {
             "model": "models/" + model,
             "generationConfig": {"responseModalities": ["TEXT"]},
-            "inputAudioTranscription": {
-                "languageCodes": ["en-US"],
-                "mode": "SMART",
-            },
+            "inputAudioTranscription": transcription,
             "realtimeInputConfig": {
                 "automaticActivityDetection": {
                     "startOfSpeechSensitivity": "START_SENSITIVITY_HIGH",
@@ -169,11 +174,14 @@ class LiveSession(object):
         self.on_audio = on_audio
         self.on_source = on_source
         self.text_from = text_from or "english"
-        self._setups = translation_setups(target_language)
+        # "fast": plain transcription of what is said (any language), no translation round-trip.
+        self._setups = fast_setups() if self.text_from == "fast" else translation_setups(target_language)
         self._queue = asyncio.Queue()
         self._task = asyncio.create_task(self._run())
         self._last_interim = ""
         self._closed = False
+        self.opened_at = asyncio.get_running_loop().time()
+        self.voiced_without_text = 0.0  # seconds of speech sent since Gemini last returned any text
 
     def running(self):
         return self._task is not None and not self._task.done()
@@ -301,9 +309,14 @@ class LiveSession(object):
         if self.text_from == "source":
             final = parsed.get("final")
             interim = parsed.get("interim")
+        elif self.text_from == "fast":
+            final = parsed.get("final") or parsed.get("english")
+            interim = parsed.get("interim") or parsed.get("interim_english")
         else:
             final = parsed.get("english") or _english_source(parsed.get("final"))
             interim = parsed.get("interim_english") or _english_source(parsed.get("interim"))
+        if final or interim:
+            self.voiced_without_text = 0.0
         if final:
             self._last_interim = ""
             await self.on_final(final)

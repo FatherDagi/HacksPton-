@@ -4,7 +4,7 @@ import "./console.css";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
-import { draftClery } from "@/lib/clery";
+import { cleryGeography, draftClery } from "@/lib/clery";
 import { assessConsole } from "@/lib/console/assess";
 import { DEFAULT_PANELS, loadPanels, PANEL_LABEL, savePanels, type PanelId, type PanelState } from "@/lib/console/panels";
 import { PATROL_BEATS } from "@/lib/campus";
@@ -14,10 +14,10 @@ import type { ExtractError, ExtractResponse } from "@/lib/extraction";
 import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
 import { URGENCY_LABEL } from "@/lib/priority";
 import { formatEta } from "@/lib/recommend";
-import { scenarioById } from "@/lib/scenarios";
+import { SCENARIOS, scenarioById } from "@/lib/scenarios";
 import { categoryFrom, deskAnswered, deskIncidentId, deskSegments, type DeskCall } from "@/lib/deskBridge";
 import { findPlaces, isVague, placeLatLng, primaryPlace, spokenName } from "@/lib/places";
-import { act, newId, serverToLocal, stamp, useAppState, useTerminals } from "@/lib/store";
+import { act, newId, serverToLocal, stamp, useAppState, useOnline, useTerminals } from "@/lib/store";
 import type { FieldKey, Incident, LatLng, Officer, OfficerAvatar, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
@@ -36,7 +36,14 @@ interface PatrolTrip {
   stopUntil: number;
 }
 
-const ESSENTIAL_KEYS = ["description", "weapons", "hazards", "suspect", "conscious", "breathing", "condition", "people_count", "building", "floor", "room", "location_details", "access", "caller_safe"] as const;
+const CRITICAL_SECTIONS: { title: string; keys: FieldKey[] }[] = [
+  { title: "Location", keys: ["building", "address", "floor", "room", "location_details"] },
+  { title: "Nature", keys: ["description", "incident_time"] },
+  { title: "Caller", keys: ["callback", "caller_name", "caller_safe"] },
+  { title: "Injuries", keys: ["people_count", "condition", "conscious", "breathing", "patient_info"] },
+  { title: "Threats", keys: ["weapons", "hazards", "suspect", "direction", "vehicle"] },
+  { title: "Responders", keys: ["access"] },
+];
 
 const ConsoleMap = dynamic(() => import("./ConsoleMap"), {
   ssr: false,
@@ -45,6 +52,8 @@ const ConsoleMap = dynamic(() => import("./ConsoleMap"), {
 
 const STATUS_LABEL = { available: "Available", busy: "Busy", responding: "Responding", on_scene: "On scene" } as const;
 const TRIP_MS = 12_000;
+const EXTRACT_DEBOUNCE_MS = 450; // ask Gemini this soon after the caller's words change
+const DEMO_RING_MS = 4_000; // a demo call rings this long before it answers itself
 
 type Mode = "gemini" | "prerecorded";
 interface Trip { route: LatLng[]; t0: number; eta: number; k: number; next: number; incidentId: string }
@@ -200,8 +209,15 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   useEffect(() => {
     const log = state.cleryLog ?? [];
     for (const inc of state.incidents) {
-      if (!inc.callEndedAt || inc.clerySignOff || autoCleryFor.current.has(inc.id)) continue;
-      if (log.some((c) => c.incidentId === inc.id)) {
+      if (!inc.callEndedAt) continue;
+      // Location pinned down after filing: refresh the automatic entry's Clery geography.
+      const filed = log.find((c) => c.incidentId === inc.id);
+      if (filed && filed.note == null && filed.geographyLabel !== cleryGeography(inc).label) {
+        signClery(inc, null);
+        continue;
+      }
+      if (inc.clerySignOff || autoCleryFor.current.has(inc.id)) continue;
+      if (filed) {
         autoCleryFor.current.add(inc.id);
         continue;
       }
@@ -227,7 +243,15 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       if (alive) t = setTimeout(poll, lastLive.current ? 400 : 1000);
     };
     void poll();
-    return () => { alive = false; clearTimeout(t); };
+    // Chrome slows timers in background tabs (down to once a minute), so check again the moment the
+    // dispatcher comes back to this tab instead of waiting for the next slowed tick.
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      clearTimeout(t);
+      void poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { alive = false; clearTimeout(t); document.removeEventListener("visibilitychange", onVisible); };
   }, []);
   const deskCalls = useMemo(() => desk?.calls ?? [], [desk]);
   const deskLiveCalls = deskCalls.filter((c) => c.status === "live");
@@ -265,7 +289,70 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       setTimeout(() => openDeskCall(c, true), 0);
     }
   }, [deskLiveCalls, openDeskCall]);
+  // A call answered while this tab was open but in the background may have ended before we saw it
+  // live. Still open it as a case so its transcript and critical info aren't lost. Calls from before
+  // this page opened are left alone (they were handled, or deliberately cleared from the board).
+  const online = useOnline();
+  const pageOpenedAt = useRef(0);
+  useEffect(() => { pageOpenedAt.current = stamp(); }, []);
+  useEffect(() => {
+    if (!online || !pageOpenedAt.current) return; // wait for shared state, so we know which cases exist
+    for (const c of deskCalls) {
+      if (c.status === "live" || switchedTo.current.has(c.id) || !deskAnswered(c)) continue;
+      switchedTo.current.add(c.id);
+      if (!c.endedAt || c.startedAt < pageOpenedAt.current - 5_000) continue;
+      if (state.incidents.some((i) => i.id === deskIncidentId(c.id))) continue;
+      setTimeout(() => openDeskCall(c, false), 0);
+    }
+  }, [online, deskCalls, state.incidents, openDeskCall]);
   const ringing = deskLiveCalls.filter((c) => !deskAnswered(c) && !opened.has(c.id));
+
+  // Demo menu: a scripted call rings like a real one, then "answers" on its own (or when clicked) and
+  // plays out line by line in its own case.
+  const [demoMenu, setDemoMenu] = useState(false);
+  const [demoRing, setDemoRing] = useState<{ scenarioId: string; startedAt: number } | null>(null);
+  const [demoConnectedAt, setDemoConnectedAt] = useState<number | null>(null);
+  const answerDemo = useCallback(() => {
+    if (!demoRing) return;
+    const at = Date.now();
+    const incidentId = `demo-${at.toString(36)}`;
+    act({ type: "START_CALL", at, incidentId, number: `INC-${String(Math.floor(at / 1000) % 100000).padStart(5, "0")}`, scenarioId: demoRing.scenarioId });
+    setDemoRing(null);
+    setDemoConnectedAt(at);
+    setMode(geminiReady ? "gemini" : "prerecorded");
+    setSelectedOfficerId(null);
+    setReader(null);
+    setPanels((prev) => {
+      if (prev.detail) return prev;
+      const next = { ...prev, detail: true };
+      savePanels(next);
+      return next;
+    });
+  }, [demoRing, geminiReady]);
+  useEffect(() => {
+    if (!demoRing) return;
+    const t = setTimeout(answerDemo, Math.max(0, demoRing.startedAt + DEMO_RING_MS - Date.now()));
+    return () => clearTimeout(t);
+  }, [demoRing, answerDemo]);
+  const startDemo = (scenarioId: string) => {
+    setDemoMenu(false);
+    setDemoRing({ scenarioId, startedAt: stamp() });
+  };
+  const demoConnected = demoConnectedAt !== null && now !== null && now - demoConnectedAt < 1500;
+
+  // Flag a ringing call in the tab title too, so it shows even when this tab is in the background.
+  const ringingCount = ringing.length + (demoRing ? 1 : 0);
+  useEffect(() => {
+    if (!ringingCount) return;
+    const before = document.title;
+    let on = true;
+    const blink = setInterval(() => {
+      on = !on;
+      document.title = on ? "☎ Incoming call" : before;
+    }, 1000);
+    document.title = "☎ Incoming call";
+    return () => { clearInterval(blink); document.title = before; };
+  }, [ringingCount]);
 
   // Mirror every live desk call's transcript into its incident; run Gemini once the caller has paused;
   // end the console call when the desk call ends.
@@ -286,7 +373,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
         extractTimers.current[inc.id] = setTimeout(() => {
           extractedText.current[inc.id] = callerText;
           runGemini({ ...inc, transcript: segments }, segments);
-        }, 1200);
+        }, EXTRACT_DEBOUNCE_MS);
       }
       if (call.status !== "live" && inc.callStartedAt && !inc.callEndedAt) act({ type: "END_CALL", at: Date.now(), incidentId: inc.id });
     }
@@ -591,11 +678,17 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     manualPrio.current = false;
   }, [open?.id]);
 
-  // Keep Confirm in sync with the current suggestion until the dispatcher picks another P.
+  // Auto-grade every open case as soon as the caller has said something, and keep that grade current
+  // as the call fills in. Once the dispatcher sets a level themselves (with a confirm), theirs sticks.
   useEffect(() => {
-    if (!open || !assessment || open.priorityDecision || manualPrio.current) return;
-    setPendingPrio(assessment.proposed);
-  }, [open?.id, open?.priorityDecision, assessment?.proposed]); // eslint-disable-line react-hooks/exhaustive-deps
+    for (const inc of openIncidents) {
+      if (!inc.transcript.some((x) => x.speaker === "caller")) continue;
+      const proposed = assessConsole(inc.category, inc.fields).proposed;
+      const d = inc.priorityDecision;
+      if (d && (!d.auto || d.priority === proposed)) continue;
+      act({ type: "DECIDE_PRIORITY", at: stamp(), incidentId: inc.id, priority: proposed, proposed, overrideReason: null, auto: true });
+    }
+  }, [openIncidents]);
 
   useEffect(() => {
     if (!live && reader === "ask") setReader(null);
@@ -675,7 +768,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
           teamIds={teamIds}
           theme="dark"
           fitKey={`${fitKey}-${reader ? "rail" : "map"}`}
-          padLeft={reader ? 640 : 348}
+          padLeft={reader ? 730 : 396}
           padTop={panels.board ? 68 : 56}
           padRight={panels.roster ? 300 : 72}
           lostIds={lost.map((x) => x.o.id)}
@@ -686,7 +779,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
           onSelectIncident={selectCase}
           assignedIncidentIds={[...assignedIds]}
         />
-        {panels.board && (
+        {panels.board && (boardOpenCount > 0 || boardDone.length > 0) && (
           <header className="dc-cases-top" aria-label="Cases">
             <ul className="dc-cases-rail">
               {boardDone.length > 0 && (
@@ -778,14 +871,31 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                   </li>
                 );
               })}
-              {boardOpenCount === 0 && boardDone.length === 0 && (
-                <li className="dc-cases-empty">No cases</li>
-              )}
             </ul>
           </header>
         )}
-        {(ringing.length > 0 || recentlyConnected.length > 0) && (
+        {(ringing.length > 0 || recentlyConnected.length > 0 || demoRing || demoConnected) && (
           <div className="dc-callbanners" role="alert" aria-live="assertive">
+            {demoRing && (
+              <button type="button" className="dc-callbanner ringing" onClick={answerDemo}>
+                <span className="dc-callbanner-icon" aria-hidden>☎</span>
+                <span className="dc-callbanner-main">
+                  <b>Incoming emergency call</b>
+                  <span>Demo · {scenarioById(demoRing.scenarioId)?.title ?? "Scripted call"}</span>
+                </span>
+                <span className="dc-callbanner-time">Ringing {now ? fmtClock(Math.max(0, now - demoRing.startedAt)) : ""}</span>
+                <span className="dc-callbanner-hint">Click to answer now · answers on its own in a few seconds</span>
+              </button>
+            )}
+            {demoConnected && (
+              <div className="dc-callbanner connected">
+                <span className="dc-callbanner-icon" aria-hidden>✓</span>
+                <span className="dc-callbanner-main">
+                  <b>Call connected</b>
+                  <span>Demo call</span>
+                </span>
+              </div>
+            )}
             {ringing.map((c) => (
               <button key={c.id} type="button" className="dc-callbanner ringing" onClick={() => openDeskCall(c, false)}>
                 <span className="dc-callbanner-icon" aria-hidden>☎</span>
@@ -854,7 +964,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
               </div>
             )}
             {!open && !incident && (
-              <p className="dc-dispatch-idle">Select a case above. Live calls open here automatically.</p>
+              <p className="dc-dispatch-idle">No active cases. Incoming calls and demos open here automatically.</p>
             )}
             {open && assessment && (
               <>
@@ -906,7 +1016,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                     <p className="dc-rec-short">{missing.length} more recommended than free right now.</p>
                   )}
                 </div>
-                {!reader && (
+                {/* Critical notes stay in the left column even while the transcript / Clery / questions panel is open. */}
                 <div className={`dc-case-slot${assignOpen ? " assigning" : ""}`}>
                   {assignOpen ? (
                     <div className="dc-dispatch-desk" role="dialog" aria-label="Dispatch desk">
@@ -968,15 +1078,14 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
                     </div>
                   ) : (
                     <div className="dc-notes-inline">
-                      <div className="dc-sev-label">Case notes → officer</div>
-                      <CaseNotesRail
+                      <div className="dc-sev-label">Critical notes</div>
+                      <CriticalNotes
                         incident={open}
                         updates={dispatched ? <OfficerUpdates assigned={assigned} updates={state.officerUpdates ?? []} /> : null}
                       />
                     </div>
                   )}
                 </div>
-                )}
               </>
             )}
           </div>
@@ -1152,6 +1261,32 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
         <span><i style={{ background: "var(--committed)" }} />On call</span>
       </div>
 
+      <div className="dc-demo">
+        {demoMenu && (
+          <div className="dc-demo-menu" role="menu" aria-label="Demo calls">
+            <h3>Play a demo call</h3>
+            {SCENARIOS.map((sc) => (
+              <button key={sc.id} type="button" role="menuitem" disabled={!!demoRing} onClick={() => startDemo(sc.id)}>
+                <i className={`dc-demo-cat ${sc.category}`} aria-hidden />
+                <span>{sc.title}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          className="dc-demo-toggle"
+          aria-haspopup="menu"
+          aria-expanded={demoMenu}
+          onClick={() => setDemoMenu((v) => !v)}
+        >
+          Demos
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d={demoMenu ? "M6 15l6-6 6 6" : "M6 9l6 6 6-6"} stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </div>
+
       <button
         type="button"
         className="dc-clery-fab"
@@ -1172,19 +1307,33 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   );
 }
 
-function CaseNotesRail({ incident, updates }: { incident: Incident; updates: ReactNode }) {
+/** Critical notes: the standard call-taking checklist (location first, then nature, caller, injuries,
+ *  threats, access). Filled from the call as it happens; anything not heard yet reads "Not available". */
+function CriticalNotes({ incident, updates }: { incident: Incident; updates: ReactNode }) {
+  const clery = cleryGeography(incident);
   return (
     <div className="dc-notes-rail">
-      <ul className="dc-essentials">
-        {ESSENTIAL_KEYS.map((k) => {
-          const f = incident.fields[k];
-          if (!f.value) return null;
-          return <li key={k}><b>{FIELD_LABELS[k]}</b>{f.value}</li>;
-        })}
-      </ul>
-      {!ESSENTIAL_KEYS.some((k) => incident.fields[k].value) && (
-        <p className="dc-empty">Notes fill in as the call comes through.</p>
-      )}
+      <div className="dc-crit-clery" data-geo={clery.geography} title={clery.reasons[0]}>
+        <span>Clery</span>
+        <b>{clery.label}</b>
+        <small>{clery.reasons[0]}</small>
+      </div>
+      {CRITICAL_SECTIONS.map((sec) => (
+        <section key={sec.title} className="dc-crit-sec">
+          <h4>{sec.title}</h4>
+          <dl className="dc-crit">
+            {sec.keys.map((k) => {
+              const v = incident.fields[k]?.value;
+              return (
+                <div key={k} className={v ? "has" : "na"}>
+                  <dt>{FIELD_LABELS[k]}</dt>
+                  <dd>{v || "Not available"}</dd>
+                </div>
+              );
+            })}
+          </dl>
+        </section>
+      ))}
       {updates}
     </div>
   );
@@ -1249,7 +1398,7 @@ function PriorityBlock({ incident, proposed, pending, onPick, onConfirm, onCance
   const showConfirm = pending != null && pending !== current;
   return (
     <div className="dc-prio-block">
-      <div className="dc-sev-label">Severity · change anytime</div>
+      <div className="dc-sev-label">Severity</div>
       <div className="dc-prio" role="group" aria-label="Case severity">
         {([1, 2, 3, 4] as Priority[]).map((p) => {
           const isSuggested = current == null && p === proposed;
@@ -1277,7 +1426,12 @@ function PriorityBlock({ incident, proposed, pending, onPick, onConfirm, onCance
           <button type="button" className="dc-btn sm ghost" onClick={onCancel}>Not now</button>
         </div>
       )}
-      {current != null && !showConfirm && <span className="dc-sev-set">Confirmed · P{current}</span>}
+      {current != null && !showConfirm && (
+        <span className="dc-sev-set">
+          {incident.priorityDecision?.auto ? `Auto-graded P${current} · pick another level to change` : `Set by dispatcher · P${current}`}
+        </span>
+      )}
+      {current == null && !showConfirm && <span className="dc-sev-set">Grades itself once the caller speaks</span>}
     </div>
   );
 }

@@ -17,6 +17,12 @@ from app.transcripts import find_keywords, keep_spoken, stitch_text, strip_overl
 log = logging.getLogger("desk.pipeline")
 
 LIVE_RATE = 16000
+KEYWORD_EVERY_S = 15.0  # Gemini keyword cleanup at most this often per call (local keywords run always)
+KEYWORD_BACKOFF_S = 60.0  # wait this long after a Gemini error such as an exhausted quota
+STALL_S = 6.0  # reconnect a live session after this much speech with no text back from Gemini
+REOPEN_GAP_S = 1.0  # wait at least this long between reconnects of one session
+MAX_REOPENS = 40  # give up on a speaker after this many sessions in one call
+
 LINE_PAUSE_S = 1.0  # start a new transcript line only after this much silence (or a speaker change)
 TEXT_LAG_S = 0.7  # transcribed text arrives about this long after the words were spoken
 TAIL_GRACE_S = 2.0  # late words of an unfinished sentence may arrive up to this long into the next utterance
@@ -41,6 +47,7 @@ class Pipeline(object):
         self.play_for_desk = play_for_desk
         self.play_for_caller = play_for_caller
         self.sessions = {}
+        self.reopens = {}  # session key -> {"count": reconnects so far, "next": earliest next reconnect}
         self.failed = set()
         self.queues = {}
         self.workers = {}
@@ -65,9 +72,23 @@ class Pipeline(object):
             self._missing_key(call_id)
             return
         if not interpreter_on():
-            # Listen-only: both people already hear each other. Transcribe both sides as English text
-            # (translated if needed) right away; never hold back the call-taker's words.
-            await self._send_session(call_id, speaker, pcm, "en", "english")
+            # Listen-only: both people already hear each other. Plain transcription streams words as
+            # they're spoken. Only a caller found to be speaking another language goes through the
+            # (slower) live translator, so their side still reads in English.
+            # Until the caller's language is known, the translator also listens (hidden) to hear which
+            # language it is; then only one of the two keeps going.
+            lang = self.caller_language.get(call_id)
+            if speaker != "Caller":
+                await self._send_session(call_id, speaker, pcm, "en", "fast")
+            elif lang is None:
+                await self._send_session(call_id, speaker, pcm, "en", "fast")
+                await self._send_session(call_id, speaker, pcm, "en", "english")
+            elif lang == "en":
+                self._drop_session((call_id, speaker, "en", "english"))
+                await self._send_session(call_id, speaker, pcm, "en", "fast")
+            else:
+                self._drop_session((call_id, speaker, "en", "fast"))
+                await self._send_session(call_id, speaker, pcm, "en", "english")
             return
         if speaker != "Caller" and call_id not in self.caller_language:
             buf = self.reply_buffer.setdefault(call_id, bytearray())
@@ -120,6 +141,7 @@ class Pipeline(object):
         self.workers.pop(call_id, None)
         self.queues.pop(call_id, None)
         self.failed = set(key for key in self.failed if key[0] != call_id)
+        self.reopens = {key: v for key, v in self.reopens.items() if key[0] != call_id}
         self.reply_buffer.pop(call_id, None)
         self.caller_language.pop(call_id, None)
         for book in (self.voice, self.open_line):
@@ -130,17 +152,49 @@ class Pipeline(object):
         key = (call_id, speaker, target, text_from)
         if key in self.failed:
             return
+        now = time.monotonic()
         session = self.sessions.get(key)
+        if session is not None and session.running():
+            # Stalled: the speaker keeps talking but Gemini has returned nothing for a while.
+            voice = self.voice.get((call_id, speaker))
+            if voice and voice.get("last") is not None and now - voice["last"] < 0.05:
+                session.voiced_without_text += len(pcm) / (LIVE_RATE * 2)
+            if session.voiced_without_text > STALL_S:
+                log.info("live transcription stalled for %s %s; reconnecting", call_id, speaker)
+                self.sessions.pop(key, None)
+                asyncio.create_task(session.finish())
+                session = None
+        elif session is not None:
+            # Gemini closed the session (time limit, network blip, error): open a fresh one.
+            self.sessions.pop(key, None)
+            session = None
         if session is None:
+            reopen = self.reopens.setdefault(key, {"count": 0, "next": 0.0})
+            if now < reopen["next"]:
+                return  # brief cool-down after a failure so we don't hammer Gemini
+            if reopen["count"] >= MAX_REOPENS:
+                self.failed.add(key)
+                self.store.set_error(call_id, "Live transcription keeps failing. Check the Gemini key and quota.")
+                await self._publish()
+                return
+            if reopen["count"]:
+                log.info("reopening live transcription for %s %s (#%d)", call_id, speaker, reopen["count"])
+            reopen["count"] += 1
+            reopen["next"] = now + REOPEN_GAP_S
             session = self._open(call_id, speaker, target, text_from)
-        elif not session.running():
-            self.failed.add(key)
-            self.store.set_error(call_id, "Live translation stopped. End the call and start another.")
-            return
-        accepted = await session.send(pcm)
-        if not accepted:
-            self.failed.add(key)
-            self.store.set_error(call_id, "Live translation stopped. End the call and start another.")
+        await session.send(pcm)
+
+    def _drop_session(self, key):
+        session = self.sessions.pop(key, None)
+        if session is not None:
+            asyncio.create_task(session.finish())  # let it hand over its last words
+
+    def _caller_hidden(self, call_id, speaker, text_from):
+        """Direct calls: the caller's translator only listens to learn the language until it's known
+        to be something other than English; until then its text is not shown."""
+        if interpreter_on() or speaker != "Caller" or text_from != "english":
+            return False
+        return self.caller_language.get(call_id) in (None, "en")
 
     async def _flush_reply(self, call_id):
         pcm = bytes(self.reply_buffer.pop(call_id, b""))
@@ -164,15 +218,20 @@ class Pipeline(object):
         key = (call_id, speaker, target, text_from)
 
         async def on_interim(text, call_id=call_id, speaker=speaker):
-            await self._show(call_id, speaker, text, commit=False)
+            if not self._caller_hidden(call_id, speaker, text_from):
+                await self._show(call_id, speaker, text, commit=False)
 
         async def on_final(text, call_id=call_id, speaker=speaker):
-            await self._show(call_id, speaker, text, commit=True)
+            if not self._caller_hidden(call_id, speaker, text_from):
+                await self._show(call_id, speaker, text, commit=True)
 
         async def on_error(message, call_id=call_id):
-            self.failed.add(key)
-            self.store.set_error(call_id, message)
-            await self._publish()
+            # Not fatal: the next audio reopens the session (see _send_session). Only a missing key is.
+            log.warning("live transcription error for %s %s: %s", call_id, speaker, message)
+            if "GEMINI_API_KEY" in message:
+                self.failed.add(key)
+                self.store.set_error(call_id, message)
+                await self._publish()
 
         async def on_audio(pcm, rate, call_id=call_id, speaker=speaker):
             if not interpreter_on():
@@ -182,7 +241,8 @@ class Pipeline(object):
                 await player(call_id, pcm, rate)
 
         async def on_source(text, call_id=call_id, speaker=speaker):
-            if speaker == "Caller":
+            # Only the translator hears the real language; the fast transcriber is locked to English.
+            if speaker == "Caller" and text_from != "fast":
                 await self._note_language(call_id, text)
 
         session = LiveSession(
@@ -334,11 +394,20 @@ class Pipeline(object):
         if not call or not call["transcript"]:
             return
         spoken = stitch_text([line["text"] for line in call["transcript"]])
-        try:
-            extra = await asyncio.to_thread(self.gemini.extract_keywords, spoken)
-        except Exception as exc:
-            log.info("keyword pass skipped: %s", redact(exc))
-            extra = []
+        # The Gemini keyword pass is a nice-to-have: at most once every KEYWORD_EVERY_S per call, and
+        # back off after an error (e.g. quota), so it never starves transcription or the info sheet.
+        extra = []
+        nxt = getattr(self, "_kw_next", None)
+        if nxt is None:
+            nxt = self._kw_next = {}
+        now = time.monotonic()
+        if now >= nxt.get(call_id, 0.0):
+            nxt[call_id] = now + KEYWORD_EVERY_S
+            try:
+                extra = await asyncio.to_thread(self.gemini.extract_keywords, spoken)
+            except Exception as exc:
+                nxt[call_id] = time.monotonic() + KEYWORD_BACKOFF_S
+                log.info("keyword pass skipped: %s", redact(exc))
         fresh = self.store.get_call(call_id)
         if not fresh:
             return

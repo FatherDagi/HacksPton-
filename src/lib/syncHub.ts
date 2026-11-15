@@ -7,6 +7,7 @@
 // screens would see different states and officers would jump between them. When Supabase is
 // configured (SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY, tables from supabase/migrations), the log lives
 // in Postgres and every instance replays the same log on top of the same seed.
+import { emptyFields } from "@/lib/fields";
 import { reduce, seedState, type Action } from "@/lib/reducer";
 import type { AppState } from "@/lib/types";
 
@@ -20,7 +21,7 @@ export interface SyncBody {
 }
 
 const KEEP = 3000; // log entries kept; older clients get a full snapshot instead
-const ROSTER_REV = 9; // bump: attending priorities, queued multi-assign (a bump reseeds the demo)
+const ROSTER_REV = 10; // bump: clean board (no seeded cases); a bump reseeds the demo
 const SNAP_EVERY = 200; // save a fresh snapshot this many actions after the last one
 
 /** Older states (hot reload, older snapshots) may predate newer AppState fields. */
@@ -33,6 +34,7 @@ export function upgrade(s: AppState): AppState {
     officerUpdates: s.officerUpdates ?? [],
     incidents: s.incidents.map((i) => ({
       ...i,
+      fields: { ...emptyFields(), ...i.fields }, // cases saved before newer fields existed
       clerySignOff: i.clerySignOff ?? null,
       mentionedPlaces: i.mentionedPlaces ?? [],
     })),

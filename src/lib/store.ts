@@ -4,6 +4,7 @@
 // polls that log and rebuilds its state as: server-confirmed state + its own not-yet-confirmed actions.
 // Works across laptops on the same network (open http://<host-ip>:3000 on the second one).
 import { useSyncExternalStore } from "react";
+import { emptyFields } from "./fields";
 import { reduce, seedState, type Action } from "./reducer";
 import type { AppState } from "./types";
 
@@ -57,6 +58,7 @@ async function poll() {
         officerUpdates: j.snapshot.officerUpdates ?? [],
         incidents: j.snapshot.incidents.map((i) => ({
           ...i,
+          fields: { ...emptyFields(), ...i.fields },
           clerySignOff: i.clerySignOff ?? null,
           mentionedPlaces: i.mentionedPlaces ?? [],
         })),

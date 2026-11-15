@@ -107,7 +107,7 @@
 
 /* Top cases rail — 12px gutters; clears map-tools (34) + roster (248) */
 .dc-cases-top {
-  position: absolute; top: 12px; left: 344px; right: 318px; z-index: 25;
+  position: absolute; top: 12px; left: 392px; right: 318px; z-index: 25;
   display: flex; align-items: center;
   height: 44px; padding: 0 8px;
   border-radius: 14px;
@@ -300,6 +300,9 @@
   border: 1px solid var(--panel-line); border-radius: 14px;
   box-shadow: var(--shadow);
   pointer-events: auto; overflow: hidden;
+  /* Larger text throughout the dispatch panel: scales everything inside evenly (368px wide on screen).
+     Things placed beside it use left: 392px. */
+  zoom: 1.15;
 }
 .dc-dock-right {
   position: absolute; top: 12px; right: 12px; bottom: 72px; z-index: 20;
@@ -338,7 +341,8 @@
 
 /* Transcript / fields / ask — same left edge as cases, starts below the 44px top bar */
 .dc-rail {
-  position: absolute; top: 68px; left: 344px; bottom: 12px; z-index: 19;
+  /* Same 1.15 text scale as the dispatch panel; offsets are in scaled px (on screen: left 392, top 68). */
+  position: absolute; top: 59px; left: 341px; bottom: 10px; z-index: 19; zoom: 1.15;
   width: 280px; display: flex; flex-direction: column;
   background: var(--glass-strong); backdrop-filter: var(--blur);
   border: 1px solid var(--panel-line); border-radius: 14px;
@@ -346,7 +350,7 @@
   pointer-events: auto; overflow: hidden;
 }
 /* When the rail is open, slide the cases strip so its left edge still matches the rail */
-.dc:has(.dc-rail) .dc-cases-top { left: 344px; }
+.dc:has(.dc-rail) .dc-cases-top { left: 726px; }
 .dc-rail-head {
   flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
   gap: 8px; padding: 10px 12px 8px; border-bottom: 1px solid var(--panel-line);
@@ -432,7 +436,7 @@
 .dc-panel-body { flex: 1 1 auto; min-height: 0; overflow: auto; padding: 0 10px 8px; }
 
 .dc-panels-menu {
-  position: absolute; left: 344px; bottom: 12px; z-index: 35; width: 200px;
+  position: absolute; left: 392px; bottom: 12px; z-index: 35; width: 200px;
   border-radius: 12px; padding: 10px; background: var(--glass-strong); backdrop-filter: var(--blur);
   border: 1px solid var(--panel-line); box-shadow: var(--shadow); color: var(--panel-ink);
 }
@@ -711,6 +715,42 @@
   color: var(--panel-ink); box-shadow: var(--shadow); cursor: pointer;
 }
 .dc-clery-fab:hover { border-color: var(--accent); color: #fff; }
+
+/* Demo calls menu: bottom right, just left of the Clery button. */
+.dc-demo { position: absolute; right: 72px; bottom: 16px; z-index: 40; }
+.dc-demo-toggle {
+  height: 48px; padding: 0 16px; border-radius: 24px;
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--panel-line);
+  background: var(--glass-strong); backdrop-filter: var(--blur);
+  color: var(--panel-ink); box-shadow: var(--shadow); cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+}
+.dc-demo-toggle:hover, .dc-demo-toggle[aria-expanded="true"] { border-color: var(--accent); color: #fff; }
+.dc-demo-menu {
+  position: absolute; right: 0; bottom: 56px; width: 260px; padding: 8px;
+  display: flex; flex-direction: column; gap: 2px;
+  background: var(--glass-strong); backdrop-filter: var(--blur);
+  border: 1px solid var(--panel-line); border-radius: 12px; box-shadow: var(--shadow);
+}
+.dc-demo-menu h3 {
+  margin: 4px 8px 6px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--panel-muted);
+}
+.dc-demo-menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 10px; border: none; border-radius: 8px; background: transparent;
+  color: var(--panel-ink); font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+.dc-demo-menu button:hover:not(:disabled) { background: color-mix(in srgb, #fff 8%, transparent); }
+.dc-demo-menu button:disabled { opacity: 0.45; cursor: default; }
+.dc-demo-cat { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--panel-muted); }
+.dc-demo-cat.medical { background: var(--committed); }
+.dc-demo-cat.fire { background: var(--accent); }
+.dc-demo-cat.police { background: #5b8def; }
+@media (max-width: 640px) {
+  .dc-demo-menu { width: min(260px, calc(100vw - 104px)); }
+}
 .dc-clery-overlay { position: absolute; inset: 0; z-index: 60; pointer-events: auto; }
 .dc-clery-scrim {
   position: absolute; inset: 0; border: none; cursor: pointer;
@@ -763,6 +803,37 @@
 .dc-clery-mini b { color: var(--panel-ink); }
 .dc-note { margin: 4px 0 0; font-size: 10px; color: var(--panel-faint); }
 .dc-essentials { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+/* Automatic Clery geography for the case location. */
+.dc-crit-clery {
+  display: grid; grid-template-columns: auto 1fr; column-gap: 8px; row-gap: 2px; align-items: baseline;
+  margin: 0 0 10px; padding: 7px 9px; border-radius: 8px;
+  border: 1px solid var(--panel-line); background: color-mix(in srgb, #fff 4%, transparent);
+}
+.dc-crit-clery span {
+  font: 700 10px/1.2 var(--font-cond), sans-serif; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--panel-muted);
+}
+.dc-crit-clery b { font-size: 12px; color: var(--panel-ink); }
+.dc-crit-clery small { grid-column: 1 / -1; font-size: 11px; color: var(--panel-muted); line-height: 1.35; }
+.dc-crit-clery[data-geo="on_campus"] { border-color: color-mix(in srgb, var(--available) 55%, transparent); }
+.dc-crit-clery[data-geo="on_campus"] b { color: var(--available); }
+.dc-crit-clery[data-geo="public_property"],
+.dc-crit-clery[data-geo="noncampus"] { border-color: color-mix(in srgb, var(--busy) 55%, transparent); }
+.dc-crit-clery[data-geo="public_property"] b,
+.dc-crit-clery[data-geo="noncampus"] b { color: var(--busy); }
+.dc-crit-clery[data-geo="outside"] b { color: var(--panel-muted); }
+
+/* Critical notes: every standard field, filled or "Not available". */
+.dc-crit-sec { margin: 0 0 10px; }
+.dc-crit-sec h4 {
+  margin: 0 0 4px; font: 700 10px/1.2 var(--font-cond), sans-serif; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent);
+}
+.dc-crit { margin: 0; display: grid; gap: 3px; }
+.dc-crit > div { display: grid; grid-template-columns: 112px 1fr; gap: 8px; align-items: baseline; }
+.dc-crit dt { font-size: 11px; color: var(--panel-muted); }
+.dc-crit dd { margin: 0; font-size: 12px; line-height: 1.35; color: var(--panel-ink); font-weight: 600; }
+.dc-crit .na dd { color: var(--panel-faint); font-weight: 400; font-style: italic; }
 .dc-essentials li { font-size: 12px; line-height: 1.35; }
 .dc-essentials b { display: block; font: 700 10px/1 var(--font-cond), sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--panel-faint); margin-bottom: 2px; }
 

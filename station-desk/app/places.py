@@ -46,6 +46,12 @@ PHRASES, BY_LEN = _load()
 _WORD = re.compile(r"[A-Za-z0-9]+(?:['’\-][A-Za-z0-9]+)*")
 
 
+def _each_word_close(heard, known):
+    """A misheard name is close word by word ("frist campus centre" ~ "frist campus center"); a
+    different word that happens to share letters is not ("the building" vs "math building")."""
+    return all(difflib.SequenceMatcher(None, a, b).ratio() >= 0.75 for a, b in zip(heard.split(), known.split()))
+
+
 def correct_places(text):
     """Return text with place names spelled the way the campus spells them."""
     if not text or not PHRASES:
@@ -60,7 +66,7 @@ def correct_places(text):
             name = PHRASES.get(key)
             if name is None and n >= 2 and len(key) >= FUZZY_MIN_CHARS:
                 close = difflib.get_close_matches(key, BY_LEN.get(len(key.split()), []), n=1, cutoff=FUZZY_RATIO)
-                name = PHRASES[close[0]] if close else None
+                name = PHRASES[close[0]] if close and _each_word_close(key, close[0]) else None
             if name:
                 hit = (span[0].start(), span[-1].end(), name, n)
                 break

@@ -252,8 +252,11 @@
 .ot .dc-officer .tag { font-size: 9px !important; }
 
 /* —— Laptop / tablet: map dominates; assignment is a left side card —— */
+/* Patrol view has no roster column: keep the map controls against the right edge. */
+.ot .dc-map-tools { right: 14px; }
+
 @media (min-width: 720px) {
-  .ot { font-size: 13px; }
+  .ot { font-size: 15px; }
   .ot .dc-zoom {
     display: flex; top: auto; right: 14px;
     bottom: max(20px, env(safe-area-inset-bottom));
@@ -267,21 +270,21 @@
 
   .ot-top { padding: 10px 16px; gap: 10px; }
   .ot-brand span { font-size: 16px; }
-  .ot-brand small { font-size: 9px; }
-  .ot-me b { font-size: 14px; }
-  .ot-status { font-size: 9px; }
-  .ot-pill { height: 24px; line-height: 24px; font-size: 9px; padding: 0 8px; }
+  .ot-brand small { font-size: 11px; }
+  .ot-me b { font-size: 16px; }
+  .ot-status { font-size: 11px; }
+  .ot-pill { height: 28px; line-height: 28px; font-size: 11px; padding: 0 10px; }
 
   .ot-idle {
-    left: 16px; right: auto; width: min(320px, 32vw);
-    bottom: 16px; padding: 10px 12px;
+    left: 16px; right: auto; width: min(380px, 36vw);
+    bottom: 16px; padding: 12px 14px;
   }
-  .ot-idle-where { font-size: 12px; }
-  .ot-chip { height: 38px; font-size: 12px; }
+  .ot-idle-where { font-size: 15px; }
+  .ot-chip { height: 44px; font-size: 14px; }
 
   .ot-sheet,
   .ot-sheet.open {
-    left: 16px; right: auto; width: min(340px, 32vw);
+    left: 16px; right: auto; width: min(400px, 38vw);
     bottom: 16px; top: auto;
     border-radius: 14px; border-bottom: 1px solid var(--ot-line);
     height: auto;

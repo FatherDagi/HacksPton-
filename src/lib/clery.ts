@@ -2,7 +2,9 @@
 // and timely-warning flag from the call sheet. Human must sign off — never auto-files.
 import type { FieldKey, FieldValue, Incident, IncidentCategory } from "./types";
 
-export type CleryGeography = "on_campus" | "public_property" | "noncampus" | "outside" | "unknown";
+import { classifyClery, type CleryGeography } from "./cleryGeo";
+
+export type { CleryGeography };
 
 export interface CleryDraft {
   reportable: boolean;
@@ -18,28 +20,20 @@ export interface CleryDraft {
 const text = (f: Record<FieldKey, FieldValue>, k: FieldKey) => (f[k].value ?? "").toLowerCase();
 const has = (f: Record<FieldKey, FieldValue>, k: FieldKey) => f[k].status !== "unknown" && !!f[k].value;
 
-/** Approximate Clery geography from building id / address text. Label as approximate unless PSAFE confirms the ASR map. */
+/** Clery geography from the case's map point (see cleryGeo.ts): on campus / residential facility /
+ *  public property / noncampus / outside, for the Main or Forrestal campus. */
 export function cleryGeography(inc: Incident): { geography: CleryGeography; label: string; reasons: string[] } {
-  const addr = text(inc.fields, "address") + " " + text(inc.fields, "building") + " " + text(inc.fields, "location_details");
-  if (/nassau\s*st|witherspoon|university\s*pl/.test(addr)) {
-    return {
-      geography: "public_property",
-      label: "Adjacent public property (approximate)",
-      reasons: ["Location text mentions a public street abutting campus — Clery can include adjacent public property."],
-    };
+  if (inc.locationPending || !inc.location) {
+    return { geography: "unknown", label: "Location not yet known", reasons: ["No location on the case yet."] };
   }
-  // Seeded campus buildings are treated as on-campus for the demo.
-  if (inc.buildingId && inc.buildingId !== "dps") {
-    return {
-      geography: "on_campus",
-      label: "On campus (approximate)",
-      reasons: ["Building is on the Princeton campus map used in this simulation."],
-    };
-  }
-  if (has(inc.fields, "building") || has(inc.fields, "address")) {
-    return { geography: "unknown", label: "Geography needs review", reasons: ["Location present but outside the demo campus layer."] };
-  }
-  return { geography: "unknown", label: "Location not yet known", reasons: ["No building or address on the sheet yet."] };
+  // Where-wording from the sheet plus the caller's own words ("on the lawn", "my room in Whitman").
+  const said = inc.transcript.filter((t) => t.speaker === "caller").map((t) => t.text);
+  const hint = [
+    inc.fields.building.value, inc.fields.room.value, inc.fields.location_details.value, inc.fields.caller_location.value,
+    inc.fields.address.value, inc.fields.description.value, ...said,
+  ].filter(Boolean).join(" \n ");
+  const place = classifyClery(inc.location[0], inc.location[1], hint);
+  return { geography: place.geography, label: place.label, reasons: [place.detail] };
 }
 
 export function draftClery(inc: Incident): CleryDraft {

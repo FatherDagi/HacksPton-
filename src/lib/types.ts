@@ -31,7 +31,11 @@ export type FieldKey =
   | "hazards"
   | "weapons"
   | "access"
-  | "notes";
+  | "notes"
+  | "incident_time"
+  | "patient_info"
+  | "direction"
+  | "vehicle";
 
 export interface FieldValue {
   key: FieldKey;
@@ -98,6 +102,8 @@ export interface PriorityDecision {
   /** Present when the dispatcher chose something other than the proposal. */
   overrideReason: string | null;
   decidedAt: number;
+  /** Set by the console's automatic grading (kept up to date until the dispatcher picks a level). */
+  auto?: boolean;
 }
 
 export type IncidentStatus = "intake" | "dispatched" | "on_scene" | "closed";

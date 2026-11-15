@@ -23,14 +23,18 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   weapons: "Weapons",
   access: "Access / entrance",
   notes: "Notes",
+  incident_time: "When it happened",
+  patient_info: "Patient age / sex",
+  direction: "Direction of travel",
+  vehicle: "Vehicle",
 };
 
 export const SECTIONS: { title: string; keys: FieldKey[] }[] = [
   { title: "Caller", keys: ["caller_name", "callback", "caller_location", "caller_safe"] },
   { title: "Location", keys: ["building", "address", "floor", "room", "location_details"] },
-  { title: "Incident", keys: ["category", "description"] },
-  { title: "People", keys: ["people_count", "condition", "conscious", "breathing", "suspect"] },
-  { title: "Scene", keys: ["hazards", "weapons", "access", "notes"] },
+  { title: "Incident", keys: ["category", "description", "incident_time"] },
+  { title: "People", keys: ["people_count", "condition", "conscious", "breathing", "patient_info", "suspect"] },
+  { title: "Scene", keys: ["hazards", "weapons", "direction", "vehicle", "access", "notes"] },
 ];
 
 export const ALL_FIELD_KEYS = Object.keys(FIELD_LABELS) as FieldKey[];

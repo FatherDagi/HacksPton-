@@ -19,7 +19,7 @@ export type Action =
   | { type: "END_CALL"; at: number; incidentId: string }
   | { type: "EDIT_FIELD"; at: number; incidentId: string; key: FieldKey; value: string; status: FieldStatus }
   | { type: "SET_QUESTION"; at: number; incidentId: string; questionId: string; state: "open" | "answered" | "dismissed" }
-  | { type: "DECIDE_PRIORITY"; at: number; incidentId: string; priority: Priority; proposed: Priority; overrideReason: string | null }
+  | { type: "DECIDE_PRIORITY"; at: number; incidentId: string; priority: Priority; proposed: Priority; overrideReason: string | null; auto?: boolean }
   | { type: "APPROVE_ASSIGNMENT"; at: number; incidentId: string; officerId: string; assignmentId: string; etaSeconds: number; route?: [number, number][] }
   | { type: "CANCEL_ASSIGNMENT"; at: number; assignmentId: string }
   | { type: "DECLINE_UNIT"; at: number; incidentId: string; officerId: string }
@@ -130,7 +130,28 @@ function openFromScenario(
   };
 }
 
+/** Fresh console: no cases, no history, every officer free at their post. Real calls and the demo
+ *  menu are the only things that put cases on the board. */
 export function seedState(): AppState {
+  const now = Date.now();
+  return {
+    rev: 0,
+    officers: SEED_OFFICERS.map((o) => ({
+      ...o, status: "available" as const, currentIncidentId: null, busyWith: null, busyUntil: null, lastLocationAt: now,
+    })),
+    incidents: [],
+    assignments: [],
+    events: [],
+    backups: [],
+    messages: [],
+    cleryLog: [],
+    activeIncidentId: null,
+    officerUpdates: [],
+  };
+}
+
+/** The old busy demo board (4 open cases, history, officers on jobs). Not used by default. */
+export function busyBoardState(): AppState {
   const now = Date.now();
   // Board mix: 1 live (top) · 1 waiting red · 2 yellow attending · rest completed.
   const live = openFromScenario("demo-live", "INC-10001", "medical-cottage", now, {
@@ -374,9 +395,11 @@ function reduceInner(s: AppState, a: Action): AppState {
 
     case "DECIDE_PRIORITY":
       return {
-        ...mapIncident(s, a.incidentId, (i) => ({ ...i, priorityDecision: { priority: a.priority, overrideReason: a.overrideReason, decidedAt: a.at } })),
-        events: [...s.events, evt(a.incidentId, a.at, "dispatcher", "priority",
-          a.priority === a.proposed ? `Dispatcher confirmed proposed priority P${a.priority}.` : `Dispatcher overrode P${a.proposed} → P${a.priority}. Reason: ${a.overrideReason}`)],
+        ...mapIncident(s, a.incidentId, (i) => ({ ...i, priorityDecision: { priority: a.priority, overrideReason: a.overrideReason, decidedAt: a.at, auto: !!a.auto } })),
+        events: [...s.events, a.auto
+          ? evt(a.incidentId, a.at, "system", "priority", `Severity auto-graded P${a.priority} from the call so far.`)
+          : evt(a.incidentId, a.at, "dispatcher", "priority",
+            a.priority === a.proposed ? `Dispatcher confirmed P${a.priority}.` : `Dispatcher set P${a.priority} (auto-grade was P${a.proposed}). ${a.overrideReason ?? ""}`.trim())],
       };
 
     case "APPROVE_ASSIGNMENT": {

@@ -125,7 +125,11 @@ const NS = `demo-v${ROSTER_REV}`; // a roster bump starts a fresh namespace = fr
 async function rpc<T>(fn: string, args: Record<string, unknown>): Promise<T> {
   const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
     method: "POST",
-    headers: { apikey: SB_KEY, authorization: `Bearer ${SB_KEY}`, "content-type": "application/json" },
+    // New-style secret keys (sb_secret_…) go in the apikey header only; legacy service_role keys are
+    // JWTs and are also sent as a Bearer token.
+    headers: SB_KEY.startsWith("sb_")
+      ? { apikey: SB_KEY, "content-type": "application/json" }
+      : { apikey: SB_KEY, authorization: `Bearer ${SB_KEY}`, "content-type": "application/json" },
     body: JSON.stringify(args),
     cache: "no-store",
   });

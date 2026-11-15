@@ -476,7 +476,7 @@ async def twilio_media(websocket: WebSocket):
                     speaker = "Call-taker"
                 else:
                     speaker = "Caller"
-                pcm = resample_pcm16(mulaw_to_pcm16(payload), 8000, 16000)
+                pcm = resample_pcm16(mulaw_to_pcm16(payload), 8000, 16000, stream=(call_id, role, track))
                 await pipeline.feed_pcm(call_id, speaker, pcm)
             elif event == "stop":
                 break

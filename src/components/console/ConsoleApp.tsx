@@ -48,7 +48,8 @@ const ConsoleMap = dynamic(() => import("./ConsoleMap"), {
 
 const STATUS_LABEL = { available: "Available", busy: "Busy", responding: "Responding", on_scene: "On scene" } as const;
 const TRIP_MS = 12_000;
-const EXTRACT_DEBOUNCE_MS = 450; // ask Gemini this soon after the caller's words change
+const EXTRACT_DEBOUNCE_MS = 900; // fill the notes this soon after the caller's words change
+const EXTRACT_EVERY_MS = 3_000; // then at most this often per call (Gemini quota is per minute)
 const DEMO_RING_MS = 4_000; // a demo call rings this long before it answers itself
 
 type Mode = "gemini" | "prerecorded";
@@ -354,6 +355,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
   // Mirror every live desk call's transcript into its incident; run Gemini once the caller has paused;
   // end the console call when the desk call ends.
   const extractTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const lastExtractAt = useRef<Record<string, number>>({});
+  const latestExtract = useRef<Record<string, { inc: Incident; segments: Incident["transcript"]; text: string }>>({});
   const extractedText = useRef<Record<string, string>>({});
   useEffect(() => {
     for (const inc of openIncidents) {
@@ -366,11 +369,21 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       }
       const callerText = segments.filter((x) => x.speaker === "caller").map((x) => x.text).join(" ");
       if (mode === "gemini" && callerText && callerText !== extractedText.current[inc.id]) {
-        clearTimeout(extractTimers.current[inc.id]);
-        extractTimers.current[inc.id] = setTimeout(() => {
-          extractedText.current[inc.id] = callerText;
-          runGemini({ ...inc, transcript: segments }, segments);
-        }, EXTRACT_DEBOUNCE_MS);
+        // Throttle, don't debounce: a caller who keeps talking must still update the notes. Fill the
+        // notes soon after new words, then at most every EXTRACT_EVERY_MS (Gemini quota is per minute),
+        // always with the latest transcript.
+        latestExtract.current[inc.id] = { inc: { ...inc, transcript: segments }, segments, text: callerText };
+        if (!extractTimers.current[inc.id]) {
+          const wait = Math.max(EXTRACT_DEBOUNCE_MS, (lastExtractAt.current[inc.id] ?? 0) + EXTRACT_EVERY_MS - Date.now());
+          extractTimers.current[inc.id] = setTimeout(() => {
+            delete extractTimers.current[inc.id];
+            const job = latestExtract.current[inc.id];
+            if (!job || job.text === extractedText.current[inc.id]) return;
+            extractedText.current[inc.id] = job.text;
+            lastExtractAt.current[inc.id] = Date.now();
+            runGemini(job.inc, job.segments);
+          }, wait);
+        }
       }
       if (call.status !== "live" && inc.callStartedAt && !inc.callEndedAt) act({ type: "END_CALL", at: Date.now(), incidentId: inc.id });
     }

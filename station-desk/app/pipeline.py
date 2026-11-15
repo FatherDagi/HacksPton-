@@ -61,7 +61,7 @@ class Pipeline(object):
 
     async def add_phone_audio(self, call_id, track, payload):
         speaker = "Call-taker" if track == "outbound" else "Caller"
-        pcm = resample_pcm16(mulaw_to_pcm16(payload), RATE, LIVE_RATE)
+        pcm = resample_pcm16(mulaw_to_pcm16(payload), RATE, LIVE_RATE, stream=(call_id, track))
         await self.feed_pcm(call_id, speaker, pcm)
 
     async def feed_pcm(self, call_id, speaker, pcm):

@@ -7,7 +7,7 @@ const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 // Tried in order when the preferred model is overloaded or unavailable.
 // Lite models are much less congested during busy periods and fast enough for extraction.
 const FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.5-flash"];
-const PRIMARY_TIMEOUT_MS = 8_000;
+const PRIMARY_TIMEOUT_MS = 3_500; // notes must keep up with the call; a slow model falls back fast
 /** Model -> time (ms) before which we don't try it again after a quota error. */
 const coolDown = new Map<string, number>();
 
@@ -93,6 +93,10 @@ ${transcriptText}`;
         const m = msg.match(/retry in (?:(\d+)h)?(?:(\d+)m)?(?:([\d.]+)s)?/i);
         const secs = m ? (Number(m[1] ?? 0) * 3600 + Number(m[2] ?? 0) * 60 + Number(m[3] ?? 0)) : 60;
         coolDown.set(model, Date.now() + Math.min(Math.max(secs, 30), 600) * 1000);
+      } else if (/\b503\b|high demand|overloaded|unavailable|timed out|timeout|aborted/i.test(msg)) {
+        // Overloaded or too slow right now: skip it for 2 minutes and use the next model straight away,
+        // instead of waiting out a timeout on every single update.
+        coolDown.set(model, Date.now() + 120_000);
       }
       // Log without echoing secrets.
       console.error(`[extract] ${model} failed:`, err instanceof Error ? err.message.replace(/AQ\.[\w-]+|AIza[\w-]+/g, "[key]").slice(0, 200) : "unknown error");

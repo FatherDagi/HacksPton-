@@ -1,8 +1,20 @@
 """Phone audio helpers. Twilio sends 8 kHz mu-law frames."""
 
 import struct
+import warnings
+
+# The C audio module is ~50x faster than the pure-Python fallbacks below, which matters on a small
+# hosted CPU (Render's free plan gets a tenth of a core) handling ~100 audio chunks a second per call.
+# It exists through Python 3.12 (removed in 3.13); without it the Python versions are used.
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", DeprecationWarning)
+    try:
+        import audioop
+    except ImportError:  # Python 3.13+
+        audioop = None
 
 RATE = 8000
+_RESAMPLE_STATE = {}  # stream key -> audioop.ratecv state, so chunk edges join without gaps
 FRAME = 160
 
 
@@ -54,6 +66,8 @@ def _encode_mulaw(sample):
 def mulaw_to_pcm16(data):
     if not data:
         return b""
+    if audioop is not None:
+        return audioop.ulaw2lin(data, 2)
     samples = [MULAW_TABLE[byte] for byte in data]
     return struct.pack("<{}h".format(len(samples)), *samples)
 
@@ -62,6 +76,8 @@ def rms_pcm16(pcm):
     count = len(pcm) // 2
     if count == 0:
         return 0.0
+    if audioop is not None:
+        return float(audioop.rms(pcm[: count * 2], 2))
     samples = struct.unpack("<{}h".format(count), pcm[: count * 2])
     total = 0
     for sample in samples:
@@ -69,13 +85,22 @@ def rms_pcm16(pcm):
     return (total / float(count)) ** 0.5
 
 
-def resample_pcm16(pcm, in_rate, out_rate):
-    """Linear resample of mono 16-bit PCM. Live transcription wants 16 kHz."""
+def resample_pcm16(pcm, in_rate, out_rate, stream=None):
+    """Resample mono 16-bit PCM. Live transcription wants 16 kHz. Pass `stream` (any hashable, e.g.
+    (call_id, track)) for a continuous stream cut into chunks, so the chunk edges join seamlessly."""
     if not pcm or in_rate == out_rate:
         return pcm or b""
     count = len(pcm) // 2
     if count == 0 or in_rate <= 0 or out_rate <= 0:
         return b""
+    if audioop is not None and stream is not None:
+        # Live call audio: fast C resampler, carrying its state across chunks of the same stream.
+        out, state = audioop.ratecv(pcm[: count * 2], 2, 1, in_rate, out_rate, _RESAMPLE_STATE.get(stream))
+        if len(_RESAMPLE_STATE) > 64:
+            _RESAMPLE_STATE.clear()  # old calls; a stream just restarts its state
+        _RESAMPLE_STATE[stream] = state
+        return out
+    # One-off clips: exact-length linear resample.
     samples = struct.unpack("<{}h".format(count), pcm[: count * 2])
     out_count = int(round(count * float(out_rate) / float(in_rate)))
     if out_count <= 0:

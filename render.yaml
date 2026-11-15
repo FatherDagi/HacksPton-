@@ -1,0 +1,33 @@
+# Render Blueprint: runs the station desk (station-desk/) on Render, so phone calls work without a laptop
+# or tunnel. Render -> New -> Blueprint -> pick this repo. Secrets are entered in Render (sync: false),
+# never committed.
+#
+# Free plan: the service sleeps after 15 minutes without traffic, and a sleeping desk can't answer a
+# call in time. Keep it awake with a free uptime monitor (e.g. UptimeRobot) hitting
+#   https://<this service>.onrender.com/healthz   every 5 minutes.
+# The free plan has no persistent disk, so call history resets when the service restarts.
+services:
+  - type: web
+    name: onscene-desk
+    runtime: python
+    rootDir: station-desk
+    plan: free
+    region: virginia
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DESK_HOSTED      # public server: every non-Twilio request must carry DESK_READ_TOKEN
+        value: "1"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: STATION_DESK_NUMBER
+        sync: false
+      - key: DESK_READ_TOKEN
+        sync: false
+      - key: PUBLIC_BASE_URL  # this service's own address, e.g. https://onscene-desk.onrender.com
+        sync: false

@@ -4,9 +4,18 @@
 import { NextResponse } from "next/server";
 
 function deskBase(): string {
-  // Binding is runtime-only — never bake a build-time URL.
-  const raw = process.env.STATION_DESK_URL || "http://127.0.0.1:8787";
+  // DESK_PUBLIC_URL: the desk running on the laptop that takes the real phone calls, reached through its
+  // Cloudflare tunnel. Set it on Vercel so onscene.work sees those calls (Vercel's own copy of the desk
+  // can't take Twilio audio streams). Otherwise the Vercel service binding, else the local desk.
+  // Read at runtime, never baked in at build time.
+  const raw = process.env.DESK_PUBLIC_URL || process.env.STATION_DESK_URL || "http://127.0.0.1:8787";
   return raw.replace(/\/+$/, "");
+}
+
+/** The desk only answers tunnel requests that carry this shared secret (see station-desk main.py). */
+function deskHeaders(): HeadersInit {
+  const token = process.env.DESK_READ_TOKEN?.trim();
+  return token ? { "x-desk-token": token } : {};
 }
 
 interface DeskLine { t: string | number; speaker: string; text: string }
@@ -32,7 +41,8 @@ export async function GET() {
   try {
     const res = await fetch(new URL("/api/snapshot", `${deskBase()}/`), {
       cache: "no-store",
-      signal: AbortSignal.timeout(1500),
+      headers: deskHeaders(),
+      signal: AbortSignal.timeout(4000), // through the tunnel from Vercel can take a moment
     });
     if (!res.ok) return NextResponse.json({ ok: false, reason: `desk returned ${res.status}` });
     const snap = (await res.json()) as { calls?: DeskCall[] };

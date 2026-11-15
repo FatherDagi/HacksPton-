@@ -7,6 +7,7 @@ and each call is saved as text.
 
 import asyncio
 import base64
+import hmac
 import json
 import logging
 import os
@@ -208,6 +209,12 @@ def _http(exc):
 @app.get("/")
 def index():
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/healthz")
+def healthz():
+    """Liveness check for the host (Render) and the uptime monitor that keeps the free plan awake."""
+    return {"ok": True}
 
 
 @app.get("/api/snapshot")
@@ -523,3 +530,37 @@ class _StripDeskPrefixMiddleware:
 
 
 app.add_middleware(_StripDeskPrefixMiddleware)
+
+
+class _TunnelGateMiddleware:
+    """Public requests may only reach Twilio's own endpoints (/twilio/*, signature-checked) and the health
+    check (/healthz) unless they present DESK_READ_TOKEN in an X-Desk-Token header. That lets the hosted
+    website (onscene.work) read calls from this desk without exposing transcripts or caller numbers.
+
+    "Public" means: every request when the desk runs on a public server (DESK_HOSTED=1, e.g. Render), or
+    requests that came through the Cloudflare tunnel (they carry a Cf-Ray header) when it runs on a
+    laptop. Requests made directly on the laptop (local console, 127.0.0.1:8787) are not affected."""
+
+    def __init__(self, asgi_app):
+        self.app = asgi_app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] in ("http", "websocket"):
+            headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers") or []}
+            path = scope.get("path") or ""
+            hosted = os.environ.get("DESK_HOSTED", "").strip() in ("1", "true", "yes")
+            exempt = path.startswith("/twilio/") or path == "/healthz"
+            if (hosted or "cf-ray" in headers) and not exempt:
+                token = os.environ.get("DESK_READ_TOKEN", "").strip()
+                if not token or not hmac.compare_digest(headers.get("x-desk-token", ""), token):
+                    if scope["type"] == "websocket":
+                        await send({"type": "websocket.close", "code": 1008})
+                        return
+                    await send({"type": "http.response.start", "status": 403,
+                                "headers": [(b"content-type", b"text/plain")]})
+                    await send({"type": "http.response.body", "body": b"Forbidden"})
+                    return
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(_TunnelGateMiddleware)

@@ -8,7 +8,12 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const after = Number(url.searchParams.get("since") ?? -1);
   try {
-    return NextResponse.json(await readSync(after, url.searchParams.get("unit")));
+    const asker = {
+      client: url.searchParams.get("client")?.slice(0, 64) || null,
+      unit: url.searchParams.get("unit")?.slice(0, 32) || null,
+      hq: url.searchParams.get("hq") === "1",
+    };
+    return NextResponse.json(await readSync(after, asker));
   } catch (e) {
     console.error("sync read failed:", (e as Error).message);
     return NextResponse.json({ error: "sync unavailable" }, { status: 503 });

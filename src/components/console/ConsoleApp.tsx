@@ -17,7 +17,7 @@ import { formatEta } from "@/lib/recommend";
 import { SCENARIOS, scenarioById } from "@/lib/scenarios";
 import { categoryFrom, deskAnswered, deskIncidentId, deskSegments, type DeskCall } from "@/lib/deskBridge";
 import { findPlaces, isVague, placeLatLng, primaryPlace, spokenName } from "@/lib/places";
-import { act, newId, serverToLocal, stamp, useAppState, useOnline, useTerminals } from "@/lib/store";
+import { act, newId, registerHq, serverToLocal, stamp, useAppState, useIsLeader, useOnline, useTerminals } from "@/lib/store";
 import type { FieldKey, Incident, LatLng, Officer, OfficerAvatar, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "./ConsoleMap";
@@ -545,7 +545,8 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
         const k = Math.min(1, (ts - tr.t0) / TRIP_MS);
         if (k >= 1) { act({ type: "OFFICER_STATUS", at: ts, officerId: id, status: "on_scene" }); continue; }
         const { at, next: n } = along(tr.route, k);
-        act({ type: "OFFICER_LOCATION", at: ts, officerId: id, location: at, label: "En route (GPS)" });
+        // A signed-in patrol device moves its own officer (real or simulated GPS); don't fight it.
+        if (!terminalOnline(id)) act({ type: "OFFICER_LOCATION", at: ts, officerId: id, location: at, label: "En route (GPS)" });
         next[id] = { ...tr, k, next: n };
       }
       setTrips(next);
@@ -553,9 +554,18 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
     return () => clearTimeout(t);
   }, [trips]);
 
-  // Ambient motion for busy (amber) units: one slow start→end road/path trip, then stay. Reload restarts.
+  // This is an HQ screen: all HQ screens show the same shared state, and only the leader (the screen
+  // open longest) animates officers, so two screens never push competing positions.
   useEffect(() => {
-    if (!hydrated) return;
+    registerHq(true);
+    return () => registerHq(false);
+  }, []);
+  const isLeader = useIsLeader();
+
+  // Ambient motion for busy (amber) units: one slow trip along their beat, then stay on post. Only the
+  // leader screen does this, picking up from wherever the officer is now (no snapping back on reload).
+  useEffect(() => {
+    if (!hydrated || !isLeader) return;
     let alive = true;
     const assignedIds = new Set(
       state.assignments.filter((a) => a.status === "active").map((a) => a.officerId),
@@ -565,12 +575,11 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       const beat = PATROL_BEATS[o.id];
       if (!beat || beat.points.length < 2) continue;
       if (patrols[o.id] || startedPatrol.current.has(o.id)) continue;
+      if (terminalOnline(o.id) || /on post$/.test(o.locationLabel)) continue; // device-driven, or already there
       startedPatrol.current.add(o.id);
       const delay = (o.id.charCodeAt(1) % 5) * 500;
-      const from = beat.points[0];
+      const from: LatLng = o.location;
       const to = beat.points[1];
-      // Snap back to the seed start so every page load can demo the walk/drive.
-      act({ type: "OFFICER_LOCATION", at: stamp(), officerId: o.id, location: from, label: beat.label });
       window.setTimeout(() => {
         if (!alive) return;
         fetchRoute(from, to, beat.mode).then((plan) => {
@@ -604,10 +613,10 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       }
     }
     return () => { alive = false; };
-  }, [hydrated, state.officers, state.assignments, patrols]);
+  }, [hydrated, isLeader, state.officers, state.assignments, patrols]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!Object.keys(patrols).length) return;
+    if (!isLeader || !Object.keys(patrols).length) return;
     const assignedIds = new Set(
       state.assignments.filter((a) => a.status === "active").map((a) => a.officerId),
     );
@@ -616,7 +625,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       const next: Record<string, PatrolTrip> = { ...patrols };
       for (const [id, p] of Object.entries(patrols)) {
         const o = state.officers.find((x) => x.id === id);
-        if (!o || o.status !== "busy" || assignedIds.has(id)) {
+        if (!o || o.status !== "busy" || assignedIds.has(id) || terminalOnline(id)) {
           delete next[id];
           continue;
         }
@@ -634,7 +643,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       setPatrols(next);
     }, PATROL_TICK_MS);
     return () => clearTimeout(t);
-  }, [patrols, state.officers, state.assignments]);
+  }, [isLeader, patrols, state.officers, state.assignments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendOfficer = (o: Officer) => {
     if (!open) return;

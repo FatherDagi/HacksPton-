@@ -17,6 +17,10 @@ export interface SyncResponse {
   actions?: { seq: number; client: string; cid: number; action: Action }[];
   /** Unit id -> last time a patrol terminal signed in as that unit polled (server clock, ms). */
   terminals: Record<string, number>;
+  /** The HQ screen allowed to animate officers; every other screen only displays. */
+  leader?: string | null;
+  /** This device asked for a patrol officer that another device already holds. */
+  unitTaken?: boolean;
   now: number;
 }
 
@@ -31,6 +35,9 @@ let nextCid = 1;
 let state: AppState = SERVER_SNAPSHOT;
 let started = false;
 let terminalUnit: string | null = null;
+let hqScreen = false;
+let isLeader = false;
+let unitTaken = false;
 let terminals: Record<string, number> = {};
 let serverSkew = 0; // server clock - local clock
 let online = false;
@@ -44,8 +51,9 @@ function rebuild() {
 
 async function poll() {
   try {
-    const q = new URLSearchParams({ since: String(confirmedSeq) });
+    const q = new URLSearchParams({ since: String(confirmedSeq), client: clientId });
     if (terminalUnit) q.set("unit", terminalUnit);
+    if (hqScreen) q.set("hq", "1");
     const res = await fetch(`/api/sync?${q}`, { cache: "no-store" });
     if (!res.ok) throw new Error(`sync ${res.status}`);
     const j = (await res.json()) as SyncResponse;
@@ -72,6 +80,8 @@ async function poll() {
     confirmedSeq = j.seq;
     serverSkew = j.now - Date.now();
     if (JSON.stringify(j.terminals) !== JSON.stringify(terminals)) terminals = j.terminals;
+    isLeader = hqScreen && j.leader === clientId;
+    unitTaken = !!terminalUnit && !!j.unitTaken;
     online = true;
     rebuild();
   } catch {
@@ -104,7 +114,27 @@ export function act(action: Action) {
 /** Call from a patrol terminal page so dispatch knows that unit is signed in (and notices if it drops). */
 export function signInTerminal(unitId: string | null) {
   terminalUnit = unitId;
+  unitTaken = false;
 }
+
+/** Call from an HQ console page: HQ screens share one view, and only the leader animates officers. */
+export function registerHq(on: boolean) {
+  hqScreen = on;
+  if (!on) isLeader = false;
+}
+
+/** True on exactly one open HQ screen (the one open longest): it alone moves officers on the map. */
+export function useIsLeader(): boolean {
+  return useSyncExternalStore(subscribe, () => isLeader, () => false);
+}
+
+/** True when this patrol device's officer is already signed in on another device. */
+export function useUnitTaken(): boolean {
+  return useSyncExternalStore(subscribe, () => unitTaken, () => false);
+}
+
+/** This browser tab's id (also how the server tells devices apart). */
+export const myClientId = () => clientId;
 
 function subscribe(l: () => void) {
   ensureStarted();

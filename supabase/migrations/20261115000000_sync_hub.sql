@@ -22,17 +22,21 @@ create table if not exists public.sync_log (
   primary key (ns, seq)
 );
 
-create table if not exists public.sync_terminals (
-  ns        text   not null,
-  unit      text   not null,
-  last_seen bigint not null, -- ms since epoch, server clock
-  primary key (ns, unit)
+-- Who is connected: "hq:<client>" for each HQ screen, "unit:<officer>" for the device holding a
+-- patrol officer (one device per officer; the hold lapses when that device stops polling).
+create table if not exists public.sync_presence (
+  ns         text   not null,
+  key        text   not null,
+  client     text   not null,
+  first_seen bigint not null, -- ms since epoch, server clock
+  last_seen  bigint not null,
+  primary key (ns, key)
 );
 
 -- Locked down: no policies, so the public anon key can read or write nothing here.
 alter table public.sync_hub enable row level security;
 alter table public.sync_log enable row level security;
-alter table public.sync_terminals enable row level security;
+alter table public.sync_presence enable row level security;
 
 -- Create the namespace with its seed state if it doesn't exist yet; return the latest snapshot.
 create or replace function public.sync_init(p_ns text, p_seed jsonb)
@@ -53,26 +57,34 @@ begin
   if s is null then raise exception 'sync hub % is not initialised', p_ns; end if;
   insert into public.sync_log (ns, seq, client, cid, action) values (p_ns, s, p_client, p_cid, p_action);
   if s % 100 = 0 then delete from public.sync_log where ns = p_ns and seq <= s - p_keep; end if;
-  if p_action ->> 'type' = 'RESET' then delete from public.sync_terminals where ns = p_ns; end if;
   return s;
 end $$;
 
--- Actions after p_after (in order), the current head, and which patrol terminals are signed in.
--- One statement, so the head and the entries come from the same moment.
-create or replace function public.sync_pull(p_ns text, p_after bigint, p_units text[], p_now bigint, p_limit integer)
+-- Record heartbeats, then return actions after p_after (in order), the current head, and presence.
+-- A device keeps an officer while it polls; another device can take it only after p_claim_ms of silence.
+create or replace function public.sync_pull(p_ns text, p_after bigint, p_beats jsonb, p_now bigint, p_claim_ms bigint, p_limit integer)
 returns jsonb language plpgsql as $$
+declare b jsonb;
 begin
-  insert into public.sync_terminals (ns, unit, last_seen)
-  select p_ns, u, p_now from unnest(coalesce(p_units, '{}'::text[])) as u
-  on conflict (ns, unit) do update set last_seen = excluded.last_seen;
+  for b in select * from jsonb_array_elements(coalesce(p_beats, '[]'::jsonb)) loop
+    insert into public.sync_presence as sp (ns, key, client, first_seen, last_seen)
+    values (p_ns, b ->> 'key', b ->> 'client', p_now, p_now)
+    on conflict (ns, key) do update
+      set first_seen = case when sp.client = excluded.client then sp.first_seen else excluded.first_seen end,
+          client = excluded.client,
+          last_seen = excluded.last_seen
+      where sp.client = excluded.client or sp.last_seen < p_now - p_claim_ms;
+  end loop;
+  delete from public.sync_presence where ns = p_ns and last_seen < p_now - 3600000; -- forget after an hour
   return jsonb_build_object(
     'seq', (select h.seq from public.sync_hub h where h.ns = p_ns),
     'entries', coalesce((
       select jsonb_agg(jsonb_build_object('seq', l.seq, 'client', l.client, 'cid', l.cid, 'action', l.action) order by l.seq)
       from (select * from public.sync_log where ns = p_ns and seq > p_after order by seq limit p_limit) l
     ), '[]'::jsonb),
-    'terminals', coalesce((
-      select jsonb_object_agg(t.unit, t.last_seen) from public.sync_terminals t where t.ns = p_ns
+    'presence', coalesce((
+      select jsonb_object_agg(sp.key, jsonb_build_object('client', sp.client, 'first', sp.first_seen, 'last', sp.last_seen))
+      from public.sync_presence sp where sp.ns = p_ns
     ), '{}'::jsonb)
   );
 end $$;
@@ -86,9 +98,9 @@ end $$;
 
 revoke all on function public.sync_init(text, jsonb) from public, anon, authenticated;
 revoke all on function public.sync_append(text, text, integer, jsonb, integer) from public, anon, authenticated;
-revoke all on function public.sync_pull(text, bigint, text[], bigint, integer) from public, anon, authenticated;
+revoke all on function public.sync_pull(text, bigint, jsonb, bigint, bigint, integer) from public, anon, authenticated;
 revoke all on function public.sync_save_snapshot(text, bigint, jsonb) from public, anon, authenticated;
 grant execute on function public.sync_init(text, jsonb) to service_role;
 grant execute on function public.sync_append(text, text, integer, jsonb, integer) to service_role;
-grant execute on function public.sync_pull(text, bigint, text[], bigint, integer) to service_role;
+grant execute on function public.sync_pull(text, bigint, jsonb, bigint, bigint, integer) to service_role;
 grant execute on function public.sync_save_snapshot(text, bigint, jsonb) to service_role;

@@ -251,6 +251,9 @@
 }
 .ot-pick-btn span, .ot-pick-btn small { overflow-wrap: anywhere; }
 .ot-pick-btn:active { transform: scale(.98); }
+.ot-pick-btn.in-use { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.ot-pick-btn.in-use small { color: var(--ot-accent); }
+.ot-pick-back { margin-top: 16px; max-width: 320px; text-align: center; }
 .ot-pick-btn:hover { border-color: color-mix(in srgb, var(--ot-accent) 55%, var(--ot-line)); }
 .ot-pick-btn b { font: 700 15px/1.2 var(--font-cond), sans-serif; letter-spacing: .03em; }
 .ot-pick-btn span { font-size: 12px; color: var(--ot-muted); }

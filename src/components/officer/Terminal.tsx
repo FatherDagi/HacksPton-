@@ -11,7 +11,7 @@ import { assessConsole } from "@/lib/console/assess";
 import { along, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
 import { FIELD_LABELS } from "@/lib/fields";
 import { URGENCY_LABEL } from "@/lib/priority";
-import { act, newId, signInTerminal, stamp, useAppState, useOnline } from "@/lib/store";
+import { act, newId, serverToLocal, signInTerminal, stamp, useAppState, useOnline, useTerminals, useUnitTaken } from "@/lib/store";
 import type { BackupRequest, Incident, LatLng, Officer, Priority } from "@/lib/types";
 import { fmtClock, fmtTime } from "../ui";
 import type { ConsoleRoute } from "../console/ConsoleMap";
@@ -32,12 +32,17 @@ export function Terminal({ fontClass }: { fontClass: string }) {
   const unit = useSearchParams().get("unit");
   const state = useAppState();
   const online = useOnline();
-  const me = state.officers.find((o) => o.id === unit) ?? null;
+  const picked = state.officers.find((o) => o.id === unit) ?? null;
+  // One device per patrol officer: if another device already holds this officer, this one stays
+  // hands-off (no GPS, no status changes) and shows a notice until that device lets go.
+  const taken = useUnitTaken();
+  const me = taken ? null : picked;
+  const terminals = useTerminals();
 
   useEffect(() => {
-    signInTerminal(me ? me.id : null);
+    signInTerminal(picked ? picked.id : null);
     return () => signInTerminal(null);
-  }, [me?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- once per unit
+  }, [picked?.id]); // eslint-disable-line react-hooks/exhaustive-deps -- once per unit
 
   const asg = me ? state.assignments.find((a) => a.officerId === me.id && a.status === "active") ?? null : null;
   const queuedJobs = me
@@ -157,7 +162,12 @@ export function Terminal({ fontClass }: { fontClass: string }) {
     setPlan(null);
   }, [inc?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!me) return <Picker officers={state.officers} fontClass={fontClass} />;
+  if (picked && taken) return <UnitTaken officer={picked} fontClass={fontClass} />;
+  if (!me) {
+    // Officers another device is using right now (polled in the last 8 s) can't be picked.
+    const inUse = new Set(Object.entries(terminals).filter(([, t]) => now > 0 && now - serverToLocal(t) < 8_000).map(([id]) => id));
+    return <Picker officers={state.officers} inUse={inUse} fontClass={fontClass} />;
+  }
 
   const assessment = inc ? assessConsole(inc.category, inc.fields) : null;
   const priority: Priority | null = inc ? inc.priorityDecision?.priority ?? assessment!.proposed : null;
@@ -407,7 +417,25 @@ function Actions({ me, acknowledged, arrived, etaLeft, backup, compact, onAck, o
   );
 }
 
-function Picker({ officers, fontClass }: { officers: Officer[]; fontClass: string }) {
+function UnitTaken({ officer, fontClass }: { officer: Officer; fontClass: string }) {
+  return (
+    <div className={`dc ot ot-pick-screen ${fontClass}`} data-theme="dark">
+      <header className="ot-top">
+        <Link href="/" className="ot-brand"><span>Onscene</span><small>Patrol</small></Link>
+      </header>
+      <main className="ot-pick">
+        <h1>{officer.callsign} is already signed in</h1>
+        <p>
+          {officer.name} is in use on another device. Only one device can be a patrol officer at a time.
+          This screen takes over on its own if that device closes.
+        </p>
+        <a href="/officer" className="ot-pick-btn ot-pick-back"><b>Choose another officer</b></a>
+      </main>
+    </div>
+  );
+}
+
+function Picker({ officers, inUse, fontClass }: { officers: Officer[]; inUse: Set<string>; fontClass: string }) {
   return (
     <div className={`dc ot ot-pick-screen ${fontClass}`} data-theme="dark">
       <header className="ot-top">
@@ -419,6 +447,13 @@ function Picker({ officers, fontClass }: { officers: Officer[]; fontClass: strin
         <ul>
           {officers.map((o) => (
             <li key={o.id}>
+              {inUse.has(o.id) ? (
+                <div className="ot-pick-btn in-use" aria-disabled="true">
+                  <b>{o.callsign}</b>
+                  <span>{o.name}</span>
+                  <small>In use on another device</small>
+                </div>
+              ) : (
               <a href={`/officer?unit=${encodeURIComponent(o.id)}`} className="ot-pick-btn">
                 <b>{o.callsign}</b>
                 <span>{o.name}</span>
@@ -431,6 +466,7 @@ function Picker({ officers, fontClass }: { officers: Officer[]; fontClass: strin
                   {o.locationLabel.includes("HQ") ? " · HQ" : ""}
                 </small>
               </a>
+              )}
             </li>
           ))}
         </ul>

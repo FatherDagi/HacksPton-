@@ -20,6 +20,23 @@ def stream_ws_url(public_base_url):
     return base + "/twilio/media"
 
 
+def media_stream_token(auth_token):
+    """Secret Twilio must present on the media-stream socket. Derived from the auth token so the
+    raw token is never written into TwiML (Twilio stores that XML). Empty when no auth token is set."""
+    token = (auth_token or "").strip()
+    if not token:
+        return ""
+    digest = hmac.new(token.encode("utf-8"), b"onscene-media-stream", hashlib.sha256).digest()
+    return base64.urlsafe_b64encode(digest).decode("ascii").rstrip("=")
+
+
+def _token_parameter():
+    token = media_stream_token(os.environ.get("TWILIO_AUTH_TOKEN", ""))
+    if not token:
+        return ""
+    return '<Parameter name="token" value="{}"/>'.format(xml_escape(token))
+
+
 def bridge_twiml(public_base_url, room, role, from_number, intro):
     """Bidirectional stream so each person can hear a translation."""
     if not public_base_url:
@@ -30,12 +47,14 @@ def bridge_twiml(public_base_url, room, role, from_number, intro):
         '<Parameter name="from" value="{caller}"/>'
         '<Parameter name="role" value="{role}"/>'
         '<Parameter name="room" value="{room}"/>'
+        "{token}"
         "</Stream></Connect>"
     ).format(
         url=xml_escape(stream_ws_url(public_base_url)),
         caller=xml_escape(from_number or "unknown"),
         role=xml_escape(role or "caller"),
         room=xml_escape(room or "room"),
+        token=_token_parameter(),
     )
     body = "<Say>{}</Say>{}".format(xml_escape(intro), stream)
     return '<?xml version="1.0" encoding="UTF-8"?><Response>{}</Response>'.format(body)
@@ -62,11 +81,13 @@ def voice_twiml(from_number, public_base_url, desk_number):
     stream = (
         '<Stream url="{url}" track="{track}">'
         '<Parameter name="from" value="{caller}"/>'
+        "{token}"
         "</Stream>"
     ).format(
         url=xml_escape(stream_ws_url(public_base_url)),
         track=track,
         caller=xml_escape(from_number or "unknown"),
+        token=_token_parameter(),
     )
 
     if desk:

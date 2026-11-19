@@ -38,6 +38,7 @@ from app.transcripts import (
     transcript_filename,
 )
 from app.main import app
+from app.twiml import media_stream_token
 from app.twiml import twilio_signature, voice_twiml
 
 
@@ -366,6 +367,85 @@ class DeskApiTests(unittest.TestCase):
             headers={"X-Twilio-Signature": "nope"},
         )
         self.assertEqual(rejected.status_code, 403)
+
+    def test_public_desk_rejects_a_forged_phone_stream(self):
+        """Anyone who can open the public media socket could otherwise file a fake emergency call."""
+        from starlette.websockets import WebSocketDisconnect
+
+        os.environ["DESK_HOSTED"] = "1"
+        os.environ["TWILIO_AUTH_TOKEN"] = ""
+        try:
+            with self.client.websocket_connect("/twilio/media") as socket:
+                with self.assertRaises(WebSocketDisconnect):
+                    socket.receive_text()
+        finally:
+            os.environ.pop("DESK_HOSTED", None)
+
+        os.environ["TWILIO_AUTH_TOKEN"] = "secret"
+        os.environ["PUBLIC_BASE_URL"] = "https://desk.example.com"
+        forged_from = "+19995550100"
+        try:
+            with self.client.websocket_connect("/twilio/media") as socket:
+                socket.send_json({
+                    "event": "start",
+                    "start": {"callSid": "CA-forged", "customParameters": {"from": forged_from}},
+                })
+                with self.assertRaises(WebSocketDisconnect):
+                    socket.receive_text()
+            snapshot = self.client.get("/api/snapshot").json()
+            self.assertFalse(any(call.get("from_number") == forged_from for call in snapshot["calls"]))
+
+            params = {"From": forged_from, "CallSid": "CA-forged-http"}
+            unsigned = self.client.post("/twilio/voice", data=params)
+            self.assertEqual(unsigned.status_code, 403)
+            signed = self.client.post(
+                "/twilio/voice",
+                data=params,
+                headers={"X-Twilio-Signature": twilio_signature(
+                    "https://desk.example.com/twilio/voice", params, "secret",
+                )},
+            )
+            self.assertEqual(signed.status_code, 200)
+            stream_token = media_stream_token("secret")
+            self.assertIn(stream_token, signed.text)
+            self.assertNotIn('value="secret"', signed.text)
+
+            with self.client.websocket_connect("/twilio/media") as socket:
+                socket.send_json({
+                    "event": "start",
+                    "start": {
+                        "callSid": "CA-real",
+                        "customParameters": {"from": "+19995550101", "token": stream_token},
+                    },
+                })
+                socket.send_json({"event": "stop"})
+        finally:
+            os.environ["TWILIO_AUTH_TOKEN"] = ""
+            os.environ["PUBLIC_BASE_URL"] = ""
+
+        found = None
+        for _ in range(40):
+            snapshot = self.client.get("/api/snapshot").json()
+            found = next((call for call in snapshot["calls"] if call.get("from_number") == "+19995550101"), None)
+            if found and found["status"] == "ended":
+                break
+            time.sleep(0.05)
+        self.assertIsNotNone(found)
+        self.assertEqual(found["source"], "phone")
+        self.assertEqual(found["status"], "ended")
+
+    def test_desk_prefix_still_lets_twilio_through_the_public_gate(self):
+        os.environ["DESK_HOSTED"] = "1"
+        os.environ["DESK_READ_TOKEN"] = "desk-secret"
+        os.environ["TWILIO_AUTH_TOKEN"] = ""
+        try:
+            blocked = self.client.get("/desk/api/snapshot")
+            self.assertEqual(blocked.status_code, 403)
+            health = self.client.get("/desk/healthz")
+            self.assertEqual(health.status_code, 200)
+        finally:
+            os.environ.pop("DESK_HOSTED", None)
+            os.environ.pop("DESK_READ_TOKEN", None)
 
     def test_transcript_downloads_as_text(self):
         from app.main import store

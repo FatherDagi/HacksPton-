@@ -31,7 +31,7 @@ from app.transcripts import transcript_filename
 from app.twiml import CALLER_INTRO, DESK_INTRO, bridge_twiml
 from app.pipeline import Pipeline, interpreter_on
 from app.store import DeskError, DeskStore
-from app.twiml import public_voice_url, valid_twilio_request, voice_twiml
+from app.twiml import media_stream_token, public_voice_url, valid_twilio_request, voice_twiml
 
 log = logging.getLogger("desk")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -222,15 +222,33 @@ def snapshot():
     return annotated_snapshot()
 
 
+def _public_desk(headers):
+    """True when this request came from the internet: the desk is on a public host, or the request
+    arrived through the Cloudflare tunnel (Cf-Ray). Localhost console traffic is neither."""
+    hosted = os.environ.get("DESK_HOSTED", "").strip().lower() in ("1", "true", "yes")
+    return hosted or bool(headers.get("cf-ray"))
+
+
+def _require_twilio_signature(request, params):
+    """Reject forged Twilio webhooks. A public desk with no auth token fails closed; a local desk
+    with no token stays open so the console can be tried without a phone line."""
+    token = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
+    if not token:
+        if _public_desk(request.headers):
+            raise HTTPException(403, "Twilio auth token is not configured.")
+        return
+    signed_url = public_voice_url(request.url.path, request.url.query)
+    signature = request.headers.get("X-Twilio-Signature", "")
+    if not valid_twilio_request(signed_url, params, signature, token):
+        raise HTTPException(403, "Twilio signature did not match.")
+
+
 @app.post("/twilio/answered")
 async def twilio_answered(request: Request):
     """Twilio status callback: the station phone answered (event 'answered' on the dialed number)."""
     form = await request.form()
     params = {key: str(form.get(key)) for key in form.keys()}
-    token = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
-    signed_url = public_voice_url(request.url.path, request.url.query)
-    if token and not valid_twilio_request(signed_url, params, request.headers.get("X-Twilio-Signature", ""), token):
-        raise HTTPException(403, "Twilio signature did not match.")
+    _require_twilio_signature(request, params)
     parent = params.get("ParentCallSid", "").strip()
     if parent and params.get("CallStatus", "in-progress") in ("in-progress", "answered"):
         answered_sids.add(parent)
@@ -348,11 +366,8 @@ async def _transcribe_upload(call_id, data, mime):
 async def twilio_voice(request: Request):
     form = await request.form()
     params = {key: str(form.get(key)) for key in form.keys()}
+    _require_twilio_signature(request, params)
     token = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
-    signed_url = public_voice_url(request.url.path, request.url.query)
-    signature = request.headers.get("X-Twilio-Signature", "")
-    if token and not valid_twilio_request(signed_url, params, signature, token):
-        raise HTTPException(403, "Twilio signature did not match.")
     base = os.environ.get("PUBLIC_BASE_URL", "")
     desk = os.environ.get("STATION_DESK_NUMBER", "").strip()
     account = params.get("AccountSid", "").strip()
@@ -442,7 +457,13 @@ async def reply_socket(websocket: WebSocket, call_id: str):
 
 @app.websocket("/twilio/media")
 async def twilio_media(websocket: WebSocket):
+    """Twilio's media stream. HTTP webhooks are signed; this socket is not, so a public desk only
+    accepts a start message that carries the stream token embedded in TwiML."""
     await websocket.accept()
+    expected = media_stream_token(os.environ.get("TWILIO_AUTH_TOKEN", ""))
+    if _public_desk(websocket.headers) and not expected:
+        await websocket.close(code=1008)
+        return
     call_id = None
     role = "caller"
     try:
@@ -453,6 +474,11 @@ async def twilio_media(websocket: WebSocket):
             if event == "start":
                 start = message.get("start") or {}
                 params = start.get("customParameters") or {}
+                given = str(params.get("token") or "")
+                if expected and (len(given) != len(expected) or not hmac.compare_digest(given, expected)):
+                    log.warning("rejected phone stream: stream token did not match")
+                    await websocket.close(code=1008)
+                    return
                 role = params.get("role") or "caller"
                 room = params.get("room") or start.get("callSid") or ""
                 if room and room in rooms:
@@ -533,9 +559,10 @@ app.add_middleware(_StripDeskPrefixMiddleware)
 
 
 class _TunnelGateMiddleware:
-    """Public requests may only reach Twilio's own endpoints (/twilio/*, signature-checked) and the health
-    check (/healthz) unless they present DESK_READ_TOKEN in an X-Desk-Token header. That lets the hosted
-    website (onscene.work) read calls from this desk without exposing transcripts or caller numbers.
+    """Public requests may only reach Twilio's own endpoints (/twilio/*, signature-checked; the media
+    socket also requires the stream token from TwiML) and the health check (/healthz) unless they
+    present DESK_READ_TOKEN in an X-Desk-Token header. That lets the hosted website (onscene.work) read
+    calls from this desk without exposing transcripts or caller numbers.
 
     "Public" means: every request when the desk runs on a public server (DESK_HOSTED=1, e.g. Render), or
     requests that came through the Cloudflare tunnel (they carry a Cf-Ray header) when it runs on a
@@ -548,7 +575,11 @@ class _TunnelGateMiddleware:
         if scope["type"] in ("http", "websocket"):
             headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers") or []}
             path = scope.get("path") or ""
-            hosted = os.environ.get("DESK_HOSTED", "").strip() in ("1", "true", "yes")
+            # The public site mounts this service under /desk. Judge the exemption on the path the
+            # route will actually see, otherwise Twilio's /desk/twilio/* webhooks are locked out.
+            if path == "/desk" or path.startswith("/desk/"):
+                path = path[len("/desk"):] or "/"
+            hosted = os.environ.get("DESK_HOSTED", "").strip().lower() in ("1", "true", "yes")
             exempt = path.startswith("/twilio/") or path == "/healthz"
             if (hosted or "cf-ray" in headers) and not exempt:
                 token = os.environ.get("DESK_READ_TOKEN", "").strip()

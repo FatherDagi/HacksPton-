@@ -9,6 +9,7 @@ import { assessConsole } from "@/lib/console/assess";
 import { DEFAULT_PANELS, loadPanels, PANEL_LABEL, savePanels, type PanelId, type PanelState } from "@/lib/console/panels";
 import { PATROL_BEATS } from "@/lib/campus";
 import { along, estimate, fetchRoute, remaining, type RoutePlan } from "@/lib/console/routing";
+import { simulatedTripActive } from "@/lib/console/tripGuard";
 import { reserveAcrossBoard, teamNeeds, type Candidate } from "@/lib/console/team";
 import type { ExtractError, ExtractResponse } from "@/lib/extraction";
 import { FIELD_LABELS, SECTIONS } from "@/lib/fields";
@@ -579,10 +580,18 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
 
   useEffect(() => {
     if (!Object.keys(trips).length) return;
+    // Captured here, and the effect re-runs when the board changes, so the cleanup cancels a tick
+    // that still thought this unit was on the old case.
+    const officers = state.officers;
+    const assignments = state.assignments;
     const t = setTimeout(() => {
       const ts = Date.now();
       const next: Record<string, Trip> = {};
       for (const [id, tr] of Object.entries(trips)) {
+        // Closing or reassigning the case does not clear this screen's local drive. Without this
+        // check the timer keeps publishing positions and, when it finishes, sets the unit on scene
+        // for whichever job they hold then — including none, which leaves them stuck on scene.
+        if (!simulatedTripActive(officers.find((o) => o.id === id), tr.incidentId, assignments, id)) continue;
         const k = Math.min(1, (ts - tr.t0) / TRIP_MS);
         if (k >= 1) { act({ type: "OFFICER_STATUS", at: ts, officerId: id, status: "on_scene" }); continue; }
         const { at, next: n } = along(tr.route, k);
@@ -593,7 +602,7 @@ export function ConsoleApp({ fontClass }: { fontClass: string }) {
       setTrips(next);
     }, 300);
     return () => clearTimeout(t);
-  }, [trips]);
+  }, [trips, state.officers, state.assignments]); // eslint-disable-line react-hooks/exhaustive-deps -- terminalOnline is derived each render; depending on it would reset the timer forever
 
   // This is an HQ screen: all HQ screens show the same shared state, and only the leader (the screen
   // open longest) animates officers, so two screens never push competing positions.
